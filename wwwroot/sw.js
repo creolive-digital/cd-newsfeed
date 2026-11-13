@@ -1,8 +1,10 @@
-const CACHE_NAME = 'techpulse-shell-v8';
+const CACHE_NAME = 'techpulse-shell-v9';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/logos/mini-logo.png',
+  '/logos/full-logo.png',
   '/icon.svg',
   '/icon-192.png',
   '/icon-512.png'

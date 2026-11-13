@@ -10,7 +10,7 @@
     if ('caches' in window) {
       caches.keys().then(function(keys) {
         keys.forEach(function(key) {
-          if (key !== 'techpulse-shell-v6') {
+          if (key !== 'techpulse-shell-v9') {
             caches.delete(key);
           }
         });
@@ -23,8 +23,8 @@
   <meta name="theme-color" content="#0b1326" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <link rel="apple-touch-icon" href="/icon-192.png" />
-  <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+  <link rel="apple-touch-icon" href="/logos/mini-logo.png" />
+  <link rel="icon" type="image/png" href="/logos/mini-logo.png" />
 
   <!-- Fonts & Material Symbols -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -163,7 +163,7 @@
   <div id="pwa-install-banner" class="fixed bottom-4 inset-x-4 max-w-lg mx-auto z-50 hidden">
     <div class="bg-surface-container-high/95 backdrop-blur-xl border border-primary/30 p-4 rounded-2xl shadow-2xl flex items-center justify-between gap-3">
       <div class="flex items-center gap-3">
-        <img src="/icon.svg" alt="App Icon" class="w-11 h-11 rounded-xl p-1 bg-surface-container-lowest shadow-md flex-shrink-0" />
+        <img src="/logos/mini-logo.png" alt="TechPulse AI" class="w-11 h-11 rounded-xl object-contain shadow-md flex-shrink-0" />
         <div class="flex flex-col min-w-0">
           <span class="font-bold text-sm text-on-surface flex items-center gap-1.5">
             Install TechPulse AI
@@ -190,7 +190,7 @@
       <!-- Brand Logo & Name -->
       <div class="flex items-center gap-2.5 min-w-0 cursor-pointer" onclick="filterByTag('All')">
         <div class="relative w-9 h-9 rounded-xl bg-surface-container-lowest p-1.5 flex items-center justify-center shadow-md flex-shrink-0 border border-primary/20">
-          <img src="/icon.svg" alt="TechPulse Logo" class="w-full h-full object-contain filter drop-shadow-[0_0_6px_rgba(76,215,246,0.6)]" />
+          <img src="/logos/mini-logo.png" alt="TechPulse AI" class="w-full h-full object-contain filter drop-shadow-[0_0_6px_rgba(76,215,246,0.6)]" />
         </div>
         <div class="flex flex-col min-w-0">
           <div class="flex items-center gap-1.5">
@@ -239,18 +239,12 @@
       <div class="flex flex-col items-center text-center mb-6">
         <div class="relative mb-3 group">
           <div class="absolute -inset-2 bg-gradient-to-tr from-primary to-secondary rounded-3xl blur-lg opacity-40 group-hover:opacity-70 transition-opacity"></div>
-          <div class="relative w-20 h-20 rounded-2xl bg-surface-container-lowest p-3 shadow-2xl flex items-center justify-center border border-primary/30">
-            <img src="/icon.svg" alt="TechPulse AI Logo" class="w-full h-full object-contain filter drop-shadow-[0_0_10px_rgba(76,215,246,0.5)]" />
-          </div>
-          <div class="absolute -bottom-1 -right-1 bg-surface-container-highest px-2 py-0.5 rounded-full flex items-center gap-1 shadow-md border border-primary/20">
+          <img src="/logos/full-logo.png" alt="TechPulse AI" class="relative w-72 max-w-full h-auto object-contain drop-shadow-[0_0_14px_rgba(76,215,246,0.25)]" />
+          <div class="absolute bottom-1 right-0 bg-surface-container-highest px-2 py-0.5 rounded-full flex items-center gap-1 shadow-md border border-primary/20">
             <span class="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></span>
             <span class="text-[9px] uppercase font-bold tracking-wider text-primary">Live</span>
           </div>
         </div>
-        <h1 class="text-2xl sm:text-3xl font-extrabold text-on-surface flex items-center gap-2">
-          <span>TechPulse</span>
-          <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary-container to-secondary">AI</span>
-        </h1>
         <p class="text-xs sm:text-sm text-on-surface-variant mt-1 max-w-xs leading-relaxed">
           Sri Lanka's Premier Tech & AI Intelligence Network
         </p>
@@ -695,7 +689,7 @@
     function initServiceWorker() {
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js?v=8').then((reg) => {
+          navigator.serviceWorker.register('/sw.js?v=9').then((reg) => {
             reg.update();
             reg.onupdatefound = () => {
               const newWorker = reg.installing;
