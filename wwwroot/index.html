@@ -260,12 +260,9 @@
       <div class="bg-surface-container/80 backdrop-blur-2xl rounded-2xl p-6 shadow-2xl border border-surface-container-high relative overflow-hidden">
         
         <!-- Auth Tabs (Login / Register) -->
-        <div class="grid grid-cols-3 gap-1 bg-surface-container-lowest p-1 rounded-xl mb-5">
+        <div class="grid grid-cols-2 gap-1 bg-surface-container-lowest p-1 rounded-xl mb-5">
           <button id="tab-login" class="py-2 rounded-lg font-semibold text-xs sm:text-sm text-on-primary bg-primary shadow-sm transition-all" onclick="switchAuthTab('login')">
             User Sign In
-          </button>
-          <button id="tab-admin" class="py-2 rounded-lg font-semibold text-xs sm:text-sm text-on-surface-variant hover:text-on-surface transition-all" onclick="switchAuthTab('admin')">
-            Admin Sign In
           </button>
           <button id="tab-register" class="py-2 rounded-lg font-semibold text-xs sm:text-sm text-on-surface-variant hover:text-on-surface transition-all" onclick="switchAuthTab('register')">
             Create Account
@@ -305,20 +302,6 @@
           </button>
         </form>
 
-        <!-- ADMIN LOGIN FORM -->
-        <form id="admin-login-form" class="hidden flex flex-col gap-3.5" onsubmit="handleAdminLoginSubmit(event)">
-          <p class="text-xs text-on-surface-variant">Administrator credentials are separate from regular user accounts.</p>
-          <div class="flex flex-col gap-1">
-            <label class="text-xs font-medium text-on-surface-variant" for="admin-login-username">Admin Username</label>
-            <input id="admin-login-username" type="text" required autocomplete="username" class="w-full rounded-xl bg-surface-container-lowest py-2.5 px-3 text-sm text-on-surface border border-surface-container-high focus:outline-none focus:ring-2 focus:ring-primary/50" />
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="text-xs font-medium text-on-surface-variant" for="admin-login-password">Admin Password</label>
-            <input id="admin-login-password" type="password" required autocomplete="current-password" class="w-full rounded-xl bg-surface-container-lowest py-2.5 px-3 text-sm text-on-surface border border-surface-container-high focus:outline-none focus:ring-2 focus:ring-primary/50" />
-          </div>
-          <button id="admin-login-submit-btn" type="submit" class="w-full mt-2 py-3 px-4 rounded-xl bg-gradient-to-r from-secondary to-primary text-on-primary font-semibold text-sm">Sign in as Admin</button>
-        </form>
-
         <!-- REGISTER FORM -->
         <form id="register-form" class="hidden flex flex-col gap-3.5" onsubmit="handleRegisterSubmit(event)">
           <div class="flex flex-col gap-1">
@@ -350,7 +333,7 @@
 
           <div class="p-2.5 rounded-lg bg-surface-container-high/50 border border-primary/20 text-[11px] text-on-surface-variant flex items-center gap-2">
             <span class="material-symbols-outlined text-[16px] text-primary">info</span>
-            <span>New accounts are regular users. Administrators use the separate admin sign-in.</span>
+            <span>New accounts can join the community feed.</span>
           </div>
 
           <button id="register-submit-btn" type="submit" class="w-full mt-1 py-3 px-4 rounded-xl bg-gradient-to-r from-primary-container via-primary to-surface-tint text-on-primary-container font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:opacity-95 active:scale-[0.99] transition-all">
@@ -712,7 +695,7 @@
     function initServiceWorker() {
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js?v=7').then((reg) => {
+          navigator.serviceWorker.register('/sw.js?v=8').then((reg) => {
             reg.update();
             reg.onupdatefound = () => {
               const newWorker = reg.installing;
@@ -828,14 +811,14 @@
     }
 
     function switchAuthTab(tab) {
-      const tabs = ['login', 'admin', 'register'];
+      const tabs = ['login', 'register'];
       const activeClass = 'py-2 rounded-lg font-semibold text-xs sm:text-sm text-on-primary bg-primary shadow-sm transition-all';
       const inactiveClass = 'py-2 rounded-lg font-semibold text-xs sm:text-sm text-on-surface-variant hover:text-on-surface transition-all';
       document.getElementById('auth-error-banner').classList.add('hidden');
 
       for (const name of tabs) {
         document.getElementById(`tab-${name}`).className = name === tab ? activeClass : inactiveClass;
-        document.getElementById(`${name === 'admin' ? 'admin-login' : name}-form`).classList.toggle('hidden', name !== tab);
+        document.getElementById(`${name}-form`).classList.toggle('hidden', name !== tab);
       }
     }
 
@@ -883,38 +866,6 @@
           await loadFeed();
         } else {
           showAuthError(data.message || 'Login failed. Please verify your username and password.');
-        }
-      } catch (err) {
-        showAuthError('Network error. Please try again.');
-      } finally {
-        btn.disabled = false;
-        btn.classList.remove('opacity-75');
-      }
-    }
-
-    async function handleAdminLoginSubmit(e) {
-      e.preventDefault();
-      const btn = document.getElementById('admin-login-submit-btn');
-      btn.disabled = true;
-      btn.classList.add('opacity-75');
-
-      const username = document.getElementById('admin-login-username').value.trim();
-      const password = document.getElementById('admin-login-password').value;
-      try {
-        const res = await fetch('/api/admin/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password }),
-          credentials: 'include'
-        });
-        const data = await res.json();
-        if (res.ok) {
-          currentUser = data;
-          showToast('Welcome, ' + currentUser.displayName + '!', 'success');
-          renderAuthenticatedState();
-          await loadFeed();
-        } else {
-          showAuthError(data.message || 'Administrator sign-in failed.');
         }
       } catch (err) {
         showAuthError('Network error. Please try again.');

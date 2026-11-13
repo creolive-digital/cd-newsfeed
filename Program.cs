@@ -137,6 +137,10 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Keep administrator sign-in off the public homepage; serve it only at /admin.
+app.MapGet("/admin", (IWebHostEnvironment environment) =>
+    Results.File(Path.Combine(environment.WebRootPath, "admin", "index.html"), "text/html"));
+
 // ==========================================
 // Authentication & User Endpoints
 // ==========================================
@@ -297,7 +301,7 @@ app.MapPost("/api/auth/login", async (LoginRequest req, AppDbContext db, IPasswo
         (!string.IsNullOrWhiteSpace(adminUsername) && string.Equals(req.Username.Trim(), adminUsername, StringComparison.OrdinalIgnoreCase)) ||
         (!string.IsNullOrEmpty(adminPassword) && FixedTimeEquals(adminPassword, req.Password)))
     {
-        return Results.Json(new { message = "Use the separate administrator sign-in." }, statusCode: StatusCodes.Status401Unauthorized);
+        return Results.Json(new { message = "Invalid username or password." }, statusCode: StatusCodes.Status401Unauthorized);
     }
 
     if (user == null)
