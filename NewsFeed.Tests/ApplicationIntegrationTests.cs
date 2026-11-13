@@ -32,7 +32,7 @@ public class ApplicationIntegrationTests
     }
 
     [Fact]
-    public async Task First_registered_user_is_admin_and_can_load_feed()
+    public async Task Registered_user_gets_regular_role_and_can_load_feed()
     {
         using var factory = new NewsFeedApplicationFactory();
         using var client = factory.CreateClient();
@@ -47,7 +47,7 @@ public class ApplicationIntegrationTests
 
         Assert.Equal(HttpStatusCode.Created, registerResponse.StatusCode);
         using var registrationJson = JsonDocument.Parse(await registerResponse.Content.ReadAsStringAsync());
-        Assert.Equal("Admin", registrationJson.RootElement.GetProperty("role").GetString());
+        Assert.Equal("User", registrationJson.RootElement.GetProperty("role").GetString());
 
         using var feedResponse = await client.GetAsync("/api/feed");
         Assert.Equal(HttpStatusCode.OK, feedResponse.StatusCode);

@@ -1,4 +1,6 @@
 using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
@@ -157,21 +159,25 @@ app.MapPost("/api/auth/register", async (RegisterRequest req, AppDbContext db, I
     var cleanUsername = req.Username.Trim();
     var usernameLower = cleanUsername.ToLower();
 
+    var adminUsername = app.Configuration["AdminAuth:Username"]?.Trim();
+    var adminPassword = app.Configuration["AdminAuth:Password"];
+    if ((!string.IsNullOrWhiteSpace(adminUsername) && string.Equals(cleanUsername, adminUsername, StringComparison.OrdinalIgnoreCase)) ||
+        (!string.IsNullOrEmpty(adminPassword) && FixedTimeEquals(adminPassword, req.Password)))
+    {
+        return Results.BadRequest(new { message = "Choose credentials different from the administrator sign-in." });
+    }
+
     var exists = await db.Users.AnyAsync(u => u.Username.ToLower() == usernameLower);
     if (exists)
     {
         return Results.Conflict(new { message = "Username is already taken." });
     }
 
-    // Automatically assign "Admin" to the very first registered user
-    var isFirstUser = !await db.Users.AnyAsync();
-    var role = isFirstUser ? "Admin" : "User";
-
     var user = new User
     {
         DisplayName = req.DisplayName.Trim(),
         Username = cleanUsername,
-        Role = role,
+        Role = "User",
         IsActive = true,
         CreatedAt = DateTime.UtcNow
     };
@@ -204,6 +210,76 @@ app.MapPost("/api/auth/register", async (RegisterRequest req, AppDbContext db, I
     });
 });
 
+// POST /api/admin/auth/login: Dedicated administrator credentials, separate from user accounts.
+app.MapPost("/api/admin/auth/login", async (LoginRequest req, AppDbContext db, IPasswordHasher<User> passwordHasher, HttpContext httpContext) =>
+{
+    var configuredUsername = app.Configuration["AdminAuth:Username"]?.Trim();
+    var configuredPassword = app.Configuration["AdminAuth:Password"];
+    if (string.IsNullOrWhiteSpace(configuredUsername) || string.IsNullOrEmpty(configuredPassword))
+    {
+        return Results.Json(new { message = "Administrator sign-in is not configured on this server." }, statusCode: StatusCodes.Status503ServiceUnavailable);
+    }
+
+    if (string.IsNullOrWhiteSpace(req.Username) || string.IsNullOrEmpty(req.Password) ||
+        !FixedTimeEquals(configuredUsername, req.Username.Trim()) || !FixedTimeEquals(configuredPassword, req.Password))
+    {
+        return Results.Json(new { message = "Invalid administrator username or password." }, statusCode: StatusCodes.Status401Unauthorized);
+    }
+
+    if (await db.Users.AnyAsync(u => u.Role != "Admin" && u.Username.ToLower() == configuredUsername.ToLower()))
+    {
+        return Results.Conflict(new { message = "The configured administrator username is already in use by a regular account." });
+    }
+
+    var adminUser = await db.Users.OrderBy(u => u.Id).FirstOrDefaultAsync(u => u.Role == "Admin");
+    if (adminUser is { IsActive: false })
+    {
+        return Results.Json(new { message = "The administrator account is deactivated." }, statusCode: StatusCodes.Status403Forbidden);
+    }
+
+    if (adminUser == null)
+    {
+        if (await db.Users.AnyAsync(u => u.Username.ToLower() == configuredUsername.ToLower()))
+        {
+            return Results.Conflict(new { message = "The configured administrator username is already in use by a regular account." });
+        }
+
+        adminUser = new User
+        {
+            DisplayName = "Administrator",
+            Username = configuredUsername,
+            Role = "Admin",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+        adminUser.PasswordHash = passwordHasher.HashPassword(adminUser, configuredPassword);
+        db.Users.Add(adminUser);
+        await db.SaveChangesAsync();
+    }
+
+    var claims = new List<Claim>
+    {
+        new(ClaimTypes.NameIdentifier, adminUser.Id.ToString()),
+        new(ClaimTypes.Name, adminUser.Username),
+        new("DisplayName", adminUser.DisplayName),
+        new(ClaimTypes.Role, adminUser.Role)
+    };
+    var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+    await httpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity), new AuthenticationProperties
+    {
+        IsPersistent = true,
+        ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7)
+    });
+
+    return Results.Ok(new
+    {
+        id = adminUser.Id,
+        displayName = adminUser.DisplayName,
+        username = adminUser.Username,
+        role = adminUser.Role
+    });
+});
+
 // POST /api/auth/login
 app.MapPost("/api/auth/login", async (LoginRequest req, AppDbContext db, IPasswordHasher<User> passwordHasher, HttpContext httpContext) =>
 {
@@ -214,6 +290,15 @@ app.MapPost("/api/auth/login", async (LoginRequest req, AppDbContext db, IPasswo
 
     var usernameLower = req.Username.Trim().ToLower();
     var user = await db.Users.FirstOrDefaultAsync(u => u.Username.ToLower() == usernameLower);
+
+    var adminUsername = app.Configuration["AdminAuth:Username"]?.Trim();
+    var adminPassword = app.Configuration["AdminAuth:Password"];
+    if (user?.Role == "Admin" ||
+        (!string.IsNullOrWhiteSpace(adminUsername) && string.Equals(req.Username.Trim(), adminUsername, StringComparison.OrdinalIgnoreCase)) ||
+        (!string.IsNullOrEmpty(adminPassword) && FixedTimeEquals(adminPassword, req.Password)))
+    {
+        return Results.Json(new { message = "Use the separate administrator sign-in." }, statusCode: StatusCodes.Status401Unauthorized);
+    }
 
     if (user == null)
     {
@@ -621,6 +706,13 @@ admin.MapDelete("/comments/{id:int}", async (int id, AppDbContext db) =>
 });
 
 app.Run();
+
+static bool FixedTimeEquals(string expected, string actual)
+{
+    var expectedBytes = Encoding.UTF8.GetBytes(expected);
+    var actualBytes = Encoding.UTF8.GetBytes(actual);
+    return expectedBytes.Length == actualBytes.Length && CryptographicOperations.FixedTimeEquals(expectedBytes, actualBytes);
+}
 
 // Helper method to retrieve authenticated and active user
 static async Task<User?> GetAuthenticatedActiveUserAsync(HttpContext context, AppDbContext db)
