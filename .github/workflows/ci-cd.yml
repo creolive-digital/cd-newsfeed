@@ -50,18 +50,24 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          fingerprint: SHA256:BXJrpYnEVSQ9GY3Ls2mFz5w8d8O+KD3bcs9WWNWP33M
+          fingerprint: SHA256:W5WLYd+hkp7OiPkFpF4FE/v9Yd22wo2jVICJ/OfuRfU
           source: "./publish/*"
           target: /var/www/sinhala-news
           strip_components: 1
 
       - name: Restart application service
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          ASPNETCORE_URLS: http://0.0.0.0:4050
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          fingerprint: SHA256:BXJrpYnEVSQ9GY3Ls2mFz5w8d8O+KD3bcs9WWNWP33M
+          fingerprint: SHA256:W5WLYd+hkp7OiPkFpF4FE/v9Yd22wo2jVICJ/OfuRfU
+          envs: ASPNETCORE_URLS
           script: |
+            sudo sed -i '/^ASPNETCORE_URLS=/d' /etc/sinhala-news/sinhala-news.env
+            printf 'ASPNETCORE_URLS=%s\n' "$ASPNETCORE_URLS" | sudo tee -a /etc/sinhala-news/sinhala-news.env >/dev/null
+            sudo chmod 600 /etc/sinhala-news/sinhala-news.env
             sudo systemctl restart sinhala-news.service
             sudo systemctl is-active --quiet sinhala-news.service
