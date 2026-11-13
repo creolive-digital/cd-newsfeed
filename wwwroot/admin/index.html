@@ -5,12 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex, nofollow" />
   <meta name="theme-color" content="#07111f" />
-  <title>Administrator Sign In | TechPulse AI</title>
+  <title>Admin Management | TechPulse AI</title>
   <style>
     :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; background: #07111f; color: #e8f1fa; }
     * { box-sizing: border-box; }
-    body { min-height: 100vh; margin: 0; display: grid; place-items: center; padding: 24px; background: radial-gradient(ellipse at 50% 0%, #15324a 0, #07111f 60%); }
-    main { width: min(100%, 420px); padding: 36px; border: 1px solid #294055; border-radius: 22px; background: #101e2c; box-shadow: 0 24px 80px #0008; }
+    body { min-height: 100vh; margin: 0; background: radial-gradient(ellipse at 50% 0%, #15324a 0, #07111f 55%); }
+    button { font: inherit; cursor: pointer; }
+    .hidden { display: none !important; }
+    .login-wrap { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+    .login-card { width: min(100%, 420px); padding: 36px; border: 1px solid #294055; border-radius: 22px; background: #101e2c; box-shadow: 0 24px 80px #0008; }
     .brand { display: flex; align-items: center; gap: 13px; margin-bottom: 28px; }
     .brand img { width: 48px; height: 48px; }
     .brand strong { display: block; font-size: 17px; }
@@ -20,41 +23,220 @@
     label { display: block; margin: 16px 0 7px; color: #c7d5e1; font-size: 13px; font-weight: 600; }
     input { width: 100%; padding: 12px 13px; border: 1px solid #344b60; border-radius: 10px; outline: none; background: #091521; color: #f4f8fc; font-size: 15px; }
     input:focus { border-color: #51c7e8; box-shadow: 0 0 0 3px #51c7e833; }
-    button { width: 100%; margin-top: 22px; padding: 13px; border: 0; border-radius: 10px; background: linear-gradient(100deg, #39b8dc, #6787f5); color: #06111e; font-size: 15px; font-weight: 750; cursor: pointer; }
+    .primary { border: 0; border-radius: 10px; background: linear-gradient(100deg, #39b8dc, #6787f5); color: #06111e; font-weight: 750; }
+    .login-button { width: 100%; margin-top: 22px; padding: 13px; font-size: 15px; }
     button:disabled { opacity: .65; cursor: wait; }
-    #message { min-height: 20px; margin: 15px 0 0; color: #ff9eaa; font-size: 13px; line-height: 1.45; }
+    #login-message { min-height: 20px; margin: 15px 0 0; color: #ff9eaa; font-size: 13px; line-height: 1.45; }
     .back { display: block; margin-top: 18px; color: #90cde2; font-size: 13px; text-align: center; text-decoration: none; }
     .back:hover { text-decoration: underline; }
-    @media (max-width: 480px) { main { padding: 28px 22px; } }
+    .dashboard { max-width: 1100px; margin: 0 auto; padding: 26px 22px 60px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding-bottom: 22px; border-bottom: 1px solid #21374a; }
+    .topbar .brand { margin: 0; }
+    .topbar-actions { display: flex; align-items: center; gap: 12px; }
+    #admin-name { color: #aac0d1; font-size: 13px; }
+    .secondary { padding: 9px 13px; border: 1px solid #385269; border-radius: 9px; background: #142638; color: #d7e6f2; font-size: 13px; }
+    .heading { margin: 28px 0 18px; }
+    .heading h1 { font-size: 28px; }
+    .heading p { margin: 7px 0 0; color: #91aabd; font-size: 14px; }
+    .stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-bottom: 24px; }
+    .stat { padding: 17px 19px; border: 1px solid #294055; border-radius: 14px; background: #101e2cdd; }
+    .stat span { display: block; color: #9bb0c1; font-size: 12px; }
+    .stat strong { display: block; margin-top: 6px; color: #67d2eb; font-size: 25px; }
+    .panel { overflow: hidden; border: 1px solid #294055; border-radius: 16px; background: #101e2cdd; }
+    .tabs { display: flex; gap: 8px; padding: 13px; border-bottom: 1px solid #294055; }
+    .tab { padding: 9px 13px; border: 1px solid transparent; border-radius: 9px; background: transparent; color: #9bb0c1; font-size: 13px; }
+    .tab.active { border-color: #31566a; background: #163044; color: #73d7ed; }
+    .tab-count { margin-left: 5px; padding: 2px 6px; border-radius: 20px; background: #263e50; font-size: 11px; }
+    .list { display: grid; gap: 11px; padding: 15px; }
+    .card { padding: 16px; border: 1px solid #294055; border-radius: 12px; background: #0b1825; }
+    .card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .card h2 { margin: 0; font-size: 16px; line-height: 1.5; }
+    .meta { margin-top: 5px; color: #91aabd; font-size: 12px; }
+    .summary { margin: 12px 0; color: #c1d0dc; font-size: 13px; line-height: 1.65; white-space: pre-wrap; }
+    .post-image { display: block; max-width: 100%; max-height: 240px; margin-top: 12px; border-radius: 9px; object-fit: cover; }
+    .link { display: inline-block; max-width: 100%; margin-top: 7px; overflow-wrap: anywhere; color: #79cee6; font-size: 12px; }
+    .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px solid #203447; }
+    .actions button { padding: 8px 11px; border-radius: 8px; font-size: 12px; font-weight: 650; }
+    .approve { border: 0; background: #36b5a0; color: #05201e; }
+    .danger { border: 1px solid #713d4a; background: #351e2a; color: #ffabb7; }
+    .user-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .user-row strong { font-size: 13px; }
+    .user-row .meta { margin-top: 4px; }
+    .badge { display: inline-block; margin-left: 6px; padding: 3px 7px; border-radius: 20px; background: #1c4450; color: #8ee2ec; font-size: 10px; text-transform: uppercase; }
+    .badge.off { background: #482833; color: #ffadb7; }
+    .empty, .error { padding: 36px 16px; color: #9bb0c1; font-size: 13px; text-align: center; }
+    .error { color: #ff9eaa; }
+    @media (max-width: 600px) { .login-card { padding: 28px 22px; } .dashboard { padding: 18px 13px 40px; } .topbar { align-items: flex-start; } .topbar .brand img { width: 38px; height: 38px; } .topbar-actions { align-items: flex-end; flex-direction: column; gap: 8px; } .stats { gap: 9px; } .stat { padding: 13px; } .tabs { gap: 3px; padding: 9px; } .tab { padding: 8px; font-size: 12px; } .card { padding: 13px; } }
   </style>
 </head>
 <body>
-  <main>
-    <div class="brand">
-      <img src="/icon.svg" alt="" />
-      <div><strong>TechPulse AI</strong><span>Administrator access</span></div>
-    </div>
-    <h1>Admin sign in</h1>
-    <p class="hint">Use the separate administrator credentials to continue.</p>
-    <form id="admin-login-form">
-      <label for="username">Admin username</label>
-      <input id="username" name="username" type="text" autocomplete="username" required />
-      <label for="password">Admin password</label>
-      <input id="password" name="password" type="password" autocomplete="current-password" required />
-      <button id="submit" type="submit">Sign in</button>
-      <p id="message" role="alert" aria-live="polite"></p>
-    </form>
-    <a class="back" href="/">Return to the news feed</a>
-  </main>
-  <script>
-    const form = document.getElementById('admin-login-form');
-    const button = document.getElementById('submit');
-    const message = document.getElementById('message');
+  <section id="login-view" class="login-wrap">
+    <main class="login-card">
+      <div class="brand">
+        <img src="/icon.svg" alt="" />
+        <div><strong>TechPulse AI</strong><span>Administrator access</span></div>
+      </div>
+      <h1>Admin sign in</h1>
+      <p class="hint">Sign in to review community posts and manage user accounts.</p>
+      <form id="admin-login-form">
+        <label for="username">Admin username</label>
+        <input id="username" name="username" type="text" autocomplete="username" required />
+        <label for="password">Admin password</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required />
+        <button id="login-button" class="primary login-button" type="submit">Sign in</button>
+        <p id="login-message" role="alert" aria-live="polite"></p>
+      </form>
+      <a class="back" href="/">Return to the news feed</a>
+    </main>
+  </section>
 
-    form.addEventListener('submit', async (event) => {
+  <main id="dashboard-view" class="dashboard hidden">
+    <header class="topbar">
+      <div class="brand">
+        <img src="/icon.svg" alt="" />
+        <div><strong>TechPulse AI</strong><span>Administration</span></div>
+      </div>
+      <div class="topbar-actions">
+        <span id="admin-name"></span>
+        <button id="logout-button" class="secondary" type="button">Sign out</button>
+      </div>
+    </header>
+    <section class="heading">
+      <h1>Management dashboard</h1>
+      <p>Review submitted posts and manage community accounts.</p>
+    </section>
+    <section class="stats" aria-label="Management summary">
+      <div class="stat"><span>Posts awaiting review</span><strong id="pending-total">—</strong></div>
+      <div class="stat"><span>Registered accounts</span><strong id="users-total">—</strong></div>
+    </section>
+    <section class="panel">
+      <nav class="tabs" aria-label="Management sections">
+        <button id="pending-tab" class="tab active" type="button">Post review <span id="pending-count" class="tab-count">0</span></button>
+        <button id="users-tab" class="tab" type="button">Users <span id="users-count" class="tab-count">0</span></button>
+      </nav>
+      <div id="pending-list" class="list"></div>
+      <div id="users-list" class="list hidden"></div>
+    </section>
+  </main>
+
+  <script>
+    const loginView = document.getElementById('login-view');
+    const dashboardView = document.getElementById('dashboard-view');
+    let currentAdmin = null;
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+    }
+
+    function showLogin(message = '') {
+      dashboardView.classList.add('hidden');
+      loginView.classList.remove('hidden');
+      document.getElementById('login-message').textContent = message;
+    }
+
+    async function api(path, options = {}) {
+      const response = await fetch(path, { credentials: 'include', ...options });
+      if (response.status === 401 || response.status === 403) {
+        currentAdmin = null;
+        showLogin('Your administrator session has ended. Please sign in again.');
+        throw new Error('Administrator authorization required.');
+      }
+      return response;
+    }
+
+    async function showDashboard(admin) {
+      if (!admin || admin.role !== 'Admin') {
+        showLogin('This account does not have administrator access.');
+        return;
+      }
+      currentAdmin = admin;
+      document.getElementById('admin-name').textContent = admin.displayName;
+      loginView.classList.add('hidden');
+      dashboardView.classList.remove('hidden');
+      await Promise.all([loadPendingPosts(), loadUsers()]);
+    }
+
+    async function loadPendingPosts() {
+      const list = document.getElementById('pending-list');
+      try {
+        const response = await api('/api/admin/posts/pending');
+        if (!response.ok) throw new Error('Could not load pending posts.');
+        const posts = await response.json();
+        document.getElementById('pending-total').textContent = posts.length;
+        document.getElementById('pending-count').textContent = posts.length;
+        list.innerHTML = posts.length ? posts.map(post => `
+          <article class="card" id="post-${post.id}">
+            <div class="card-head"><div>
+              <h2>${escapeHtml(post.sinhalaTitle)}</h2>
+              <div class="meta">By ${escapeHtml(post.author?.displayName || post.source)} · ${escapeHtml(post.tag)} · ${new Date(post.createdAt).toLocaleString()}</div>
+            </div></div>
+            ${post.imageUrl ? `<img class="post-image" src="${escapeHtml(post.imageUrl)}" alt="" onerror="this.remove()" />` : ''}
+            <p class="summary">${escapeHtml(post.sinhalaSummary)}</p>
+            ${post.link ? `<a class="link" href="${escapeHtml(post.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(post.link)}</a>` : ''}
+            <div class="actions">
+              <button class="danger" type="button" onclick="deletePost(${post.id})">Reject and delete</button>
+              <button class="approve" type="button" onclick="approvePost(${post.id})">Approve post</button>
+            </div>
+          </article>`).join('') : '<div class="empty">No posts are waiting for review.</div>';
+      } catch (error) {
+        if (error.message !== 'Administrator authorization required.') list.innerHTML = `<div class="error">${escapeHtml(error.message)}</div>`;
+      }
+    }
+
+    async function loadUsers() {
+      const list = document.getElementById('users-list');
+      try {
+        const response = await api('/api/admin/users');
+        if (!response.ok) throw new Error('Could not load users.');
+        const users = await response.json();
+        document.getElementById('users-total').textContent = users.length;
+        document.getElementById('users-count').textContent = users.length;
+        list.innerHTML = users.length ? users.map(user => `
+          <article class="card user-row" id="user-${user.id}">
+            <div><strong>${escapeHtml(user.displayName)}</strong><span class="badge ${user.role === 'Admin' ? '' : ''}">${escapeHtml(user.role)}</span>
+              <div class="meta">@${escapeHtml(user.username)} · Joined ${new Date(user.createdAt).toLocaleDateString()} · <span class="${user.isActive ? '' : 'badge off'}">${user.isActive ? 'Active' : 'Deactivated'}</span></div>
+            </div>
+            ${user.id === currentAdmin.id ? '<span class="meta">Your account</span>' : `<button class="secondary" type="button" onclick="toggleUser(${user.id})">${user.isActive ? 'Deactivate' : 'Activate'}</button>`}
+          </article>`).join('') : '<div class="empty">No registered users.</div>';
+      } catch (error) {
+        if (error.message !== 'Administrator authorization required.') list.innerHTML = `<div class="error">${escapeHtml(error.message)}</div>`;
+      }
+    }
+
+    async function approvePost(id) {
+      const response = await api(`/api/admin/posts/${id}/approve`, { method: 'PATCH' });
+      if (response.ok) await loadPendingPosts();
+    }
+
+    async function deletePost(id) {
+      if (!window.confirm('Reject and permanently delete this post?')) return;
+      const response = await api(`/api/admin/posts/${id}`, { method: 'DELETE' });
+      if (response.ok) await loadPendingPosts();
+    }
+
+    async function toggleUser(id) {
+      const response = await api(`/api/admin/users/${id}/toggle-active`, { method: 'PATCH' });
+      if (response.ok) await loadUsers();
+    }
+
+    document.getElementById('pending-tab').addEventListener('click', () => {
+      document.getElementById('pending-tab').classList.add('active');
+      document.getElementById('users-tab').classList.remove('active');
+      document.getElementById('pending-list').classList.remove('hidden');
+      document.getElementById('users-list').classList.add('hidden');
+    });
+    document.getElementById('users-tab').addEventListener('click', () => {
+      document.getElementById('users-tab').classList.add('active');
+      document.getElementById('pending-tab').classList.remove('active');
+      document.getElementById('users-list').classList.remove('hidden');
+      document.getElementById('pending-list').classList.add('hidden');
+    });
+
+    document.getElementById('admin-login-form').addEventListener('submit', async event => {
       event.preventDefault();
+      const button = document.getElementById('login-button');
       button.disabled = true;
-      message.textContent = '';
+      document.getElementById('login-message').textContent = '';
       try {
         const response = await fetch('/api/admin/auth/login', {
           method: 'POST',
@@ -67,16 +249,32 @@
         });
         const data = await response.json();
         if (!response.ok) {
-          message.textContent = data.message || 'Administrator sign-in failed.';
+          document.getElementById('login-message').textContent = data.message || 'Administrator sign-in failed.';
           return;
         }
-        window.location.replace('/');
+        await showDashboard(data);
       } catch {
-        message.textContent = 'Could not connect. Please try again.';
+        document.getElementById('login-message').textContent = 'Could not connect. Please try again.';
       } finally {
         button.disabled = false;
       }
     });
+
+    document.getElementById('logout-button').addEventListener('click', async () => {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+      currentAdmin = null;
+      document.getElementById('admin-login-form').reset();
+      showLogin();
+    });
+
+    (async function initialize() {
+      try {
+        const response = await fetch('/api/auth/me', { credentials: 'include' });
+        if (response.ok) await showDashboard(await response.json());
+      } catch {
+        showLogin();
+      }
+    })();
   </script>
 </body>
 </html>
