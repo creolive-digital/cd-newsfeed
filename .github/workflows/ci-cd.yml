@@ -1,0 +1,67 @@
+name: CI and VPS deployment
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      USE_INMEMORY_DB: "true"
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Run integration tests
+        run: dotnet test ./NewsFeed.Tests/NewsFeed.Tests.csproj --configuration Release
+
+      - name: Publish application
+        run: dotnet publish ./cd-newsfeed.csproj --configuration Release --output ./publish
+
+      - name: Upload publish artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sinhala-news-publish
+          path: ./publish
+          if-no-files-found: error
+
+  deploy-vps:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download publish artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: sinhala-news-publish
+          path: ./publish
+
+      - name: Copy application to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          fingerprint: SHA256:BXJrpYnEVSQ9GY3Ls2mFz5w8d8O+KD3bcs9WWNWP33M
+          source: "./publish/*"
+          target: /var/www/sinhala-news
+          strip_components: 1
+
+      - name: Restart application service
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          fingerprint: SHA256:BXJrpYnEVSQ9GY3Ls2mFz5w8d8O+KD3bcs9WWNWP33M
+          script: |
+            sudo systemctl restart sinhala-news.service
+            sudo systemctl is-active --quiet sinhala-news.service

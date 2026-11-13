@@ -1,0 +1,11 @@
+**/bin/
+**/obj/
+.vs/
+.idea/
+.antigravitycli/
+publish/
+appsettings.json
+appsettings.Development.json
+appsettings.*.json
+!appsettings.example.json
+TestResults/

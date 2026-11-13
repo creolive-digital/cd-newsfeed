@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="si"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_blank" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100%;margin:0;padding:0;min-height:100%;}body{overscroll-behavior-y:none;-webkit-tap-highlight-color:transparent;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "surface-variant": "#2d3449", "background": "#0b1326", "on-surface": "#dae2fd", "on-tertiary-fixed-variant": "#003ea8", "on-tertiary": "#002a78", "outline": "#869397", "on-error": "#690005", "on-tertiary-container": "#003490", "surface-container-low": "#131b2e", "surface-tint": "#4cd7f6", "primary": "#4cd7f6", "on-primary-fixed": "#001f26", "outline-variant": "#3d494c", "surface": "#0b1326", "inverse-surface": "#dae2fd", "error-container": "#93000a", "on-tertiary-fixed": "#00174b", "tertiary": "#b4c5ff", "tertiary-container": "#85a3ff", "secondary": "#d0bcff", "surface-bright": "#31394d", "on-background": "#dae2fd", "surface-dim": "#0b1326", "on-primary-container": "#00424f", "on-error-container": "#ffdad6", "inverse-primary": "#00687a", "on-secondary": "#3c0091", "inverse-on-surface": "#283044", "secondary-container": "#571bc1", "on-primary-fixed-variant": "#004e5c", "primary-fixed": "#acedff", "on-secondary-fixed": "#23005c", "primary-container": "#06b6d4", "on-primary": "#003640", "surface-container-highest": "#2d3449", "surface-container-lowest": "#060e20", "tertiary-fixed-dim": "#b4c5ff", "on-secondary-container": "#c4abff", "secondary-fixed-dim": "#d0bcff", "primary-fixed-dim": "#4cd7f6", "surface-container-high": "#222a3d", "surface-container": "#171f33", "on-secondary-fixed-variant": "#5516be", "secondary-fixed": "#e9ddff", "error": "#ffb4ab", "on-surface-variant": "#bcc9cd", "tertiary-fixed": "#dbe1ff" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-sm": "0.5rem", "margin": "1rem", "margin-lg": "2.5rem", "space-lg": "1.5rem", "space-xl": "2rem", "gutter-lg": "1.5rem", "margin-md": "1.5rem", "space-xs": "0.25rem", "space-md": "1rem", "gutter": "1rem" }, "fontFamily": { "label-sm": ["Inter"], "body-lg": ["Inter"], "body-sm": ["Inter"], "headline-md": ["Inter"], "label-md": ["Inter"], "body-md": ["Inter"], "display-lg": ["Inter"], "headline-lg-mobile": ["Inter"], "headline-sm": ["Inter"], "headline-lg": ["Inter"] }, "fontSize": { "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "600" }], "body-lg": ["16px", { "lineHeight": "26px", "fontWeight": "400" }], "body-sm": ["12px", { "lineHeight": "18px", "fontWeight": "400" }], "headline-md": ["22px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "label-md": ["13px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "500" }], "body-md": ["14px", { "lineHeight": "22px", "fontWeight": "400" }], "display-lg": ["40px", { "lineHeight": "52px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "headline-lg-mobile": ["26px", { "lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "700" }], "headline-sm": ["18px", { "lineHeight": "26px", "fontWeight": "600" }], "headline-lg": ["32px", { "lineHeight": "42px", "letterSpacing": "-0.02em", "fontWeight": "700" }] } } } };</script></head><body class="bg-background text-on-surface font-body-md text-body-md pt-safe pb-safe flex flex-col min-h-screen"><main class="flex flex-col relative w-full bg-background min-h-screen"><div class="flex flex-col w-full text-on-surface pb-10">
+<!-- Subtle Ambient Glow Backdrop -->
+<div class="fixed top-0 left-1/2 -translate-x-1/2 w-80 h-80 bg-primary/10 rounded-full blur-[100px] pointer-events-none -z-10"></div>
+<div class="fixed top-96 right-0 w-64 h-64 bg-secondary-container/20 rounded-full blur-[110px] pointer-events-none -z-10"></div>
+<!-- Step Bar & Language Selector -->
+<div class="w-full px-margin py-space-sm flex items-center justify-between">
+<div class="flex items-center space-x-2 bg-surface-container-high px-3 py-1.5 rounded-full shadow-sm">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+<span class="font-label-sm text-label-sm text-primary tracking-wide">පියවර 1/2: මූලික තොරතුරු</span>
+</div>
+<!-- Language Toggle Pill -->
+<button class="flex items-center bg-surface-container-high px-3 py-1.5 rounded-full shadow-sm text-on-surface hover:text-primary transition-colors" id="lang-switch-btn" type="button">
+<span class="material-symbols-outlined text-[16px] mr-1 text-primary">translate</span>
+<span class="font-label-sm text-label-sm font-semibold tracking-wider"><span class="text-primary font-bold">සිංහල</span> | ENG</span>
+</button>
+</div>
+<!-- Progress Bar Line -->
+<div class="w-full px-margin my-space-xs">
+<div class="w-full h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-primary to-secondary w-1/2 rounded-full transition-all duration-500"></div>
+</div>
+</div>
+<!-- Header Section with Logo & Bilingual Intro -->
+<div class="flex flex-col items-center text-center px-margin mt-space-md mb-space-lg">
+<div class="relative mb-space-sm group">
+<div class="absolute -inset-1.5 bg-gradient-to-r from-primary to-secondary rounded-2xl blur-md opacity-40 group-hover:opacity-75 transition duration-300"></div>
+<div class="relative w-16 h-16 rounded-2xl bg-surface-container-high flex items-center justify-center p-2 shadow-lg overflow-hidden">
+<img alt="TechPulse Sinhala AI Logo" class="w-full h-full object-contain drop-shadow" src="https://lh3.googleusercontent.com/aida/ALJJyrCu0uVzPQ52oH77tjnyeyRjofTy7_A5RpzE8lMznWmAVI_Ib852K_61L8-rTb2dBLLMw-r5DgjvPuJf6kE24p60FFsT8J7nwrfx2v_X_Fx-XFTpoexZlVaEn6azCD0jpEJuu8B7SGzOSdJumwrOm3lQ9RpV0asjimv49BMc0fSN3LSNllXTOT0rsd7MVMiwPd6dWU4K4JW91ulaylP8rtxV5ZEsvOKBxQiDVfgLq-_a"/>
+</div>
+</div>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface font-bold tracking-tight">නව ගිණුමක් සාදන්න</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant max-w-xs mt-1.5">නවතම AI සහ තාක්ෂණ පුවත් ක්ෂණිකව ඔබ වෙත ලබාගන්න</p>
+</div>
+<!-- Registration Form Card -->
+<form class="flex flex-col px-margin gap-y-4" id="registration-form" onsubmit="event.preventDefault();">
+<!-- Field 1: Full Name -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-primary">badge</span>
+        සම්පූර්ණ නම (Full Name)
+      </label>
+<div class="relative rounded-lg bg-surface-container-low shadow-inner focus-within:bg-surface-container transition-all">
+<input class="w-full bg-transparent px-4 py-3 text-on-surface font-body-md text-body-md placeholder:text-outline focus:outline-none" id="fullname" placeholder="උදා: කසුන් පෙරේරා" required="" type="text"/>
+</div>
+</div>
+<!-- Field 2: Email -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-primary">alternate_email</span>
+        විද්‍යුත් තැපෑල (Email Address)
+      </label>
+<div class="relative rounded-lg bg-surface-container-low shadow-inner focus-within:bg-surface-container transition-all">
+<input class="w-full bg-transparent px-4 py-3 text-on-surface font-body-md text-body-md placeholder:text-outline focus:outline-none" id="email" placeholder="name@example.com" required="" type="email"/>
+</div>
+</div>
+<!-- Field 3: Mobile Phone (+94 LK code) -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-primary">smartphone</span>
+        ජංගම දුරකථන අංකය (Mobile Number)
+      </label>
+<div class="flex items-center gap-2">
+<div class="flex items-center gap-1 bg-surface-container-high px-3 py-3 rounded-lg text-on-surface select-none shadow-sm">
+<span class="text-sm">🇱🇰</span>
+<span class="font-label-md text-label-md font-semibold text-primary">+94</span>
+</div>
+<div class="flex-1 rounded-lg bg-surface-container-low shadow-inner focus-within:bg-surface-container transition-all">
+<input class="w-full bg-transparent px-3 py-3 text-on-surface font-body-md text-body-md placeholder:text-outline focus:outline-none" id="mobile" pattern="[0-9]{9,10}" placeholder="77 123 4567" type="tel"/>
+</div>
+</div>
+</div>
+<!-- Field 4: Password with Live Strength Meter -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface flex items-center justify-between">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-primary">lock</span>
+          නව මුරපදය (Create Password)
+        </span>
+<span class="font-label-sm text-label-sm text-outline" id="strength-label">දුර්වල (Weak)</span>
+</label>
+<div class="relative rounded-lg bg-surface-container-low shadow-inner focus-within:bg-surface-container transition-all flex items-center pr-3">
+<input class="w-full bg-transparent px-4 py-3 text-on-surface font-body-md text-body-md placeholder:text-outline focus:outline-none" id="password-input" placeholder="••••••••" required="" type="password"/>
+<button class="text-outline hover:text-on-surface transition-colors focus:outline-none" id="toggle-pw-btn" type="button">
+<span class="material-symbols-outlined text-[20px]" id="eye-icon">visibility</span>
+</button>
+</div>
+<!-- Segmented Strength Meter Indicator -->
+<div class="grid grid-cols-3 gap-1.5 mt-1">
+<div class="h-1.5 rounded-full bg-surface-container-highest transition-colors duration-300" id="bar-1"></div>
+<div class="h-1.5 rounded-full bg-surface-container-highest transition-colors duration-300" id="bar-2"></div>
+<div class="h-1.5 rounded-full bg-surface-container-highest transition-colors duration-300" id="bar-3"></div>
+</div>
+<p class="font-body-sm text-[11px] leading-[14px] text-outline mt-0.5">අවම වශයෙන් අකුරු 8ක්, අංක සහ විශේෂ සලකුණු ඇතුළත් කරන්න.</p>
+</div>
+<!-- Section 5: Tech Interests Multi-Select -->
+<div class="flex flex-col gap-2 mt-2">
+<div class="flex items-center justify-between">
+<label class="font-label-md text-label-md text-on-surface flex items-center gap-1.5 font-medium">
+<span class="material-symbols-outlined text-[16px] text-secondary">interests</span>
+          ඔබ කැමති තාක්ෂණික ක්ෂේත්‍ර තෝරන්න
+        </label>
+<span class="font-label-sm text-[10px] text-outline uppercase tracking-wider">බහුවරණ</span>
+</div>
+<div class="flex flex-wrap gap-2 pt-1" id="interests-container">
+<!-- Interactive Chips -->
+<button class="interest-chip active flex items-center gap-1.5 px-3 py-2 rounded-full font-label-sm text-label-sm bg-primary/20 text-primary transition-all duration-200 active:scale-95 shadow-sm" data-interest="ai" type="button">
+<span class="material-symbols-outlined text-[14px]">psychology</span>
+<span>කෘතිම බුද්ධිය (AI)</span>
+</button>
+<button class="interest-chip flex items-center gap-1.5 px-3 py-2 rounded-full font-label-sm text-label-sm bg-surface-container-high text-on-surface hover:bg-surface-bright transition-all duration-200 active:scale-95" data-interest="coding" type="button">
+<span class="material-symbols-outlined text-[14px]">code</span>
+<span>ක්‍රමලේඛනය (Coding)</span>
+</button>
+<button class="interest-chip flex items-center gap-1.5 px-3 py-2 rounded-full font-label-sm text-label-sm bg-surface-container-high text-on-surface hover:bg-surface-bright transition-all duration-200 active:scale-95" data-interest="gadgets" type="button">
+<span class="material-symbols-outlined text-[14px]">devices</span>
+<span>ස්මාර්ට්ෆෝන් (Gadgets)</span>
+</button>
+<button class="interest-chip flex items-center gap-1.5 px-3 py-2 rounded-full font-label-sm text-label-sm bg-surface-container-high text-on-surface hover:bg-surface-bright transition-all duration-200 active:scale-95" data-interest="robotics" type="button">
+<span class="material-symbols-outlined text-[14px]">smart_toy</span>
+<span>රොබෝ තාක්ෂණය (Robotics)</span>
+</button>
+<button class="interest-chip flex items-center gap-1.5 px-3 py-2 rounded-full font-label-sm text-label-sm bg-surface-container-high text-on-surface hover:bg-surface-bright transition-all duration-200 active:scale-95" data-interest="cyber" type="button">
+<span class="material-symbols-outlined text-[14px]">security</span>
+<span>සයිබර් ආරක්ෂාව (Cyber)</span>
+</button>
+<button class="interest-chip flex items-center gap-1.5 px-3 py-2 rounded-full font-label-sm text-label-sm bg-surface-container-high text-on-surface hover:bg-surface-bright transition-all duration-200 active:scale-95" data-interest="web3" type="button">
+<span class="material-symbols-outlined text-[14px]">hub</span>
+<span>වෙබ් තාක්ෂණය (Web3)</span>
+</button>
+</div>
+</div>
+<!-- Section 6: Terms Agreement Checkbox -->
+<div class="flex items-start gap-3 mt-3 px-1">
+<input class="mt-1 w-4 h-4 rounded bg-surface-container-highest accent-primary focus:ring-0 cursor-pointer" id="terms-check" required="" type="checkbox"/>
+<label class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed select-none cursor-pointer" for="terms-check">
+        මම TechPulse <span class="text-primary hover:underline">සේවා කොන්දේසි</span> සහ <span class="text-primary hover:underline">රහස්‍යතා ප්‍රතිපත්තියට</span> එකඟ වෙමි.
+      </label>
+</div>
+<!-- Section 7: Primary CTA -->
+<div class="relative mt-2">
+<div class="absolute -inset-0.5 bg-gradient-to-r from-primary to-secondary rounded-xl blur opacity-60 hover:opacity-100 transition duration-300"></div>
+<button class="relative w-full py-3.5 px-6 rounded-xl bg-primary text-on-primary font-headline-sm text-headline-sm font-semibold flex items-center justify-center gap-2 shadow-lg hover:brightness-110 active:scale-[0.98] transition-all" id="submit-btn" type="submit">
+<span>ලියාපදිංචි වන්න</span>
+<span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+</button>
+</div>
+</form>
+<!-- Section 8: Social Signup Partition -->
+<div class="flex items-center px-margin my-6 gap-3">
+<div class="flex-1 h-px bg-surface-variant"></div>
+<span class="font-label-sm text-label-sm text-outline tracking-wider uppercase">හෝ මේ හරහා ලියාපදිංචි වන්න</span>
+<div class="flex-1 h-px bg-surface-variant"></div>
+</div>
+<!-- Social Icons Row -->
+<div class="flex items-center justify-center gap-4 px-margin">
+<!-- Google -->
+<button aria-label="Sign up with Google" class="w-14 h-12 rounded-xl bg-surface-container-high hover:bg-surface-bright flex items-center justify-center shadow-md active:scale-95 transition-all text-on-surface" type="button">
+<svg class="w-5 h-5" fill="currentColor" viewbox="0 0 24 24">
+<path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
+<path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
+<path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"></path>
+<path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"></path>
+</svg>
+</button>
+<!-- Apple -->
+<button aria-label="Sign up with Apple" class="w-14 h-12 rounded-xl bg-surface-container-high hover:bg-surface-bright flex items-center justify-center shadow-md active:scale-95 transition-all text-on-surface" type="button">
+<svg class="w-5 h-5 fill-current" viewbox="0 0 170 170">
+<path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.7-3.04-7.66-7.85-11.87-14.42-6-9.33-10.7-19.78-14.1-31.35-3.41-11.57-5.11-22.61-5.11-33.12 0-14.28 3.58-26.11 10.74-35.48 7.16-9.37 16.21-14.18 27.16-14.43 4.8.12 10.27 1.38 16.42 3.77 6.14 2.4 10.22 3.66 12.24 3.78 1.45 0 5.75-1.4 12.89-4.22 7.15-2.81 13.25-4.04 18.3-3.68 14.15 1.13 25.1 6.84 32.86 17.13-12.63 7.64-18.82 17.83-18.57 30.56.24 9.98 4.14 18.25 11.7 24.81 7.55 6.55 16.3 10.27 26.24 11.16-2.02 6.01-4.58 12.2-7.69 18.57zm-32.32-111.45c0 7.37-2.65 14.23-7.95 20.57-5.3 6.35-11.89 10.4-19.77 12.16-.24-1.22-.36-2.32-.36-3.3 0-7.37 2.91-14.56 8.73-21.57 5.82-7.01 12.76-11.16 20.82-12.45.12 1.58.53 3.11.53 4.59z"></path>
+</svg>
+</button>
+<!-- GitHub -->
+<button aria-label="Sign up with GitHub" class="w-14 h-12 rounded-xl bg-surface-container-high hover:bg-surface-bright flex items-center justify-center shadow-md active:scale-95 transition-all text-on-surface" type="button">
+<svg class="w-5 h-5 fill-current" viewbox="0 0 24 24">
+<path clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" fill-rule="evenodd"></path>
+</svg>
+</button>
+</div>
+<!-- Footer Link: Already have an account -->
+<div class="mt-8 text-center px-margin">
+<p class="font-body-md text-body-md text-on-surface-variant">
+      දැනටමත් ගිණුමක් තිබේද? 
+      <a class="text-primary font-semibold hover:underline ml-1 inline-flex items-center" href="#signin">
+        පිවිසෙන්න
+        <span class="material-symbols-outlined text-[16px] ml-0.5">login</span>
+</a>
+</p>
+</div>
+</div>
+<script>
+  // Password Strength Interactive Logic
+  const passwordInput = document.getElementById('password-input');
+  const bar1 = document.getElementById('bar-1');
+  const bar2 = document.getElementById('bar-2');
+  const bar3 = document.getElementById('bar-3');
+  const strengthLabel = document.getElementById('strength-label');
+  const togglePwBtn = document.getElementById('toggle-pw-btn');
+  const eyeIcon = document.getElementById('eye-icon');
+
+  if (passwordInput) {
+    passwordInput.addEventListener('input', (e) => {
+      const val = e.target.value;
+      const len = val.length;
+      const hasNumberOrSymbol = /[\d!@#$%^&*(),.?":{}|<>]/.test(val);
+
+      if (len === 0) {
+        bar1.className = 'h-1.5 rounded-full bg-surface-container-highest transition-colors duration-300';
+        bar2.className = 'h-1.5 rounded-full bg-surface-container-highest transition-colors duration-300';
+        bar3.className = 'h-1.5 rounded-full bg-surface-container-highest transition-colors duration-300';
+        strengthLabel.textContent = 'දුර්වල (Weak)';
+        strengthLabel.className = 'font-label-sm text-label-sm text-outline';
+      } else if (len < 6) {
+        // Weak
+        bar1.className = 'h-1.5 rounded-full bg-error transition-colors duration-300';
+        bar2.className = 'h-1.5 rounded-full bg-surface-container-highest transition-colors duration-300';
+        bar3.className = 'h-1.5 rounded-full bg-surface-container-highest transition-colors duration-300';
+        strengthLabel.textContent = 'දුර්වල (Weak)';
+        strengthLabel.className = 'font-label-sm text-label-sm text-error';
+      } else if (len >= 6 && (!hasNumberOrSymbol || len < 9)) {
+        // Medium
+        bar1.className = 'h-1.5 rounded-full bg-secondary transition-colors duration-300';
+        bar2.className = 'h-1.5 rounded-full bg-secondary transition-colors duration-300';
+        bar3.className = 'h-1.5 rounded-full bg-surface-container-highest transition-colors duration-300';
+        strengthLabel.textContent = 'මධ්‍යස්ථ (Medium)';
+        strengthLabel.className = 'font-label-sm text-label-sm text-secondary';
+      } else {
+        // Strong
+        bar1.className = 'h-1.5 rounded-full bg-primary transition-colors duration-300';
+        bar2.className = 'h-1.5 rounded-full bg-primary transition-colors duration-300';
+        bar3.className = 'h-1.5 rounded-full bg-primary transition-colors duration-300';
+        strengthLabel.textContent = 'ශක්තිමත් (Strong)';
+        strengthLabel.className = 'font-label-sm text-label-sm text-primary';
+      }
+    });
+  }
+
+  // Toggle Password Visibility
+  if (togglePwBtn && passwordInput) {
+    togglePwBtn.addEventListener('click', () => {
+      const isPass = passwordInput.getAttribute('type') === 'password';
+      passwordInput.setAttribute('type', isPass ? 'text' : 'password');
+      eyeIcon.textContent = isPass ? 'visibility_off' : 'visibility';
+    });
+  }
+
+  // Tech Interests Multi-Select Chips
+  const chipContainer = document.getElementById('interests-container');
+  if (chipContainer) {
+    const chips = chipContainer.querySelectorAll('.interest-chip');
+    chips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        const isSelected = chip.classList.contains('active');
+        if (isSelected) {
+          chip.classList.remove('active', 'bg-primary/20', 'text-primary');
+          chip.classList.add('bg-surface-container-high', 'text-on-surface');
+        } else {
+          chip.classList.add('active', 'bg-primary/20', 'text-primary');
+          chip.classList.remove('bg-surface-container-high', 'text-on-surface');
+        }
+      });
+    });
+  }
+
+  // Language switch feedback micro-interaction
+  const langBtn = document.getElementById('lang-switch-btn');
+  if (langBtn) {
+    langBtn.addEventListener('click', () => {
+      langBtn.classList.add('scale-95');
+      setTimeout(() => langBtn.classList.remove('scale-95'), 150);
+    });
+  }
+</script></main></body></html>

@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+
+<html lang="si"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+<meta content="mobile_tab" name="shell-type"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;family=Manrope:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+    @layer base {
+      html, body {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        min-height: 100%;
+        font-family: 'Noto Sans Sinhala', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      }
+      body {
+        overscroll-behavior-y: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+      .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
+      main > :first-child { margin-top: 0 !important; }
+      main > :last-child { margin-bottom: 0 !important; }
+    }
+    ::-webkit-scrollbar { display: none; }
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "on-surface": "#0f172a",
+            "surface-container": "#f1f5f9",
+            "surface-container-high": "#e2e8f0",
+            "outline-variant": "#cbd5e1",
+            "outline": "#94a3b8",
+            "background": "#f8fafc",
+            "on-background": "#0f172a",
+            "on-surface-variant": "#475569",
+            "surface": "#ffffff",
+            "surface-container-lowest": "#ffffff",
+            "primary": "#0284c7",
+            "primary-dark": "#0369a1",
+            "primary-container": "#2563eb",
+            "secondary": "#0891b2",
+            "surface-container-low": "#f8fafc"
+          },
+          borderRadius: {
+            "DEFAULT": "0.5rem",
+            "lg": "0.75rem",
+            "xl": "1rem",
+            "2xl": "1.25rem",
+            "full": "9999px"
+          },
+          fontFamily: {
+            "headline-sm": ["Plus Jakarta Sans", "Noto Sans Sinhala", "sans-serif"],
+            "body-sm": ["Manrope", "Noto Sans Sinhala", "sans-serif"],
+            "body-lg": ["Manrope", "Noto Sans Sinhala", "sans-serif"],
+            "label-sm": ["Plus Jakarta Sans", "Noto Sans Sinhala", "sans-serif"],
+            "headline-md": ["Plus Jakarta Sans", "Noto Sans Sinhala", "sans-serif"],
+            "headline-lg-mobile": ["Plus Jakarta Sans", "Noto Sans Sinhala", "sans-serif"],
+            "body-md": ["Manrope", "Noto Sans Sinhala", "sans-serif"],
+            "headline-lg": ["Plus Jakarta Sans", "Noto Sans Sinhala", "sans-serif"],
+            "label-md": ["Plus Jakarta Sans", "Noto Sans Sinhala", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-900 font-body-md text-[14px] flex flex-col min-h-screen">
+<!-- Header Bar -->
+<header class="fixed top-0 inset-x-0 z-50 bg-white/95 backdrop-blur-xl border-b border-slate-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.05)] pt-safe">
+<div class="h-16 px-4 flex items-center justify-between gap-2">
+<div class="flex items-center gap-2.5 min-w-0 flex-1">
+<img alt="TechPulse Sinhala AI Logo" class="h-8 w-auto object-contain flex-shrink-0" src="https://lh3.googleusercontent.com/aida/ALJJyrCu0uVzPQ52oH77tjnyeyRjofTy7_A5RpzE8lMznWmAVI_Ib852K_61L8-rTb2dBLLMw-r5DgjvPuJf6kE24p60FFsT8J7nwrfx2v_X_Fx-XFTpoexZlVaEn6azCD0jpEJuu8B7SGzOSdJumwrOm3lQ9RpV0asjimv49BMc0fSN3LSNllXTOT0rsd7MVMiwPd6dWU4K4JW91ulaylP8rtxV5ZEsvOKBxQiDVfgLq-_a"/>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-headline-sm text-[18px] text-slate-900 font-bold tracking-tight truncate">TechPulse <span class="text-cyan-600">AI</span></span>
+<span class="text-[11px] font-semibold bg-cyan-100 text-cyan-800 px-1.5 py-0.5 rounded-full">ටෙක්</span>
+</div>
+<span class="text-[12px] text-slate-500 font-medium truncate">Feed</span>
+</div>
+</div>
+<div class="flex items-center gap-1 flex-shrink-0">
+<button aria-label="Search" class="w-10 h-10 flex items-center justify-center rounded-full text-slate-600 hover:text-cyan-600 hover:bg-slate-100 transition-colors">
+<span class="material-symbols-outlined text-[22px]">search</span>
+</button>
+<button aria-label="Toggle Theme" class="w-10 h-10 flex items-center justify-center rounded-full text-slate-600 hover:text-cyan-600 hover:bg-slate-100 transition-colors" onclick="document.documentElement.classList.toggle('dark')">
+<span class="material-symbols-outlined text-[20px]">dark_mode</span>
+</button>
+<a class="w-10 h-10 flex items-center justify-center ml-0.5" data-path="account" href="#">
+<img alt="Profile" class="w-8 h-8 rounded-full object-cover ring-2 ring-cyan-500/40" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqDdvBDeA1CSOehAb1qZ-LGkHErzQN6zgSfuBWQ5fpgu-q18hIOSmEkSy8Hqnqiu2C_k9EI23XvVZ59DvJXjrYS8qxDILPqHFcNiVcDwAjbBjjTLVcpudwncMLe0e83mz51QsR81aSpHko0Eo2P3Yzfe9b8zC1RjoYn4AYINi4t96FeM3CVlFin80uRw1d4LDmRG16YF1hKC-DJoB7LbW913TJXGJcameTTbvs1hQ"/>
+</a>
+</div>
+</div>
+</header>
+<main class="flex flex-col relative w-full pt-16 pb-20 bg-slate-50 min-h-screen">
+<div class="flex flex-col w-full">
+<!-- Dynamic Ambient Glow Backdrops (Light mode subtle tinted radial gradients) -->
+<div class="relative w-full overflow-hidden">
+<div class="absolute -top-16 -left-20 w-72 h-72 bg-cyan-100/60 rounded-full blur-3xl pointer-events-none"></div>
+<div class="absolute top-64 -right-24 w-80 h-80 bg-blue-100/60 rounded-full blur-3xl pointer-events-none"></div>
+<!-- Category Pill Filter Carousel -->
+<div class="w-full pt-3 pb-2 px-4">
+<div class="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth py-1">
+<button class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-cyan-600 text-white font-label-md text-[13px] font-semibold shadow-sm shrink-0 transition-transform active:scale-95">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">bolt</span>
+<span>සියල්ල</span>
+</button>
+<button class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white border border-slate-200 text-slate-700 hover:text-slate-900 font-label-md text-[13px] shrink-0 transition-all hover:bg-slate-50 shadow-sm active:scale-95">
+<span class="material-symbols-outlined text-[16px] text-cyan-600">psychology</span>
+<span>කෘතිම බුද්ධිය</span>
+</button>
+<button class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white border border-slate-200 text-slate-700 hover:text-slate-900 font-label-md text-[13px] shrink-0 transition-all hover:bg-slate-50 shadow-sm active:scale-95">
+<span class="material-symbols-outlined text-[16px] text-blue-600">smart_toy</span>
+<span>රොබෝ තාක්ෂණය</span>
+</button>
+<button class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white border border-slate-200 text-slate-700 hover:text-slate-900 font-label-md text-[13px] shrink-0 transition-all hover:bg-slate-50 shadow-sm active:scale-95">
+<span class="material-symbols-outlined text-[16px] text-indigo-600">smartphone</span>
+<span>ස්මාර්ට්ෆෝන්</span>
+</button>
+<button class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white border border-slate-200 text-slate-700 hover:text-slate-900 font-label-md text-[13px] shrink-0 transition-all hover:bg-slate-50 shadow-sm active:scale-95">
+<span class="material-symbols-outlined text-[16px] text-red-500">security</span>
+<span>සයිබර් ආරක්ෂාව</span>
+</button>
+<button class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white border border-slate-200 text-slate-700 hover:text-slate-900 font-label-md text-[13px] shrink-0 transition-all hover:bg-slate-50 shadow-sm active:scale-95">
+<span class="material-symbols-outlined text-[16px] text-emerald-600">code_blocks</span>
+<span>ක්‍රමලේඛනය</span>
+</button>
+</div>
+</div>
+<!-- Stories / ක්ෂණික පුවත් Section -->
+<div class="w-full py-2 pl-4 overflow-hidden">
+<div class="flex items-center justify-between pr-4 mb-2.5">
+<div class="flex items-center gap-1.5">
+<span class="flex h-2.5 w-2.5 relative">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-500 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-cyan-600"></span>
+</span>
+<span class="font-headline-sm text-[16px] font-bold text-slate-900">ක්ෂණික පුවත්</span>
+<span class="text-[11px] font-semibold text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full">Stories</span>
+</div>
+<button class="text-[13px] font-semibold text-cyan-600 flex items-center hover:text-cyan-700">
+              සියල්ල <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</div>
+<div class="flex items-center gap-3 overflow-x-auto no-scrollbar scroll-smooth pr-4 py-1">
+<!-- Add Story -->
+<div class="flex flex-col items-center gap-1.5 shrink-0 w-[72px] cursor-pointer group">
+<div class="relative w-16 h-16 rounded-full bg-white border-2 border-dashed border-cyan-400 p-0.5 flex items-center justify-center transition-transform group-active:scale-95 shadow-sm">
+<div class="w-full h-full rounded-full bg-cyan-50 flex items-center justify-center text-cyan-600 group-hover:bg-cyan-600 group-hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[26px]">add</span>
+</div>
+<div class="absolute bottom-0 right-0 w-5 h-5 bg-cyan-600 text-white rounded-full flex items-center justify-center shadow-md">
+<span class="material-symbols-outlined text-[13px] font-bold">bolt</span>
+</div>
+</div>
+<span class="text-[12px] font-medium text-slate-600 text-center truncate w-full">ඔබේ කතාව</span>
+</div>
+<!-- Story 1 -->
+<div class="flex flex-col items-center gap-1.5 shrink-0 w-[72px] cursor-pointer group">
+<div class="relative w-16 h-16 rounded-full p-[2.5px] bg-gradient-to-tr from-cyan-500 via-blue-500 to-indigo-500 shadow-sm transition-transform group-hover:scale-105 group-active:scale-95">
+<div class="w-full h-full rounded-full overflow-hidden bg-white p-[2px]">
+<img class="w-full h-full object-cover rounded-full" data-alt="Futuristic glowing AI neural network sphere representing GPT-5 next-generation architecture with cyber blue and violet highlights, cinematic studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDU6Eexv_8GCtEEW3U6SIbr_Y081D9pTUb0E3ItqAMKbt73LnzF5lTUui_JWdmTaIR_kmpyYgWb22KraBkIKRWNZFlP-FlvHw94GPxAT5uIvybLd8aVottmTfs8msy9qV-8MKLJ_LYSF5HhLKshDRVhUT2b04mltURramHxXpAF9CJDGXf9a80EjQGqNwhNtXx3ZlGaxkfmHy2A00for1uJPim2qBN0-Q1K8fjTYvc"/>
+</div>
+<span class="absolute -bottom-1 -right-1 bg-white text-cyan-600 p-0.5 rounded-full shadow-sm border border-slate-100 flex items-center justify-center">
+<span class="material-symbols-outlined text-[13px]" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</span>
+</div>
+<span class="text-[12px] font-semibold text-slate-800 text-center truncate w-full">GPT-5 විස්තර</span>
+</div>
+<!-- Story 2 -->
+<div class="flex flex-col items-center gap-1.5 shrink-0 w-[72px] cursor-pointer group">
+<div class="relative w-16 h-16 rounded-full p-[2.5px] bg-gradient-to-tr from-cyan-500 via-blue-500 to-indigo-500 shadow-sm transition-transform group-hover:scale-105 group-active:scale-95">
+<div class="w-full h-full rounded-full overflow-hidden bg-white p-[2px]">
+<img class="w-full h-full object-cover rounded-full" data-alt="Close up shot of cutting edge Apple silicon microprocessor M4 processor gleaming with micro circuitry and iridescent gold and cyan illumination" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBIr9I-pd9cuhVBLlN8BgeB785qHVLueEDeCQntJnkPl2bXSY_nFl7ZfSBwtzoLq932ct5-UV2QCgtfenBqEBb0GFE8pUYrQXs6SDVlSU6bWE5s_Jd3ogP4KIs7YVsxebIlj13YwJJeNoNjn7kIXK81ngu4_JwPU8zvp6pFoNxEOE0ADk8_En0uLpEDPvXCcH5FMrd9CxJqpenzLsLE5XBcD6dc6EEVRshKiOgieG4"/>
+</div>
+<span class="absolute -bottom-1 -right-1 bg-white text-blue-600 p-0.5 rounded-full shadow-sm border border-slate-100 flex items-center justify-center">
+<span class="material-symbols-outlined text-[13px]" style="font-variation-settings: 'FILL' 1;">memory</span>
+</span>
+</div>
+<span class="text-[12px] font-semibold text-slate-800 text-center truncate w-full">Apple M4</span>
+</div>
+<!-- Story 3 -->
+<div class="flex flex-col items-center gap-1.5 shrink-0 w-[72px] cursor-pointer group">
+<div class="relative w-16 h-16 rounded-full p-[2.5px] bg-gradient-to-tr from-cyan-500 via-blue-500 to-indigo-500 shadow-sm transition-transform group-hover:scale-105 group-active:scale-95">
+<div class="w-full h-full rounded-full overflow-hidden bg-white p-[2px]">
+<img class="w-full h-full object-cover rounded-full" data-alt="Chandelier structure of a quantum computer cryogenic core glowing with ethereal violet and deep blue light in an advanced physics laboratory" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCuVrRjkZyk-2psyWPmpmK-2TYyLmLCMkseY1F4dPsRraGxMxD1e751kMz5sRPlP7jRoJg7OGoeKjH6DU58MlUIVCKf0vSA8pkrnq4UYIKPRLxl7ROTdsryRf04twZY24mdMI4_g-2VzvZ_UzCfjV-MNYj-Uy2g7lgTKHP-2THdn3gHI0kZZ09OUnAodrzB0kyuYAeLAdAz6hsR5RWXqFkCfvKON1RgZfHcaXlraUA"/>
+</div>
+<span class="absolute -bottom-1 -right-1 bg-white text-indigo-600 p-0.5 rounded-full shadow-sm border border-slate-100 flex items-center justify-center">
+<span class="material-symbols-outlined text-[13px]" style="font-variation-settings: 'FILL' 1;">grid_view</span>
+</span>
+</div>
+<span class="text-[12px] font-semibold text-slate-800 text-center truncate w-full">Quantum Chip</span>
+</div>
+<!-- Story 4 -->
+<div class="flex flex-col items-center gap-1.5 shrink-0 w-[72px] cursor-pointer group">
+<div class="relative w-16 h-16 rounded-full p-[2.5px] bg-gradient-to-tr from-cyan-500 via-blue-500 to-indigo-500 shadow-sm transition-transform group-hover:scale-105 group-active:scale-95">
+<div class="w-full h-full rounded-full overflow-hidden bg-white p-[2px]">
+<img class="w-full h-full object-cover rounded-full" data-alt="Futuristic 5G telecommunication tower over modern Colombo skyline at dusk with glowing data waves in cyan and magenta connecting towers" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC7ks2DLblEy7KH9yEeQ8HKD5SYL9ns2w6a3RBIhcMe24ZuwGfn4rvVVj91O_Mh5-NoZWZ-p7m1z5n4E3GJum2mXihRBTrOrwB_44wvoyN_oDXc7Bdg8U0gWJ-vSjG6BmONYSWdOBb5EegRB0AD2ODOnrfaTvSxMXOm7RDdTQ0niQXMpWBDJG9KOI_Hj7tfr0P9Iyzf5O4NvhB_e7DiHEMciMHd5s9ZzDtFYQTX86Y"/>
+</div>
+<span class="absolute -bottom-1 -right-1 bg-white text-cyan-600 p-0.5 rounded-full shadow-sm border border-slate-100 flex items-center justify-center">
+<span class="material-symbols-outlined text-[13px]" style="font-variation-settings: 'FILL' 1;">cell_tower</span>
+</span>
+</div>
+<span class="text-[12px] font-semibold text-slate-800 text-center truncate w-full">Sri Lanka 5G</span>
+</div>
+</div>
+</div>
+<!-- Create Post / Quick Box -->
+<div class="w-full px-4 my-2">
+<div class="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-sm flex flex-col gap-3">
+<div class="flex items-center gap-3">
+<div class="relative">
+<img alt="User Profile" class="w-10 h-10 rounded-full object-cover ring-2 ring-slate-100" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqDdvBDeA1CSOehAb1qZ-LGkHErzQN6zgSfuBWQ5fpgu-q18hIOSmEkSy8Hqnqiu2C_k9EI23XvVZ59DvJXjrYS8qxDILPqHFcNiVcDwAjbBjjTLVcpudwncMLe0e83mz51QsR81aSpHko0Eo2P3Yzfe9b8zC1RjoYn4AYINi4t96FeM3CVlFin80uRw1d4LDmRG16YF1hKC-DJoB7LbW913TJXGJcameTTbvs1hQ"/>
+<span class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full ring-2 ring-white"></span>
+</div>
+<button class="flex-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-colors text-left px-4 py-2.5 rounded-full font-body-md text-[13px] text-slate-600 flex items-center justify-between">
+<span class="truncate">තාක්ෂණික අලුත් තොරතුරක් බෙදාගන්න...</span>
+<span class="material-symbols-outlined text-[18px] text-cyan-600">edit_note</span>
+</button>
+</div>
+<div class="flex items-center justify-between pt-1 border-t border-slate-100">
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-cyan-50 hover:text-cyan-700 text-slate-700 font-label-md text-[12px] font-medium transition-all">
+<span class="material-symbols-outlined text-[18px] text-cyan-600">psychology</span>
+<span>AI Prompt</span>
+</button>
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-700 font-label-md text-[12px] font-medium transition-all">
+<span class="material-symbols-outlined text-[18px] text-blue-600">terminal</span>
+<span>Code කෑල්ලක්</span>
+</button>
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 font-label-md text-[12px] font-medium transition-all">
+<span class="material-symbols-outlined text-[18px] text-indigo-600">add_photo_alternate</span>
+<span>ඡායාරූප</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Feed Stream -->
+<div class="flex flex-col gap-4 px-4 pb-6 mt-1">
+<!-- CARD 1: AI Breakthrough Hero Card -->
+<article class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm transition-all hover:shadow-md">
+<!-- Post Header -->
+<div class="p-3.5 pb-2.5 flex items-center justify-between">
+<div class="flex items-center gap-2.5 min-w-0">
+<div class="w-10 h-10 rounded-full bg-cyan-100 flex items-center justify-center text-cyan-600 shrink-0">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">neurology</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-headline-sm text-[15px] font-bold text-slate-900 truncate">TechPulse AI Research</span>
+<span class="material-symbols-outlined text-[16px] text-cyan-600" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+<div class="flex items-center gap-1.5 text-[12px] text-slate-500 font-medium">
+<span class="text-cyan-700 font-semibold">කෘතිම බුද්ධිය</span>
+<span>•</span>
+<span>විනාඩි 5කට පෙර</span>
+<span>•</span>
+<span class="material-symbols-outlined text-[12px]">public</span>
+</div>
+</div>
+</div>
+<button class="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors">
+<span class="material-symbols-outlined text-[20px]">more_horiz</span>
+</button>
+</div>
+<!-- Headline & Text -->
+<div class="px-3.5 pb-3">
+<h2 class="font-headline-lg-mobile text-[18px] font-bold text-slate-900 mb-2 leading-snug">
+                නව AI මාදිලියක් මඟින් සිංහල භාෂාවෙන් ස්වයංක්‍රීයව පරිගණක කේත ලිවීමේ හැකියාව එළිදක්වයි
+              </h2>
+<p class="font-body-md text-[14px] text-slate-600 leading-relaxed">
+                ස්වභාවික සිංහල වාක්‍ය ඛණ්ඩ ක්ෂණිකව Python සහ JavaScript කේත බවට පරිවර්තනය කළ හැකි දේශීය AI මොඩලයක් පර්යේෂකයන් විසින් අද දිනයේ නිකුත් කරන ලදී. මෙමගින් ශ්‍රී ලාංකේය නවක ක්‍රමලේඛකයන්ට කේතකරණය තවත් සරල වෙයි.
+              </p>
+</div>
+<!-- Visual Illustration Container -->
+<div class="relative w-full h-56 bg-slate-900 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Holographic user interface showing bilingual code translation between Sinhala natural language typography and glowing futuristic Python terminal code, dark cyberpunk vibe with cyan lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9lPmZK5QIaQoCwHz6UCP9Fa5qgWCOgHTP7TgqhGjOm293QvvuSkf2ubkAkVE-pId0f9vN9l87jmlW4XXnSnmjzm9EX8tw16nt4U9CiX-g6aFWy7mseaNW2vIOopFwunnSew_vf7UUFKuxCSutF7GKA_du3ObBhxj8G7bHOojSBOUQyNqc3UpzCkS_Q-qAOIBGuX8drGT9Lm87RLbwerM4tM8lMUnrblJUAZ4JP1c"/>
+<div class="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent"></div>
+<div class="absolute bottom-3 left-3 flex items-center gap-2">
+<span class="bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-full text-cyan-800 font-label-sm text-[11px] font-bold flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-[13px] text-cyan-600">auto_awesome</span>
+                  SinhalaCode-7B Live
+                </span>
+</div>
+</div>
+<!-- AI Audio Summary Widget -->
+<div class="mx-3.5 mt-3 p-3 bg-cyan-50 border border-cyan-200 rounded-xl flex items-center justify-between gap-3">
+<div class="flex items-center gap-2.5 min-w-0">
+<button class="w-9 h-9 rounded-full bg-cyan-600 hover:bg-cyan-700 text-white flex items-center justify-center shrink-0 shadow-sm active:scale-95 transition-transform" onclick="const icon = this.querySelector('.material-symbols-outlined'); icon.textContent = icon.textContent === 'play_arrow' ? 'pause' : 'play_arrow';">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-[13px] text-slate-900 font-bold flex items-center gap-1.5 truncate">
+                    AI ශ්‍රව්‍ය සාරාංශය (Audio Brief)
+                    <span class="w-2 h-2 rounded-full bg-cyan-600 animate-pulse"></span>
+</span>
+<span class="text-[12px] text-slate-500 font-medium truncate">විනාඩි 1:15 • සිංහල AI හඬින්</span>
+</div>
+</div>
+<!-- Animated waveform bars SVG -->
+<div class="flex items-center gap-0.5 shrink-0 px-2">
+<span class="w-0.5 h-3 bg-cyan-300 rounded-full"></span>
+<span class="w-0.5 h-5 bg-cyan-600 rounded-full"></span>
+<span class="w-0.5 h-2 bg-cyan-400 rounded-full"></span>
+<span class="w-0.5 h-6 bg-cyan-600 rounded-full"></span>
+<span class="w-0.5 h-4 bg-cyan-500 rounded-full"></span>
+<span class="w-0.5 h-7 bg-cyan-600 rounded-full"></span>
+<span class="w-0.5 h-3 bg-cyan-400 rounded-full"></span>
+</div>
+</div>
+<!-- Social Engagement Metrics -->
+<div class="px-3.5 pt-3 pb-1 flex items-center justify-between text-slate-500 font-label-sm text-[12px]">
+<div class="flex items-center gap-1.5">
+<div class="flex -space-x-1">
+<span class="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-[11px] shadow-sm">👍</span>
+<span class="w-5 h-5 rounded-full bg-rose-500 text-white flex items-center justify-center text-[11px] shadow-sm">❤️</span>
+</div>
+<span class="font-medium text-slate-700">1.4k කැමතියි</span>
+</div>
+<div class="flex items-center gap-2 text-slate-500">
+<span>අදහස් 342</span>
+<span>•</span>
+<span>බෙදාගැනීම් 128</span>
+</div>
+</div>
+<!-- Engagement Action Bar -->
+<div class="p-1.5 mx-2 my-1.5 flex items-center justify-between bg-slate-50 border border-slate-100 rounded-xl">
+<button class="flex items-center justify-center gap-1.5 flex-1 py-1.5 rounded-lg text-slate-600 hover:text-cyan-600 hover:bg-white active:scale-95 transition-all" onclick="this.classList.toggle('text-cyan-600'); this.classList.toggle('text-slate-600');">
+<span class="material-symbols-outlined text-[18px]">thumb_up</span>
+<span class="font-label-md text-[12px] font-semibold">කැමතියි</span>
+</button>
+<button class="flex items-center justify-center gap-1.5 flex-1 py-1.5 rounded-lg text-slate-600 hover:text-cyan-600 hover:bg-white active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[18px]">chat_bubble</span>
+<span class="font-label-md text-[12px] font-semibold">අදහස්</span>
+</button>
+<button class="flex items-center justify-center gap-1.5 flex-1 py-1.5 rounded-lg text-slate-600 hover:text-cyan-600 hover:bg-white active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[18px]">reply</span>
+<span class="font-label-md text-[12px] font-semibold">බෙදාගන්න</span>
+</button>
+<button class="w-9 h-9 flex items-center justify-center rounded-lg text-slate-500 hover:text-cyan-600 hover:bg-white active:scale-95 transition-all" onclick="const icon = this.querySelector('.material-symbols-outlined'); const isFill = icon.style.fontVariationSettings.includes('FILL\' 1'); icon.style.fontVariationSettings = isFill ? '' : '\'FILL\' 1'; this.classList.toggle('text-cyan-600');">
+<span class="material-symbols-outlined text-[20px]">bookmark</span>
+</button>
+</div>
+</article>
+<!-- CARD 2: Gadget & AI War Poll Card -->
+<article class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm transition-all hover:shadow-md">
+<!-- Post Header -->
+<div class="flex items-center justify-between mb-2.5">
+<div class="flex items-center gap-2.5 min-w-0">
+<img class="w-10 h-10 rounded-full object-cover shrink-0 ring-1 ring-slate-200" data-alt="Avatar photo of tech reviewer in modern studio with glowing purple lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDlwpAQU3s5yj4can0Ma9TsiR8Ax3UDioXi1hpYTF_VLRRxgcLXphjHogro-HhPGceuKA8YJx5RLgKtqEK3DIg7iku0sq1Ktyd3JEbmyE7r85ga1aIsrFqqHZL4IUvL1Y1mxaG8Y22-zP4AiuBpJ1KcqzvXPa7Ssw89tJusfTQUrSr8w-SeP8qmdZma0q-RF4g2EnxWkT4mzU4NExrRLBYX7jBN7uQzyCuhT4z32qo"/>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1">
+<span class="font-headline-sm text-[15px] font-bold text-slate-900 truncate">Tech Market Asia</span>
+<span class="material-symbols-outlined text-[16px] text-cyan-600" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+<div class="flex items-center gap-1.5 text-[12px] text-slate-500 font-medium">
+<span class="text-blue-600 font-semibold">නවීන උපකරණ</span>
+<span>•</span>
+<span>පැය 2කට පෙර</span>
+</div>
+</div>
+</div>
+<button class="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors">
+<span class="material-symbols-outlined text-[20px]">more_horiz</span>
+</button>
+</div>
+<!-- Headline -->
+<h2 class="font-headline-lg-mobile text-[18px] font-bold text-slate-900 mb-2 leading-snug">
+              DeepSeek සහ OpenAI නවතම තරඟය: මෙවර ආසියානු වෙළඳපොළට ලැබෙන බලපෑම කුමක්ද?
+            </h2>
+<p class="font-body-md text-[14px] text-slate-600 mb-3 leading-relaxed">
+              විශාල පරිගණක සම්පත් වැය නොකර අඩු වියදමකින් බලගැන්වෙන DeepSeek නව සංස්කරණය ලොව පුරා තාක්ෂණික සමාගම්වල අවධානය දිනාගනී.
+            </p>
+<!-- Interactive Poll Widget -->
+<div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl flex flex-col gap-2.5 mb-3">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-[13px] text-slate-900 font-bold flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-cyan-600">how_to_vote</span>
+                  ඔබ වඩාත්ම භාවිතා කරන්නේ කුමන AI සේවාවද?
+                </span>
+<span class="text-[11px] text-cyan-700 bg-cyan-100 border border-cyan-200 px-2 py-0.5 rounded-full font-bold">ඡන්ද 4.8k</span>
+</div>
+<!-- Poll Options -->
+<div class="flex flex-col gap-2 mt-1">
+<!-- Option 1: ChatGPT -->
+<button class="w-full relative overflow-hidden rounded-lg bg-white border border-slate-200 p-2.5 text-left transition-all active:scale-[0.99] group shadow-sm" onclick="alert('ඔබගේ ඡන්දය සටහන් විය: ChatGPT');">
+<div class="absolute inset-y-0 left-0 bg-cyan-100/80 w-[52%] rounded-l-lg transition-all border-r border-cyan-300"></div>
+<div class="relative z-10 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-cyan-600">check_circle</span>
+<span class="font-body-md text-[13px] text-slate-900 font-semibold">ChatGPT (OpenAI)</span>
+</div>
+<span class="text-[13px] text-cyan-700 font-bold">52%</span>
+</div>
+</button>
+<!-- Option 2: DeepSeek -->
+<button class="w-full relative overflow-hidden rounded-lg bg-white border border-slate-200 p-2.5 text-left transition-all active:scale-[0.99] group shadow-sm" onclick="alert('ඔබගේ ඡන්දය සටහන් විය: DeepSeek');">
+<div class="absolute inset-y-0 left-0 bg-blue-100/70 w-[31%] rounded-l-lg transition-all border-r border-blue-300"></div>
+<div class="relative z-10 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-slate-400">radio_button_unchecked</span>
+<span class="font-body-md text-[13px] text-slate-800 font-medium">DeepSeek AI</span>
+</div>
+<span class="text-[13px] text-blue-700 font-bold">31%</span>
+</div>
+</button>
+<!-- Option 3: Claude -->
+<button class="w-full relative overflow-hidden rounded-lg bg-white border border-slate-200 p-2.5 text-left transition-all active:scale-[0.99] group shadow-sm" onclick="alert('ඔබගේ ඡන්දය සටහන් විය: Claude');">
+<div class="absolute inset-y-0 left-0 bg-slate-200/60 w-[11%] rounded-l-lg transition-all"></div>
+<div class="relative z-10 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-slate-400">radio_button_unchecked</span>
+<span class="font-body-md text-[13px] text-slate-800">Claude 3.5 Sonnet</span>
+</div>
+<span class="text-[13px] text-slate-600 font-semibold">11%</span>
+</div>
+</button>
+<!-- Option 4: Gemini -->
+<button class="w-full relative overflow-hidden rounded-lg bg-white border border-slate-200 p-2.5 text-left transition-all active:scale-[0.99] group shadow-sm" onclick="alert('ඔබගේ ඡන්දය සටහන් විය: Google Gemini');">
+<div class="absolute inset-y-0 left-0 bg-slate-200/50 w-[6%] rounded-l-lg transition-all"></div>
+<div class="relative z-10 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-slate-400">radio_button_unchecked</span>
+<span class="font-body-md text-[13px] text-slate-800">Google Gemini</span>
+</div>
+<span class="text-[13px] text-slate-600 font-semibold">6%</span>
+</div>
+</button>
+</div>
+<span class="text-[11px] text-slate-500 font-medium text-right">ඡන්දය ප්‍රකාශ කිරීමට තෝරන්න • ඉතිරි කාලය පැය 18</span>
+</div>
+<!-- Engagement Bar -->
+<div class="flex items-center justify-between pt-1 text-slate-500">
+<button class="flex items-center gap-1.5 py-1 text-slate-600 hover:text-cyan-600 transition-colors">
+<span class="material-symbols-outlined text-[20px]">thumb_up</span>
+<span class="text-[13px] font-medium">892</span>
+</button>
+<button class="flex items-center gap-1.5 py-1 text-slate-600 hover:text-cyan-600 transition-colors">
+<span class="material-symbols-outlined text-[20px]">chat_bubble_outline</span>
+<span class="text-[13px] font-medium">154</span>
+</button>
+<button class="flex items-center gap-1.5 py-1 text-slate-600 hover:text-cyan-600 transition-colors">
+<span class="material-symbols-outlined text-[20px]">share</span>
+<span class="text-[13px] font-medium">45</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-cyan-600">
+<span class="material-symbols-outlined text-[20px]">bookmark_border</span>
+</button>
+</div>
+</article>
+<!-- CARD 3: Developer & Robotics Community Post -->
+<article class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm transition-all hover:shadow-md">
+<!-- Post Header -->
+<div class="flex items-center justify-between mb-2.5">
+<div class="flex items-center gap-2.5 min-w-0">
+<div class="relative">
+<img class="w-10 h-10 rounded-full object-cover shrink-0 ring-2 ring-cyan-500/30" data-alt="Close up portrait of a young Sri Lankan AI software engineer wearing glasses smiling warmly in front of multiple curved monitors showing robotics telemetry code" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBUA38VMOd3ECTS_q5BN65AkoN3-bvd-Yh10hWy-lwz8VzLpCwl-CMKWGfjcbXOMr3qf2bnuv1tbn6-zF3uhJTfj4sHWynNyslFIsxcB5sZpPzktaaU_YKJOlQrPU1aCqphCzTVsbCnTzFYhRfm-WHda799f89DEB62ssotQl8HT1eOdELx4YV3jL824jmEHM2cFwVMGTejbFxMfnjQFGKzWEmPOVG02MmWttr5Vrw"/>
+<span class="absolute bottom-0 right-0 w-3 h-3 bg-cyan-600 rounded-full ring-1 ring-white"></span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-headline-sm text-[15px] font-bold text-slate-900 truncate">දිනේෂ් පෙරේරා</span>
+<span class="material-symbols-outlined text-[15px] text-cyan-600" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="text-[11px] font-semibold bg-cyan-50 border border-cyan-200 text-cyan-700 px-1.5 py-0.2 rounded">AI Engineer</span>
+</div>
+<div class="flex items-center gap-1.5 text-[12px] text-slate-500 font-medium">
+<span>@dinesh_ai</span>
+<span>•</span>
+<span>පැය 4කට පෙර</span>
+</div>
+</div>
+</div>
+<button class="flex items-center gap-1 px-3 py-1 rounded-full bg-cyan-50 hover:bg-cyan-600 text-cyan-700 hover:text-white border border-cyan-200 font-label-sm text-[12px] font-semibold transition-all">
+<span class="material-symbols-outlined text-[14px]">person_add</span>
+<span>Follow</span>
+</button>
+</div>
+<!-- Post Content -->
+<p class="font-body-md text-[14px] text-slate-700 mb-3 leading-relaxed">
+              රොබෝ අතක් (Robotic Arm) සිංහලෙන් දෙන Voice Commands වලින් ක්‍රියාත්මක කරන්න මම ලියපු සරල ROS2 + Whisper node එකක් මෙන්න. පරීක්ෂා කරලා ඔබගේ අදහස් දක්වන්න! 👇🤖
+            </p>
+<!-- Code Snippet Box (High contrast modern developer block) -->
+<div class="rounded-xl bg-slate-900 overflow-hidden shadow-inner mb-3 border border-slate-800">
+<div class="flex items-center justify-between px-3.5 py-2 bg-slate-800/80 border-b border-slate-700">
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+<span class="ml-2 font-mono text-[11px] text-slate-300 font-medium">arm_voice_control.py</span>
+</div>
+<button class="text-slate-400 hover:text-cyan-400 transition-colors flex items-center gap-1 text-[11px] font-medium" onclick="this.innerHTML='&lt;span class=\'material-symbols-outlined text-[14px]\'&gt;check&lt;/span&gt; Copied'; setTimeout(() =&gt; this.innerHTML='&lt;span class=\'material-symbols-outlined text-[14px]\'&gt;content_copy&lt;/span&gt; Copy', 2000);">
+<span class="material-symbols-outlined text-[14px]">content_copy</span>
+<span>Copy</span>
+</button>
+</div>
+<pre class="p-3 text-[12px] font-mono leading-relaxed overflow-x-auto text-slate-300 no-scrollbar"><code><span class="text-cyan-400">import</span> rclpy
+<span class="text-cyan-400">from</span> techpulse_ai <span class="text-cyan-400">import</span> SinhalaSpeechRecognizer
+
+<span class="text-slate-500"># සිංහල විධාන හඳුනාගැනීම</span>
+<span class="text-blue-400">def</span> <span class="text-amber-300">handle_voice_command</span>(audio_stream):
+    command = SinhalaSpeechRecognizer.parse(audio_stream)
+    <span class="text-cyan-400">if</span> <span class="text-emerald-300">"අත ඔසවන්න"</span> <span class="text-cyan-400">in</span> command:
+        robotic_arm.execute_trajectory(<span class="text-sky-300">"LIFT_ARM"</span>)
+    <span class="text-cyan-400">return</span> {<span class="text-sky-300">"status"</span>: <span class="text-emerald-300">"ක්‍රියාත්මකයි"</span>}</code></pre>
+</div>
+<!-- Mini Tags -->
+<div class="flex flex-wrap gap-1.5 mb-3">
+<span class="text-[11px] font-semibold text-cyan-700 bg-cyan-50 border border-cyan-200 px-2 py-0.5 rounded-full">#RoboticsLK</span>
+<span class="text-[11px] font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full">#PythonSinhala</span>
+<span class="text-[11px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full">#OpenSource</span>
+</div>
+<!-- Threaded Comment Preview -->
+<div class="bg-slate-50 border border-slate-200 rounded-xl p-3 mb-3">
+<div class="flex items-start gap-2.5">
+<img alt="Commenter" class="w-7 h-7 rounded-full object-cover shrink-0 mt-0.5 ring-1 ring-slate-200" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqDdvBDeA1CSOehAb1qZ-LGkHErzQN6zgSfuBWQ5fpgu-q18hIOSmEkSy8Hqnqiu2C_k9EI23XvVZ59DvJXjrYS8qxDILPqHFcNiVcDwAjbBjjTLVcpudwncMLe0e83mz51QsR81aSpHko0Eo2P3Yzfe9b8zC1RjoYn4AYINi4t96FeM3CVlFin80uRw1d4LDmRG16YF1hKC-DJoB7LbW913TJXGJcameTTbvs1hQ"/>
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-label-md text-[13px] font-bold text-slate-900 truncate">කසුන් මධුෂංක</span>
+<span class="text-[11px] text-slate-500">පැය 1කට පෙර</span>
+</div>
+<p class="font-body-sm text-[13px] text-slate-600 mt-0.5">
+                    නියමයි දිනේෂ් අයියා! Raspberry Pi 5 එකේ latency එක කොහොමද?
+                  </p>
+<div class="flex items-center gap-3 mt-1.5 font-label-sm text-[12px] text-cyan-600 font-semibold">
+<button class="hover:underline">පිළිතුරු දෙන්න (Reply)</button>
+<span class="text-slate-300">•</span>
+<span class="text-slate-500 font-normal">කැමතියි 14</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Action Strip -->
+<div class="flex items-center justify-between pt-1">
+<button class="flex items-center gap-1.5 text-slate-600 hover:text-cyan-600 transition-colors">
+<span class="material-symbols-outlined text-[20px]">thumb_up</span>
+<span class="text-[13px] font-medium">523</span>
+</button>
+<button class="flex items-center gap-1.5 text-slate-600 hover:text-cyan-600 transition-colors">
+<span class="material-symbols-outlined text-[20px]">comment</span>
+<span class="text-[13px] font-medium">84 අදහස්</span>
+</button>
+<button class="flex items-center gap-1.5 text-slate-600 hover:text-cyan-600 transition-colors">
+<span class="material-symbols-outlined text-[20px]">share</span>
+<span class="text-[13px] font-medium">38</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-cyan-600">
+<span class="material-symbols-outlined text-[20px]">bookmark_border</span>
+</button>
+</div>
+</article>
+<!-- Feed End Catch-up Delight State -->
+<div class="py-6 flex flex-col items-center justify-center text-center gap-2">
+<div class="w-12 h-12 rounded-full bg-cyan-100 flex items-center justify-center text-cyan-700 shadow-sm">
+<span class="material-symbols-outlined text-[26px]">done_all</span>
+</div>
+<span class="font-headline-sm text-[16px] font-bold text-slate-900">ඔබ සියලු පුවත් කියවා අවසන්!</span>
+<p class="font-body-sm text-[13px] text-slate-500 max-w-xs leading-relaxed">
+              නව AI සහ තාක්ෂණික තොරතුරු සඳහා තිරය පහළට ඇද නැවුම් කරන්න (Pull to Refresh).
+            </p>
+<button class="mt-2 px-4 py-1.5 rounded-full bg-white border border-slate-200 text-cyan-600 font-label-md text-[13px] font-semibold flex items-center gap-1 hover:bg-slate-50 shadow-sm active:scale-95 transition-all" onclick="window.scrollTo({top: 0, behavior: 'smooth'});">
+<span class="material-symbols-outlined text-[16px]">arrow_upward</span>
+<span>ඉහළට යන්න</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Fixed Bottom Navigation Bar (Light Mode) -->
+<nav class="fixed bottom-0 inset-x-0 z-50 pb-safe bg-white/95 backdrop-blur-xl border-t border-slate-200 shadow-[0_-2px_10px_rgba(0,0,0,0.04)]" data-active-classes="text-cyan-600 font-semibold">
+<div class="flex justify-around items-center h-16 px-2">
+<a aria-current="page" class="flex flex-col items-center justify-center gap-0.5 w-16 h-12 transition-colors text-cyan-600 font-semibold" data-path="feed" href="#">
+<span class="material-symbols-outlined text-[22px]">newspaper</span>
+<span class="text-[11px]">පුවත්</span>
+</a>
+<a class="flex flex-col items-center justify-center gap-0.5 w-16 h-12 text-slate-500 hover:text-cyan-600 transition-colors" data-path="explore" href="#">
+<span class="material-symbols-outlined text-[22px]">explore</span>
+<span class="text-[11px] font-medium">සොයන්න</span>
+</a>
+<a class="flex flex-col items-center justify-center gap-0.5 w-16 h-12 text-slate-500 hover:text-cyan-600 transition-colors" data-path="bookmarks" href="#">
+<span class="material-symbols-outlined text-[22px]">bookmark</span>
+<span class="text-[11px] font-medium">සුරැකි</span>
+</a>
+<a class="flex flex-col items-center justify-center gap-0.5 w-16 h-12 text-slate-500 hover:text-cyan-600 transition-colors" data-path="account" href="#">
+<span class="material-symbols-outlined text-[22px]">account_circle</span>
+<span class="text-[11px] font-medium">ගිණුම</span>
+</a>
+</div>
+</nav>
+</body></html>

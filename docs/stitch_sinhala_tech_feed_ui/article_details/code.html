@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="si"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_stack" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100%;margin:0;padding:0;min-height:100%;}body{overscroll-behavior-y:none;-webkit-tap-highlight-color:transparent;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "surface-variant": "#2d3449", "background": "#0b1326", "on-surface": "#dae2fd", "on-tertiary-fixed-variant": "#003ea8", "on-tertiary": "#002a78", "outline": "#869397", "on-error": "#690005", "on-tertiary-container": "#003490", "surface-container-low": "#131b2e", "surface-tint": "#4cd7f6", "primary": "#4cd7f6", "on-primary-fixed": "#001f26", "outline-variant": "#3d494c", "surface": "#0b1326", "inverse-surface": "#dae2fd", "error-container": "#93000a", "on-tertiary-fixed": "#00174b", "tertiary": "#b4c5ff", "tertiary-container": "#85a3ff", "secondary": "#d0bcff", "surface-bright": "#31394d", "on-background": "#dae2fd", "surface-dim": "#0b1326", "on-primary-container": "#00424f", "on-error-container": "#ffdad6", "inverse-primary": "#00687a", "on-secondary": "#3c0091", "inverse-on-surface": "#283044", "secondary-container": "#571bc1", "on-primary-fixed-variant": "#004e5c", "primary-fixed": "#acedff", "on-secondary-fixed": "#23005c", "primary-container": "#06b6d4", "on-primary": "#003640", "surface-container-highest": "#2d3449", "surface-container-lowest": "#060e20", "tertiary-fixed-dim": "#b4c5ff", "on-secondary-container": "#c4abff", "secondary-fixed-dim": "#d0bcff", "primary-fixed-dim": "#4cd7f6", "surface-container-high": "#222a3d", "surface-container": "#171f33", "on-secondary-fixed-variant": "#5516be", "secondary-fixed": "#e9ddff", "error": "#ffb4ab", "on-surface-variant": "#bcc9cd", "tertiary-fixed": "#dbe1ff" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-sm": "0.5rem", "margin": "1rem", "margin-lg": "2.5rem", "space-lg": "1.5rem", "space-xl": "2rem", "gutter-lg": "1.5rem", "margin-md": "1.5rem", "space-xs": "0.25rem", "space-md": "1rem", "gutter": "1rem" }, "fontFamily": { "label-sm": ["Inter"], "body-lg": ["Inter"], "body-sm": ["Inter"], "headline-md": ["Inter"], "label-md": ["Inter"], "body-md": ["Inter"], "display-lg": ["Inter"], "headline-lg-mobile": ["Inter"], "headline-sm": ["Inter"], "headline-lg": ["Inter"] }, "fontSize": { "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "600" }], "body-lg": ["16px", { "lineHeight": "26px", "fontWeight": "400" }], "body-sm": ["12px", { "lineHeight": "18px", "fontWeight": "400" }], "headline-md": ["22px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "label-md": ["13px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "500" }], "body-md": ["14px", { "lineHeight": "22px", "fontWeight": "400" }], "display-lg": ["40px", { "lineHeight": "52px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "headline-lg-mobile": ["26px", { "lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "700" }], "headline-sm": ["18px", { "lineHeight": "26px", "fontWeight": "600" }], "headline-lg": ["32px", { "lineHeight": "42px", "letterSpacing": "-0.02em", "fontWeight": "700" }] } } } };</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-background text-on-surface font-body-md text-body-md flex flex-col min-h-screen"><header class="fixed top-0 inset-x-0 z-50 bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.4)] pt-safe"><div class="h-16 px-space-sm flex items-center justify-between gap-space-sm"><div class="flex items-center gap-space-xs min-w-0"><button aria-label="Go Back" class="w-11 h-11 flex items-center justify-center rounded-full text-on-surface hover:text-primary transition-colors" onclick="history.back()"><span class="material-symbols-outlined text-[24px]">arrow_back</span></button><img alt="TechPulse Sinhala AI Logo" class="h-7 w-auto object-contain flex-shrink-0" src="https://lh3.googleusercontent.com/aida/ALJJyrCu0uVzPQ52oH77tjnyeyRjofTy7_A5RpzE8lMznWmAVI_Ib852K_61L8-rTb2dBLLMw-r5DgjvPuJf6kE24p60FFsT8J7nwrfx2v_X_Fx-XFTpoexZlVaEn6azCD0jpEJuu8B7SGzOSdJumwrOm3lQ9RpV0asjimv49BMc0fSN3LSNllXTOT0rsd7MVMiwPd6dWU4K4JW91ulaylP8rtxV5ZEsvOKBxQiDVfgLq-_a"/><h1 class="font-headline-sm text-headline-sm text-on-surface font-semibold truncate ml-1">Article Details</h1></div><div class="flex items-center gap-1 flex-shrink-0"><button aria-label="Share Article" class="w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-[22px]">share</span></button><button aria-label="Toggle Theme" class="w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant hover:text-secondary transition-colors" onclick="document.documentElement.classList.toggle('dark')"><span class="material-symbols-outlined text-[20px]">dark_mode</span></button><div class="w-11 h-11 flex items-center justify-center"><img alt="Profile" class="w-8 h-8 rounded-full object-cover ring-2 ring-primary/40" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqDdvBDeA1CSOehAb1qZ-LGkHErzQN6zgSfuBWQ5fpgu-q18hIOSmEkSy8Hqnqiu2C_k9EI23XvVZ59DvJXjrYS8qxDILPqHFcNiVcDwAjbBjjTLVcpudwncMLe0e83mz51QsR81aSpHko0Eo2P3Yzfe9b8zC1RjoYn4AYINi4t96FeM3CVlFin80uRw1d4LDmRG16YF1hKC-DJoB7LbW913TJXGJcameTTbvs1hQ"/></div></div></div></header><main class="flex flex-col relative w-full pt-16 bg-background min-h-screen"><div class="flex flex-col w-full pb-24">
+<!-- Article Header Category & Metadata -->
+<div class="px-margin pt-space-sm pb-space-xs flex flex-wrap items-center gap-space-xs">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-high text-primary font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+      කෘතිම බුද්ධිය
+    </span>
+<span class="text-on-surface-variant font-label-sm text-label-sm opacity-60">•</span>
+<span class="text-on-surface-variant font-label-sm text-label-sm">මිනිත්තු 4 කියවීමක්</span>
+<span class="text-on-surface-variant font-label-sm text-label-sm opacity-60">•</span>
+<span class="text-on-surface-variant font-label-sm text-label-sm">අද ප.ව. 2:30</span>
+</div>
+<!-- Main Headline in Bold Sinhala -->
+<div class="px-margin pt-space-xs pb-space-sm">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface font-bold leading-snug tracking-tight">
+      OpenAI සහ Anthropic සමාගම්වල නවතම AI මාදිලි මඟින් මානව බුද්ධිය අභිබවා යාමේ නව සන්ධිස්ථානයක්
+    </h1>
+</div>
+<!-- Author Metadata Row -->
+<div class="px-margin py-space-sm flex items-center justify-between gap-space-sm bg-surface-container-low/60 rounded-xl my-space-xs">
+<div class="flex items-center gap-space-sm min-w-0">
+<img class="w-11 h-11 rounded-full object-cover flex-shrink-0" data-alt="Professional portrait photo of Kasun Jayawardena, a Sri Lankan senior AI researcher with glasses and a sharp dark modern blazer, set against a subtle neon cyan lab background with soft bokeh." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYMiP6SV4RggNB_9MiBlmf6jUOh3649sy8U6aod20FpdFh3P6sdREyUSyt4bmAwxDDBMXf82ysB7P5yJ3VJA7rdes73UaoSIweiHIEyJqcFFCPq_9ngbPtj56kSmOr1TR3bc_MFr9RvzF_Z6k0T60L9SnzLM6AKhFd0kyuyz79Rup-6CEZTcocCkIZzrYsqSAR_sHfALzLCDMmL0MIHsvdMk90yP0SPSiosaSi_64"/>
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md text-on-surface font-semibold truncate">කසුන් ජයවර්ධන</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Lead AI Researcher</span>
+</div>
+</div>
+<div class="flex items-center gap-2 flex-shrink-0">
+<button class="px-3 py-1.5 rounded-full bg-surface-container-highest hover:bg-primary/20 text-primary font-label-sm text-label-sm transition-all flex items-center gap-1 active:scale-95" id="followBtn" onclick="toggleFollow(this)">
+<span class="material-symbols-outlined text-[16px]">add</span>
+<span>අනුගමනය කරන්න</span>
+</button>
+</div>
+</div>
+<!-- Read Count Metric & Engagement Row -->
+<div class="px-margin py-1 flex items-center gap-4 text-on-surface-variant font-label-sm text-label-sm">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-primary">visibility</span>
+<span>18.4K කියවීම්</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-secondary">verified</span>
+<span>තහවුරු කළ පර්යේෂණයක්</span>
+</div>
+</div>
+<!-- Hero Feature Graphic Canvas -->
+<div class="px-margin my-space-sm">
+<div class="relative w-full h-52 rounded-xl overflow-hidden shadow-lg bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="Futuristic artificial general intelligence neural network visual showing crystalline glowing cyan nodes, vibrant violet synapse pulses connecting quantum logic gates in dark high-tech isometric view." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_qC40bL8iAb00CgSuNLLyjzlp7P70hj972XDNfnfNioqZIftt7RirkdbV4J09RV46of6QKfcCQLoJhdWnb2oS_lglQpJDymIUT2r6GoB0rrFJ-fmCf5FP4cZ1inr9rRsax9Fy06iQt7zKHTdXBE4aU1mrEahwA9yKEMnSC3LdWWmz6Mq_oY1fJ3aEO25i9iajZu1Mb3F_z1dN1CyJi1LZqZ-OWlB-uXw_5kg9FVU"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent"></div>
+<div class="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+<span class="bg-surface/85 backdrop-blur-md px-2.5 py-1 rounded-md text-on-surface font-label-sm text-label-sm">
+          GPT-5 vs Claude 3.5 Sonnet Next-Gen
+        </span>
+<span class="bg-primary/90 text-on-primary font-label-sm text-label-sm px-2 py-0.5 rounded">
+          විශ්ලේෂණය
+        </span>
+</div>
+</div>
+</div>
+<!-- AI Quick Summary Callout Box -->
+<div class="px-margin my-space-xs">
+<div class="relative p-space-md rounded-xl bg-surface-container/90 backdrop-blur-xl shadow-xl overflow-hidden">
+<!-- Glow ambient background highlight -->
+<div class="absolute -top-12 -right-12 w-28 h-28 bg-primary/20 rounded-full blur-2xl pointer-events-none"></div>
+<div class="absolute -bottom-12 -left-12 w-28 h-28 bg-secondary/20 rounded-full blur-2xl pointer-events-none"></div>
+<div class="flex items-center justify-between gap-2 mb-space-sm relative z-10">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">auto_awesome</span>
+</div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-semibold">AI ඉක්මන් සාරාංශය</h2>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm">
+          තත්පර 30
+        </span>
+</div>
+<div class="space-y-2.5 relative z-10">
+<div class="flex items-start gap-2.5">
+<span class="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></span>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+            නව මාදිලි දෙකම සංකීර්ණ ගණිතමය ගැටලු විසඳීම, තාර්කික තීරණ ගැනීම සහ කේතකරණ මිණුම් දඬු (Coding Benchmarks) වලදී සාමාන්‍ය මිනිස් මට්ටම 94%කින් ඉක්මවා ඇත.
+          </p>
+</div>
+<div class="flex items-start gap-2.5">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary mt-2 flex-shrink-0"></span>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+            සිංහල හා දෙමළ ඇතුළු දකුණු ආසියාතික භාෂා සඳහා ඇති ස්වාභාවික භාෂා සැකසුම් (NLP) නිරවද්‍යතාවය පෙර පැවති සංස්කරණවලට වඩා 3 ගුණයකින් ඉහළ නංවා ඇත.
+          </p>
+</div>
+<div class="flex items-start gap-2.5">
+<span class="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></span>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+            ස්වයංක්‍රීයව දෝෂ නිවැරදි කිරීම (Self-debugging) සහ දීර්ඝ කාලීන මතක කළමනාකරණය මඟින් මෘදුකාංග සංවර්ධකයන්ගේ ඵලදායිතාව 50%කට වඩා ඉහළ නංවයි.
+          </p>
+</div>
+</div>
+</div>
+</div>
+<!-- Audio Player Bar (Listen to Article) -->
+<div class="px-margin my-space-sm">
+<div class="p-space-sm bg-surface-container-high rounded-xl flex flex-col gap-2 shadow-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">graphic_eq</span>
+<span class="font-label-md text-label-md text-on-surface font-medium">මෙම ලිපියට සවන් දෙන්න</span>
+</div>
+<div class="flex items-center gap-1.5">
+<button class="px-2 py-0.5 rounded bg-surface-variant text-on-surface-variant font-label-sm text-label-sm hover:text-primary transition-colors" id="speedBtn" onclick="toggleAudioSpeed(this)">
+            1.2x
+          </button>
+<span class="text-on-surface-variant font-label-sm text-label-sm" id="audioDuration">03:45</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button aria-label="Play audio" class="w-9 h-9 rounded-full bg-primary text-on-primary flex items-center justify-center flex-shrink-0 shadow-md active:scale-95 transition-transform" id="audioPlayBtn" onclick="togglePlayState()">
+<span class="material-symbols-outlined text-[20px]" id="audioPlayIcon">play_arrow</span>
+</button>
+<!-- Scrub bar slider -->
+<div class="relative w-full h-2 bg-surface-variant rounded-full cursor-pointer flex items-center" onclick="seekAudio(event, this)">
+<div class="h-full bg-primary rounded-full" id="audioProgress" style="width: 32%;"></div>
+<div class="w-3.5 h-3.5 rounded-full bg-on-primary ring-2 ring-primary absolute shadow" id="audioThumb" style="left: calc(32% - 7px);"></div>
+</div>
+<button aria-label="Mute or unmute" class="text-on-surface-variant hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined text-[20px]">volume_up</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Main Article Body -->
+<article class="px-margin space-y-space-md text-on-surface" id="articleContent">
+<!-- Intro Paragraph -->
+<p class="font-body-lg text-body-lg leading-relaxed text-on-surface">
+      ගෝලීය කෘතිම බුද්ධි ක්ෂේත්‍රයේ දැවැන්තයින් වන OpenAI සහ Anthropic විසින් හඳුන්වා දෙන ලද අතිනවීන මාදිලි මාලාව මඟින්, පරිගණක පද්ධතිවල තාර්කික චින්තන හැකියාව (Complex Reasoning) මිනිස් පර්යේෂකයෙකුගේ මට්ටම දක්වා ඔසවා තැබීමට සමත්ව තිබේ. මෙය හුදු පෙළ සැකසීමේ (Text Completion) මෙවලමක සිට ස්වාධීන ගැටලු විසඳන්නෙකු දක්වා සිදුවූ ඓතිහාසික පිම්මකි.
+    </p>
+<!-- First Heading -->
+<div class="pt-space-xs">
+<h2 class="font-headline-sm text-headline-sm font-semibold text-primary mb-2 flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px]">psychology</span>
+        තාක්ෂණික පෙරළිය සහ ක්‍රියාකාරීත්වය
+      </h2>
+<p class="font-body-md text-body-md leading-relaxed text-on-surface-variant">
+        මෙම පද්ධති පදනම් වී ඇත්තේ 'Chain of Thought' තාක්ෂණයේ නවමු වර්ධනයක් වන 'Deep Cognitive Synthesis' සංකල්පය මතය. ප්‍රශ්නයක් විමසූ වහාම ප්‍රතිචාර නොදක්වා, මාදිලිය විසින් අභ්‍යන්තර පියවර ගණනාවක් ඔස්සේ උපකල්පන පරීක්ෂා කිරීම සිදුකරයි. මෙහි ප්‍රතිඵලයක් ලෙස දෝෂ සහිත තොරතුරු (Hallucinations) වාර්තා වීම පෙරට වඩා 82%කින් අඩුවී ඇත.
+      </p>
+</div>
+<!-- Quote Callout Box -->
+<div class="relative my-space-md p-space-md rounded-xl bg-surface-container-high/80 overflow-hidden">
+<div class="flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-secondary text-[32px] flex-shrink-0 opacity-80">format_quote</span>
+<div>
+<blockquote class="font-body-lg text-body-lg italic text-on-surface font-medium leading-snug">
+            "අනාගතයේ සාර්ථකත්වය රඳා පවතින්නේ AI භාවිතා කරන හෝ නොකරන පිරිස අතර නොව, එය ගැඹුරු පර්යේෂණ සඳහා බද්ධ කරගන්නා නිර්මාණශීලී මිනිසුන් මතයි."
+          </blockquote>
+<p class="font-label-sm text-label-sm text-secondary mt-2 font-semibold">
+            — ආචාර්ය ඩැරියෝ ඇමෝඩෙයි (Anthropic සමාරම්භක)
+          </p>
+</div>
+</div>
+</div>
+<!-- High-Tech Metric Comparison Widget (Inline Chart) -->
+<div class="my-space-md p-space-md bg-surface-container rounded-xl shadow-lg">
+<div class="flex items-center justify-between mb-space-sm">
+<div>
+<h3 class="font-label-md text-label-md text-on-surface font-semibold">මාදිලි කාර්යසාධන සංසන්දනය</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">MMLU Pro සහ Reasoning Benchmarks (2025)</p>
+</div>
+<span class="material-symbols-outlined text-primary text-[20px]">equalizer</span>
+</div>
+<!-- Comparative Bars -->
+<div class="space-y-3 pt-1">
+<!-- Metric 1: Logic & Reasoning -->
+<div>
+<div class="flex justify-between font-label-sm text-label-sm mb-1 text-on-surface">
+<span>තාර්කික ගැටලු විසඳීම (Reasoning)</span>
+<span class="text-primary font-bold">96.4%</span>
+</div>
+<div class="w-full h-2.5 bg-surface-variant rounded-full overflow-hidden flex">
+<div class="bg-primary h-full rounded-full transition-all duration-1000" style="width: 96.4%"></div>
+</div>
+</div>
+<!-- Metric 2: Multilingual Nuance (Sinhala) -->
+<div>
+<div class="flex justify-between font-label-sm text-label-sm mb-1 text-on-surface">
+<span>සිංහල භාෂා නිරවද්‍යතාවය (NLP Accuracy)</span>
+<span class="text-secondary font-bold">89.2%</span>
+</div>
+<div class="w-full h-2.5 bg-surface-variant rounded-full overflow-hidden flex">
+<div class="bg-secondary h-full rounded-full transition-all duration-1000" style="width: 89.2%"></div>
+</div>
+</div>
+<!-- Metric 3: Code Synthesis -->
+<div>
+<div class="flex justify-between font-label-sm text-label-sm mb-1 text-on-surface">
+<span>කේත සම්පාදනය (Code Generation)</span>
+<span class="text-tertiary-container font-bold">92.8%</span>
+</div>
+<div class="w-full h-2.5 bg-surface-variant rounded-full overflow-hidden flex">
+<div class="bg-tertiary-container h-full rounded-full transition-all duration-1000" style="width: 92.8%"></div>
+</div>
+</div>
+</div>
+<div class="mt-3 pt-2 flex items-center justify-between text-on-surface-variant font-body-sm text-body-sm">
+<span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-primary inline-block"></span> OpenAI o3</span>
+<span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-secondary inline-block"></span> Claude 3.7</span>
+<span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-surface-variant inline-block"></span> පැරණි මාදිලි</span>
+</div>
+</div>
+<!-- Second Section -->
+<div class="pt-space-xs">
+<h2 class="font-headline-sm text-headline-sm font-semibold text-secondary mb-2 flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px]">public</span>
+        ශ්‍රී ලංකාවේ තාක්ෂණ ක්ෂේත්‍රයට මෙයින් ඇති වාසි
+      </h2>
+<p class="font-body-md text-body-md leading-relaxed text-on-surface-variant">
+        දේශීය තොරතුරු තාක්ෂණ ව්‍යාපාර හා මෘදුකාංග නිර්මාණකරුවන් සඳහා මෙම පෙරළිය සුවිශේෂී අවස්ථාවක් විවර කරයි. විශේෂයෙන්ම රාජ්‍ය ලේඛන පරිවර්තනය, සෞඛ්‍ය සහ අධ්‍යාපනික උපදේශන සේවාවන් සිංහල භාෂාවෙන්ම ස්වයංක්‍රීය කිරීමේ ක්‍රියාවලිය වඩාත් කාර්යක්ෂම කිරීමට මෙය ඉවහල් වනු ඇත.
+      </p>
+</div>
+<!-- Interactive Quiz / Reflection Widget -->
+<div class="p-space-md rounded-xl bg-surface-container-high/60 my-space-sm">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-primary text-[20px]">lightbulb</span>
+<h4 class="font-label-md text-label-md text-on-surface font-semibold">ඔබේ අදහස කුමක්ද?</h4>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-3">
+        ශ්‍රී ලංකාවේ කේතකරණ ශ්‍රම බලකාය සඳහා AI මඟින් වන බලපෑම කෙසේ වේ යැයි ඔබ සිතන්නේද?
+      </p>
+<div class="space-y-2">
+<button class="w-full py-2 px-3 rounded-lg bg-surface-variant/80 hover:bg-primary/20 text-left text-on-surface font-body-sm text-body-sm flex items-center justify-between transition-colors" onclick="castVote(this, 78)">
+<span>🚀 ඵලදායිතාව සහ ගෝලීය අවස්ථා වැඩිවේ</span>
+<span class="font-label-sm text-label-sm text-primary opacity-0 vote-pct">78%</span>
+</button>
+<button class="w-full py-2 px-3 rounded-lg bg-surface-variant/80 hover:bg-primary/20 text-left text-on-surface font-body-sm text-body-sm flex items-center justify-between transition-colors" onclick="castVote(this, 22)">
+<span>⚠️ සේවක ඉල්ලුම අඩුවීමේ අවදානමක් ඇත</span>
+<span class="font-label-sm text-label-sm text-secondary opacity-0 vote-pct">22%</span>
+</button>
+</div>
+</div>
+<!-- Tag Cloud -->
+<div class="pt-space-xs pb-space-sm flex flex-wrap gap-2">
+<span class="px-2.5 py-1 rounded-md bg-surface-container text-on-surface-variant font-label-sm text-label-sm">#OpenAI</span>
+<span class="px-2.5 py-1 rounded-md bg-surface-container text-on-surface-variant font-label-sm text-label-sm">#Anthropic</span>
+<span class="px-2.5 py-1 rounded-md bg-surface-container text-on-surface-variant font-label-sm text-label-sm">#SinhalaAI</span>
+<span class="px-2.5 py-1 rounded-md bg-surface-container text-on-surface-variant font-label-sm text-label-sm">#TechNews</span>
+<span class="px-2.5 py-1 rounded-md bg-surface-container text-on-surface-variant font-label-sm text-label-sm">#GenAI</span>
+</div>
+</article>
+<!-- Reader Comments Section -->
+<section class="px-margin pt-space-md mt-space-sm bg-surface-container-low/80 rounded-t-2xl">
+<div class="flex items-center justify-between mb-space-md">
+<div class="flex items-center gap-2">
+<h3 class="font-headline-sm text-headline-sm font-semibold text-on-surface">පාඨක අදහස්</h3>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-primary font-label-sm text-label-sm font-bold">245</span>
+</div>
+<button class="text-primary font-label-md text-label-md flex items-center gap-0.5 hover:underline">
+        සියල්ල බලන්න
+        <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</div>
+<!-- Comment Input Field -->
+<div class="flex items-center gap-2 mb-space-md">
+<img alt="You" class="w-8 h-8 rounded-full object-cover flex-shrink-0" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqDdvBDeA1CSOehAb1qZ-LGkHErzQN6zgSfuBWQ5fpgu-q18hIOSmEkSy8Hqnqiu2C_k9EI23XvVZ59DvJXjrYS8qxDILPqHFcNiVcDwAjbBjjTLVcpudwncMLe0e83mz51QsR81aSpHko0Eo2P3Yzfe9b8zC1RjoYn4AYINi4t96FeM3CVlFin80uRw1d4LDmRG16YF1hKC-DJoB7LbW913TJXGJcameTTbvs1hQ"/>
+<div class="flex-1 relative">
+<input class="w-full bg-surface-container-highest px-3.5 py-2 rounded-full text-on-surface placeholder:text-outline text-body-sm font-body-sm focus:outline-none focus:ring-1 focus:ring-primary" placeholder="ඔබේ තාක්ෂණික අදහස එක් කරන්න..." type="text"/>
+</div>
+<button class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center flex-shrink-0 shadow active:scale-95">
+<span class="material-symbols-outlined text-[16px]">send</span>
+</button>
+</div>
+<!-- Comment Thread 1 -->
+<div class="space-y-space-md pb-space-lg">
+<div class="p-space-sm rounded-xl bg-surface-container">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-2">
+<img class="w-7 h-7 rounded-full object-cover" data-alt="Close up face profile of an ambitious Sri Lankan software developer smiling, warm studio rim light." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBej_UaiXBcr9Ef4D1JUHG_5BKGbpJcqI4G_3YGluctxMvZf9necICJZhrhd-UkiLV6Fny7GCHulpyi0J-mbMGyOSu2OcFqn-O9SEDa51oXYumF2v4o8l1CVt1CTtfLVtBYYUHMpbgQwAUVp8XBuhboYoM_xZWETgXzmzhMizcg6Gyv0i5-I3jG6LoLS7LkHyGgMcHXMsJeJ8N6PjH6hLfcqXyp6GtvYmuQFutQIf4"/>
+<div>
+<span class="font-label-md text-label-md text-on-surface font-medium block">චතුරංග වික්‍රමසිංහ</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant block">පැය 1කට පෙර</span>
+</div>
+</div>
+<button class="text-on-surface-variant hover:text-primary">
+<span class="material-symbols-outlined text-[16px]">more_vert</span>
+</button>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-2 leading-relaxed">
+          ඇත්තෙන්ම මේක විශාල ජයග්‍රහණයක්. විශේෂයෙන්ම සිංහල පරිවර්තනවල සන්දර්භය (Contextual Understanding) ඉහළ මට්ටමකට පැමිණීම අපේ දේශීය ඊ-රාජ්‍ය සේවාවලට විශාල වාසියක් ගෙන දේවි!
+        </p>
+<div class="flex items-center gap-4 mt-2.5 text-on-surface-variant font-label-sm text-label-sm">
+<button class="flex items-center gap-1 hover:text-error transition-colors" onclick="likeComment(this)">
+<span class="material-symbols-outlined text-[16px]">favorite</span>
+<span class="like-num">42</span>
+</button>
+<button class="hover:text-primary transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">reply</span>
+<span>පිළිතුරු දෙන්න</span>
+</button>
+</div>
+<!-- Nested Reply -->
+<div class="mt-3 pl-3 ml-2 bg-surface-container-high/50 p-2.5 rounded-lg">
+<div class="flex items-center gap-2 mb-1">
+<img class="w-5 h-5 rounded-full object-cover" data-alt="Portrait of a young Sri Lankan tech enthusiast girl with spectacles, indoor modern coworking space background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBmL4GPLLQGloe4sWhqjSnlrfNOG_hZIXz6_2lLrv6yBEUtyZF0A-KoZcyFZiai1qgNwce_cknAHXJPbLicKb_CxQBny6zGlXKo1ns-fz3YX3kAx7LGPMssKfbludkQScNqDkAocOt3scmcIIm-zlj8rQa-KWNVj1UuF_H1ZNP2ld9dNyCAIO5MEZ-UQSTmHWqBq1SX99D3iinIRV1uNBIF8z5NQ5kvhrjc17QjW4U"/>
+<span class="font-label-sm text-label-sm text-on-surface font-semibold">නදීෂා පෙරේරා</span>
+<span class="text-on-surface-variant font-label-sm text-label-sm opacity-60">• මිනිත්තු 25කට පෙර</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            එකඟයි චතුරංග! නමුත් ප්‍රාදේශීය ව්‍යවහාරයන් සහ කථන භාෂාව තේරුම් ගැනීමේ හැකියාව තවදුරටත් පුහුණු කළ යුතුයි.
+          </p>
+</div>
+</div>
+<!-- Comment Thread 2 -->
+<div class="p-space-sm rounded-xl bg-surface-container">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-2">
+<img class="w-7 h-7 rounded-full object-cover" data-alt="Headshot of a Sri Lankan university student in tech, casual hoodie, ambient blue lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCB64AottZDLgNB1VRngKM-j0GKdarlBhOitogKZv4oH_T3ioKhGlycDzvPbKyBbpnjp0HzMz5TU7hNlQIWPP5n2J8Zi-1esDPm8iNX-Sy6jiG2hoWUv57M5-f-8TojOZYEEg2LwwG7DUy2pCnclYi2N58JtYqsinBclgcFwMn74BTyBmO24M0woBOaoUqAVgmAfPE0vg_WLssXkV5pPph2Cv7BzX7pTcjTF-tdcmQ"/>
+<div>
+<span class="font-label-md text-label-md text-on-surface font-medium block">දිනුක හර්ෂණ</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant block">පැය 3කට පෙර</span>
+</div>
+</div>
+<button class="text-on-surface-variant hover:text-primary">
+<span class="material-symbols-outlined text-[16px]">more_vert</span>
+</button>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-2 leading-relaxed">
+          OpenAI o3 මාදිලියේ තර්කන හැකියාව ඉතාමත් විශ්මයජනකයි. කේතකරණ මිණුම් දඬු වල ප්‍රතිඵල විශ්ලේෂණය සවිස්තරාත්මකව ඉදිරිපත් කිරීම ගැන ස්තූතියි කසුන් අයියේ!
+        </p>
+<div class="flex items-center gap-4 mt-2.5 text-on-surface-variant font-label-sm text-label-sm">
+<button class="flex items-center gap-1 hover:text-error transition-colors" onclick="likeComment(this)">
+<span class="material-symbols-outlined text-[16px]">favorite</span>
+<span class="like-num">19</span>
+</button>
+<button class="hover:text-primary transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">reply</span>
+<span>පිළිතුරු දෙන්න</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Sticky Bottom Interactive Floating Action Bar -->
+<div class="fixed bottom-3 inset-x-3 z-40 max-w-lg mx-auto">
+<div class="bg-surface-container-highest/90 backdrop-blur-xl px-4 py-2 rounded-full shadow-2xl flex items-center justify-between">
+<!-- Like Reaction -->
+<button class="flex items-center gap-1.5 text-on-surface-variant hover:text-error transition-all group active:scale-95" id="likeArticleBtn" onclick="toggleArticleLike()">
+<span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform" id="likeIcon">favorite</span>
+<span class="font-label-sm text-label-sm" id="likeCount">1.8K</span>
+</button>
+<!-- Comment Shortcut -->
+<button class="flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors active:scale-95" onclick="scrollToComments()">
+<span class="material-symbols-outlined text-[20px]">chat_bubble</span>
+<span class="font-label-sm text-label-sm">245</span>
+</button>
+<!-- Font Resizer A- / A+ -->
+<div class="flex items-center bg-surface-container rounded-full px-2 py-0.5 gap-1">
+<button class="w-6 h-6 flex items-center justify-center text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm font-bold" onclick="adjustFontSize(-1)">
+          A-
+        </button>
+<div class="w-px h-3 bg-surface-variant"></div>
+<button class="w-6 h-6 flex items-center justify-center text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm font-bold" onclick="adjustFontSize(1)">
+          A+
+        </button>
+</div>
+<!-- Bookmark Action -->
+<button class="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:text-secondary active:scale-95 transition-colors" id="bookmarkBtn" onclick="toggleBookmark(this)">
+<span class="material-symbols-outlined text-[20px]" id="bookmarkIcon">bookmark</span>
+</button>
+<!-- Share Action -->
+<button class="w-9 h-9 rounded-full bg-primary/20 text-primary flex items-center justify-center hover:bg-primary hover:text-on-primary transition-colors active:scale-95" onclick="triggerShare()">
+<span class="material-symbols-outlined text-[18px]">share</span>
+</button>
+</div>
+</div>
+</div>
+<script>
+  // Dynamic Follow Button Logic
+  function toggleFollow(btn) {
+    const isFollowing = btn.getAttribute('data-following') === 'true';
+    if (isFollowing) {
+      btn.setAttribute('data-following', 'false');
+      btn.innerHTML = '<span class="material-symbols-outlined text-[16px]">add</span><span>අනුගමනය කරන්න</span>';
+      btn.className = 'px-3 py-1.5 rounded-full bg-surface-container-highest hover:bg-primary/20 text-primary font-label-sm text-label-sm transition-all flex items-center gap-1 active:scale-95';
+    } else {
+      btn.setAttribute('data-following', 'true');
+      btn.innerHTML = '<span class="material-symbols-outlined text-[16px]">check</span><span>අනුගමනය කරයි</span>';
+      btn.className = 'px-3 py-1.5 rounded-full bg-primary text-on-primary font-label-sm text-label-sm transition-all flex items-center gap-1 active:scale-95';
+    }
+  }
+
+  // Audio Play Simulation
+  let isPlaying = false;
+  let audioTimer = null;
+  let progressPercent = 32;
+
+  function togglePlayState() {
+    isPlaying = !isPlaying;
+    const icon = document.getElementById('audioPlayIcon');
+    const progressBar = document.getElementById('audioProgress');
+    const thumb = document.getElementById('audioThumb');
+
+    if (isPlaying) {
+      icon.textContent = 'pause';
+      audioTimer = setInterval(() => {
+        if (progressPercent < 100) {
+          progressPercent += 0.5;
+          progressBar.style.width = progressPercent + '%';
+          thumb.style.left = 'calc(' + progressPercent + '% - 7px)';
+        } else {
+          progressPercent = 0;
+          togglePlayState();
+        }
+      }, 500);
+    } else {
+      icon.textContent = 'play_arrow';
+      clearInterval(audioTimer);
+    }
+  }
+
+  function seekAudio(event, bar) {
+    const rect = bar.getBoundingClientRect();
+    const clickX = event.clientX - rect.left;
+    const width = rect.width;
+    progressPercent = Math.max(0, Math.min(100, (clickX / width) * 100));
+    document.getElementById('audioProgress').style.width = progressPercent + '%';
+    document.getElementById('audioThumb').style.left = 'calc(' + progressPercent + '% - 7px)';
+  }
+
+  function toggleAudioSpeed(btn) {
+    const speeds = ['1.0x', '1.2x', '1.5x', '2.0x'];
+    let currentIdx = speeds.indexOf(btn.textContent.trim());
+    let nextIdx = (currentIdx + 1) % speeds.length;
+    btn.textContent = speeds[nextIdx];
+  }
+
+  // Poll / Quiz Interaction
+  function castVote(button, pct) {
+    const parent = button.parentElement;
+    const allLabels = parent.querySelectorAll('.vote-pct');
+    allLabels.forEach(el => el.classList.remove('opacity-0'));
+    button.classList.add('bg-primary/30', 'font-semibold');
+  }
+
+  // Font Resizing Logic
+  let currentFontScale = 1;
+  function adjustFontSize(delta) {
+    const article = document.getElementById('articleContent');
+    currentFontScale += delta * 0.08;
+    if (currentFontScale < 0.85) currentFontScale = 0.85;
+    if (currentFontScale > 1.3) currentFontScale = 1.3;
+    article.style.fontSize = (16 * currentFontScale) + 'px';
+  }
+
+  // Article Like Toggle
+  let articleLiked = false;
+  function toggleArticleLike() {
+    articleLiked = !articleLiked;
+    const icon = document.getElementById('likeIcon');
+    const count = document.getElementById('likeCount');
+    if (articleLiked) {
+      icon.style.fontVariationSettings = "'FILL' 1";
+      icon.classList.add('text-error');
+      count.textContent = '1.9K';
+      count.classList.add('text-error');
+    } else {
+      icon.style.fontVariationSettings = "'FILL' 0";
+      icon.classList.remove('text-error');
+      count.textContent = '1.8K';
+      count.classList.remove('text-error');
+    }
+  }
+
+  // Bookmark Toggle
+  function toggleBookmark(btn) {
+    const icon = document.getElementById('bookmarkIcon');
+    const isBookmarked = icon.style.fontVariationSettings.includes("'FILL' 1");
+    if (isBookmarked) {
+      icon.style.fontVariationSettings = "'FILL' 0";
+      icon.classList.remove('text-secondary');
+    } else {
+      icon.style.fontVariationSettings = "'FILL' 1";
+      icon.classList.add('text-secondary');
+    }
+  }
+
+  // Comment Like Action
+  function likeComment(btn) {
+    const countEl = btn.querySelector('.like-num');
+    let current = parseInt(countEl.textContent);
+    const icon = btn.querySelector('.material-symbols-outlined');
+    const isLiked = icon.style.fontVariationSettings.includes("'FILL' 1");
+    if (isLiked) {
+      icon.style.fontVariationSettings = "'FILL' 0";
+      btn.classList.remove('text-error');
+      countEl.textContent = current - 1;
+    } else {
+      icon.style.fontVariationSettings = "'FILL' 1";
+      btn.classList.add('text-error');
+      countEl.textContent = current + 1;
+    }
+  }
+
+  // Smooth Scroll to Comments
+  function scrollToComments() {
+    window.scrollTo({
+      top: document.body.scrollHeight,
+      behavior: 'smooth'
+    });
+  }
+
+  // Native or Fallback Share
+  function triggerShare() {
+    if (navigator.share) {
+      navigator.share({
+        title: 'OpenAI සහ Anthropic සමාගම්වල නවතම AI මාදිලි',
+        text: 'තාක්ෂණික පෙරළිය පිළිබඳ සවිස්තරාත්මක වාර්තාව TechPulse හරහා කියවන්න.',
+        url: window.location.href,
+      }).catch(() => {});
+    } else {
+      alert('ලිපියේ සබැඳිය පිටපත් කරගන්නා ලදී!');
+    }
+  }
+</script></main></body></html>

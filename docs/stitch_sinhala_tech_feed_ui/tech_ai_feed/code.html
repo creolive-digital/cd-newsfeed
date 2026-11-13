@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="si"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100%;margin:0;padding:0;min-height:100%;}body{overscroll-behavior-y:none;-webkit-tap-highlight-color:transparent;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "surface-variant": "#2d3449", "background": "#0b1326", "on-surface": "#dae2fd", "on-tertiary-fixed-variant": "#003ea8", "on-tertiary": "#002a78", "outline": "#869397", "on-error": "#690005", "on-tertiary-container": "#003490", "surface-container-low": "#131b2e", "surface-tint": "#4cd7f6", "primary": "#4cd7f6", "on-primary-fixed": "#001f26", "outline-variant": "#3d494c", "surface": "#0b1326", "inverse-surface": "#dae2fd", "error-container": "#93000a", "on-tertiary-fixed": "#00174b", "tertiary": "#b4c5ff", "tertiary-container": "#85a3ff", "secondary": "#d0bcff", "surface-bright": "#31394d", "on-background": "#dae2fd", "surface-dim": "#0b1326", "on-primary-container": "#00424f", "on-error-container": "#ffdad6", "inverse-primary": "#00687a", "on-secondary": "#3c0091", "inverse-on-surface": "#283044", "secondary-container": "#571bc1", "on-primary-fixed-variant": "#004e5c", "primary-fixed": "#acedff", "on-secondary-fixed": "#23005c", "primary-container": "#06b6d4", "on-primary": "#003640", "surface-container-highest": "#2d3449", "surface-container-lowest": "#060e20", "tertiary-fixed-dim": "#b4c5ff", "on-secondary-container": "#c4abff", "secondary-fixed-dim": "#d0bcff", "primary-fixed-dim": "#4cd7f6", "surface-container-high": "#222a3d", "surface-container": "#171f33", "on-secondary-fixed-variant": "#5516be", "secondary-fixed": "#e9ddff", "error": "#ffb4ab", "on-surface-variant": "#bcc9cd", "tertiary-fixed": "#dbe1ff" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-sm": "0.5rem", "margin": "1rem", "margin-lg": "2.5rem", "space-lg": "1.5rem", "space-xl": "2rem", "gutter-lg": "1.5rem", "margin-md": "1.5rem", "space-xs": "0.25rem", "space-md": "1rem", "gutter": "1rem" }, "fontFamily": { "label-sm": ["Inter"], "body-lg": ["Inter"], "body-sm": ["Inter"], "headline-md": ["Inter"], "label-md": ["Inter"], "body-md": ["Inter"], "display-lg": ["Inter"], "headline-lg-mobile": ["Inter"], "headline-sm": ["Inter"], "headline-lg": ["Inter"] }, "fontSize": { "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "600" }], "body-lg": ["16px", { "lineHeight": "26px", "fontWeight": "400" }], "body-sm": ["12px", { "lineHeight": "18px", "fontWeight": "400" }], "headline-md": ["22px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "label-md": ["13px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "500" }], "body-md": ["14px", { "lineHeight": "22px", "fontWeight": "400" }], "display-lg": ["40px", { "lineHeight": "52px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "headline-lg-mobile": ["26px", { "lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "700" }], "headline-sm": ["18px", { "lineHeight": "26px", "fontWeight": "600" }], "headline-lg": ["32px", { "lineHeight": "42px", "letterSpacing": "-0.02em", "fontWeight": "700" }] } } } };</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-background text-on-surface font-body-md text-body-md flex flex-col min-h-screen"><header class="fixed top-0 inset-x-0 z-50 bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.4)] pt-safe"><div class="h-16 px-margin flex items-center justify-between gap-space-sm"><div class="flex items-center gap-space-sm min-w-0 flex-1"><img alt="TechPulse Sinhala AI Logo" class="h-8 w-auto object-contain flex-shrink-0" src="https://lh3.googleusercontent.com/aida/ALJJyrCu0uVzPQ52oH77tjnyeyRjofTy7_A5RpzE8lMznWmAVI_Ib852K_61L8-rTb2dBLLMw-r5DgjvPuJf6kE24p60FFsT8J7nwrfx2v_X_Fx-XFTpoexZlVaEn6azCD0jpEJuu8B7SGzOSdJumwrOm3lQ9RpV0asjimv49BMc0fSN3LSNllXTOT0rsd7MVMiwPd6dWU4K4JW91ulaylP8rtxV5ZEsvOKBxQiDVfgLq-_a"/><div class="flex flex-col min-w-0"><div class="flex items-center gap-space-xs"><span class="font-headline-sm text-headline-sm text-primary font-bold tracking-tight truncate">TechPulse</span><span class="font-label-sm text-label-sm bg-surface-container-high text-primary px-1.5 py-0.5 rounded-full">ටෙක්</span></div><span class="font-label-sm text-label-sm text-on-surface-variant truncate">Feed</span></div></div><div class="flex items-center gap-1 flex-shrink-0"><button aria-label="Search" class="w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-[22px]">search</span></button><button aria-label="Toggle Theme" class="w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant hover:text-secondary transition-colors" onclick="document.documentElement.classList.toggle('dark')"><span class="material-symbols-outlined text-[20px]">dark_mode</span></button><a class="w-11 h-11 flex items-center justify-center" data-path="account" href="#"><img alt="Profile" class="w-8 h-8 rounded-full object-cover ring-2 ring-primary/40" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqDdvBDeA1CSOehAb1qZ-LGkHErzQN6zgSfuBWQ5fpgu-q18hIOSmEkSy8Hqnqiu2C_k9EI23XvVZ59DvJXjrYS8qxDILPqHFcNiVcDwAjbBjjTLVcpudwncMLe0e83mz51QsR81aSpHko0Eo2P3Yzfe9b8zC1RjoYn4AYINi4t96FeM3CVlFin80uRw1d4LDmRG16YF1hKC-DJoB7LbW913TJXGJcameTTbvs1hQ"/></a></div></div></header><main class="flex flex-col relative w-full pt-16 pb-20 bg-background min-h-screen"><div class="flex flex-col w-full">
+<!-- Dynamic Ambient Glow Backdrops -->
+<div class="relative w-full overflow-hidden">
+<div class="absolute -top-16 -left-20 w-72 h-72 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+<div class="absolute top-64 -right-24 w-80 h-80 bg-secondary-container/20 rounded-full blur-3xl pointer-events-none"></div>
+<!-- Category Pill Filter Carousel -->
+<div class="w-full pt-3 pb-2 px-margin">
+<div class="flex items-center gap-space-sm overflow-x-auto no-scrollbar scroll-smooth py-1">
+<button class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-primary text-on-primary font-label-md text-label-md font-semibold shadow-[0_0_12px_rgba(76,215,246,0.35)] shrink-0 transition-transform active:scale-95">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">bolt</span>
+<span>සියල්ල</span>
+</button>
+<button class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-md text-label-md shrink-0 transition-all hover:bg-surface-container-highest active:scale-95">
+<span class="material-symbols-outlined text-[16px] text-primary">psychology</span>
+<span>කෘතිම බුද්ධිය</span>
+</button>
+<button class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-md text-label-md shrink-0 transition-all hover:bg-surface-container-highest active:scale-95">
+<span class="material-symbols-outlined text-[16px] text-secondary">smart_toy</span>
+<span>රොබෝ තාක්ෂණය</span>
+</button>
+<button class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-md text-label-md shrink-0 transition-all hover:bg-surface-container-highest active:scale-95">
+<span class="material-symbols-outlined text-[16px] text-tertiary">smartphone</span>
+<span>ස්මාර්ට්ෆෝන්</span>
+</button>
+<button class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-md text-label-md shrink-0 transition-all hover:bg-surface-container-highest active:scale-95">
+<span class="material-symbols-outlined text-[16px] text-error">security</span>
+<span>සයිබර් ආරක්ෂාව</span>
+</button>
+<button class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-md text-label-md shrink-0 transition-all hover:bg-surface-container-highest active:scale-95">
+<span class="material-symbols-outlined text-[16px] text-primary-container">code_blocks</span>
+<span>ක්‍රමලේඛනය</span>
+</button>
+</div>
+</div>
+<!-- Stories / ක්ෂණික පුවත් Section -->
+<div class="w-full py-2 pl-margin overflow-hidden">
+<div class="flex items-center justify-between pr-margin mb-2.5">
+<div class="flex items-center gap-1.5">
+<span class="flex h-2 w-2 relative">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">ක්ෂණික පුවත්</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full">Stories</span>
+</div>
+<button class="font-label-sm text-label-sm text-primary flex items-center">
+          සියල්ල <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</div>
+<div class="flex items-center gap-3 overflow-x-auto no-scrollbar scroll-smooth pr-margin py-1">
+<!-- Add Story -->
+<div class="flex flex-col items-center gap-1.5 shrink-0 w-[72px] cursor-pointer group">
+<div class="relative w-16 h-16 rounded-full bg-surface-container-high p-0.5 flex items-center justify-center transition-transform group-active:scale-95">
+<div class="w-full h-full rounded-full bg-surface-container flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-[26px]">add</span>
+</div>
+<div class="absolute bottom-0 right-0 w-5 h-5 bg-primary text-on-primary rounded-full flex items-center justify-center shadow-md">
+<span class="material-symbols-outlined text-[14px] font-bold">bolt</span>
+</div>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant text-center truncate w-full">ඔබේ කතාව</span>
+</div>
+<!-- Story 1 -->
+<div class="flex flex-col items-center gap-1.5 shrink-0 w-[72px] cursor-pointer group">
+<div class="relative w-16 h-16 rounded-full p-[2px] bg-gradient-to-tr from-primary via-secondary to-primary-container shadow-[0_0_12px_rgba(76,215,246,0.3)] transition-transform group-hover:scale-105 group-active:scale-95">
+<div class="w-full h-full rounded-full overflow-hidden bg-surface-container-lowest p-[2px]">
+<img class="w-full h-full object-cover rounded-full" data-alt="Futuristic glowing AI neural network sphere representing GPT-5 next-generation architecture with cyber blue and violet highlights, cinematic studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDU6Eexv_8GCtEEW3U6SIbr_Y081D9pTUb0E3ItqAMKbt73LnzF5lTUui_JWdmTaIR_kmpyYgWb22KraBkIKRWNZFlP-FlvHw94GPxAT5uIvybLd8aVottmTfs8msy9qV-8MKLJ_LYSF5HhLKshDRVhUT2b04mltURramHxXpAF9CJDGXf9a80EjQGqNwhNtXx3ZlGaxkfmHy2A00for1uJPim2qBN0-Q1K8fjTYvc"/>
+</div>
+<span class="absolute -bottom-1 -right-1 bg-surface-container-lowest text-primary p-0.5 rounded-full shadow-sm flex items-center justify-center">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface text-center truncate w-full">GPT-5 විස්තර</span>
+</div>
+<!-- Story 2 -->
+<div class="flex flex-col items-center gap-1.5 shrink-0 w-[72px] cursor-pointer group">
+<div class="relative w-16 h-16 rounded-full p-[2px] bg-gradient-to-tr from-primary via-secondary to-primary-container shadow-[0_0_12px_rgba(76,215,246,0.3)] transition-transform group-hover:scale-105 group-active:scale-95">
+<div class="w-full h-full rounded-full overflow-hidden bg-surface-container-lowest p-[2px]">
+<img class="w-full h-full object-cover rounded-full" data-alt="Close up shot of cutting edge Apple silicon microprocessor M4 processor gleaming with micro circuitry and iridescent gold and cyan illumination" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBIr9I-pd9cuhVBLlN8BgeB785qHVLueEDeCQntJnkPl2bXSY_nFl7ZfSBwtzoLq932ct5-UV2QCgtfenBqEBb0GFE8pUYrQXs6SDVlSU6bWE5s_Jd3ogP4KIs7YVsxebIlj13YwJJeNoNjn7kIXK81ngu4_JwPU8zvp6pFoNxEOE0ADk8_En0uLpEDPvXCcH5FMrd9CxJqpenzLsLE5XBcD6dc6EEVRshKiOgieG4"/>
+</div>
+<span class="absolute -bottom-1 -right-1 bg-surface-container-lowest text-secondary p-0.5 rounded-full shadow-sm flex items-center justify-center">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">memory</span>
+</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface text-center truncate w-full">Apple M4</span>
+</div>
+<!-- Story 3 -->
+<div class="flex flex-col items-center gap-1.5 shrink-0 w-[72px] cursor-pointer group">
+<div class="relative w-16 h-16 rounded-full p-[2px] bg-gradient-to-tr from-primary via-secondary to-primary-container shadow-[0_0_12px_rgba(76,215,246,0.3)] transition-transform group-hover:scale-105 group-active:scale-95">
+<div class="w-full h-full rounded-full overflow-hidden bg-surface-container-lowest p-[2px]">
+<img class="w-full h-full object-cover rounded-full" data-alt="Chandelier structure of a quantum computer cryogenic core glowing with ethereal violet and deep blue light in an advanced physics laboratory" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCuVrRjkZyk-2psyWPmpmK-2TYyLmLCMkseY1F4dPsRraGxMxD1e751kMz5sRPlP7jRoJg7OGoeKjH6DU58MlUIVCKf0vSA8pkrnq4UYIKPRLxl7ROTdsryRf04twZY24mdMI4_g-2VzvZ_UzCfjV-MNYj-Uy2g7lgTKHP-2THdn3gHI0kZZ09OUnAodrzB0kyuYAeLAdAz6hsR5RWXqFkCfvKON1RgZfHcaXlraUA"/>
+</div>
+<span class="absolute -bottom-1 -right-1 bg-surface-container-lowest text-tertiary p-0.5 rounded-full shadow-sm flex items-center justify-center">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">grid_view</span>
+</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface text-center truncate w-full">Quantum Chip</span>
+</div>
+<!-- Story 4 -->
+<div class="flex flex-col items-center gap-1.5 shrink-0 w-[72px] cursor-pointer group">
+<div class="relative w-16 h-16 rounded-full p-[2px] bg-gradient-to-tr from-primary via-secondary to-primary-container shadow-[0_0_12px_rgba(76,215,246,0.3)] transition-transform group-hover:scale-105 group-active:scale-95">
+<div class="w-full h-full rounded-full overflow-hidden bg-surface-container-lowest p-[2px]">
+<img class="w-full h-full object-cover rounded-full" data-alt="Futuristic 5G telecommunication tower over modern Colombo skyline at dusk with glowing data waves in cyan and magenta connecting towers" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC7ks2DLblEy7KH9yEeQ8HKD5SYL9ns2w6a3RBIhcMe24ZuwGfn4rvVVj91O_Mh5-NoZWZ-p7m1z5n4E3GJum2mXihRBTrOrwB_44wvoyN_oDXc7Bdg8U0gWJ-vSjG6BmONYSWdOBb5EegRB0AD2ODOnrfaTvSxMXOm7RDdTQ0niQXMpWBDJG9KOI_Hj7tfr0P9Iyzf5O4NvhB_e7DiHEMciMHd5s9ZzDtFYQTX86Y"/>
+</div>
+<span class="absolute -bottom-1 -right-1 bg-surface-container-lowest text-primary-container p-0.5 rounded-full shadow-sm flex items-center justify-center">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">cell_tower</span>
+</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface text-center truncate w-full">Sri Lanka 5G</span>
+</div>
+</div>
+</div>
+<!-- Create Post / Quick Box -->
+<div class="w-full px-margin my-3">
+<div class="bg-surface-container-low rounded-xl p-3.5 shadow-md flex flex-col gap-3">
+<div class="flex items-center gap-3">
+<div class="relative">
+<img alt="User Profile" class="w-10 h-10 rounded-full object-cover shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqDdvBDeA1CSOehAb1qZ-LGkHErzQN6zgSfuBWQ5fpgu-q18hIOSmEkSy8Hqnqiu2C_k9EI23XvVZ59DvJXjrYS8qxDILPqHFcNiVcDwAjbBjjTLVcpudwncMLe0e83mz51QsR81aSpHko0Eo2P3Yzfe9b8zC1RjoYn4AYINi4t96FeM3CVlFin80uRw1d4LDmRG16YF1hKC-DJoB7LbW913TJXGJcameTTbvs1hQ"/>
+<span class="absolute bottom-0 right-0 w-3 h-3 bg-primary rounded-full ring-2 ring-surface-container-low"></span>
+</div>
+<button class="flex-1 bg-surface-container-high hover:bg-surface-variant transition-colors text-left px-4 py-2.5 rounded-full font-body-md text-body-md text-on-surface-variant flex items-center justify-between">
+<span class="truncate">තාක්ෂණික අලුත් තොරතුරක් බෙදාගන්න...</span>
+<span class="material-symbols-outlined text-[18px] text-primary">edit_note</span>
+</button>
+</div>
+<div class="flex items-center justify-between pt-1">
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary font-label-md text-label-md transition-all">
+<span class="material-symbols-outlined text-[18px]">psychology</span>
+<span>AI Prompt</span>
+</button>
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-secondary font-label-md text-label-md transition-all">
+<span class="material-symbols-outlined text-[18px]">terminal</span>
+<span>Code කෑල්ලක්</span>
+</button>
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-tertiary font-label-md text-label-md transition-all">
+<span class="material-symbols-outlined text-[18px]">add_photo_alternate</span>
+<span>ඡායාරූප</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Feed Stream -->
+<div class="flex flex-col gap-space-md px-margin pb-6">
+<!-- CARD 1: AI Breakthrough Hero Card -->
+<article class="bg-surface-container-low rounded-xl overflow-hidden shadow-lg transition-all">
+<!-- Post Header -->
+<div class="p-3.5 pb-2.5 flex items-center justify-between">
+<div class="flex items-center gap-2.5 min-w-0">
+<div class="w-9 h-9 rounded-full bg-surface-container-high flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">neurology</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-headline-sm text-headline-sm text-on-surface truncate">TechPulse AI Research</span>
+<span class="material-symbols-outlined text-[16px] text-primary" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+<div class="flex items-center gap-2 font-label-sm text-label-sm text-on-surface-variant">
+<span class="text-primary font-semibold">කෘතිම බුද්ධිය</span>
+<span>•</span>
+<span>විනාඩි 5කට පෙර</span>
+<span>•</span>
+<span class="material-symbols-outlined text-[12px]">public</span>
+</div>
+</div>
+</div>
+<button class="w-8 h-8 flex items-center justify-center rounded-full text-on-surface-variant hover:text-on-surface">
+<span class="material-symbols-outlined text-[20px]">more_horiz</span>
+</button>
+</div>
+<!-- Headline & Text -->
+<div class="px-3.5 pb-3">
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface mb-2 font-bold leading-snug">
+            නව AI මාදිලියක් මඟින් සිංහල භාෂාවෙන් ස්වයංක්‍රීයව පරිගණක කේත ලිවීමේ හැකියාව එළිදක්වයි
+          </h2>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+            ස්වභාවික සිංහල වාක්‍ය ඛණ්ඩ ක්ෂණිකව Python සහ JavaScript කේත බවට පරිවර්තනය කළ හැකි දේශීය AI මොඩලයක් පර්යේෂකයන් විසින් අද දිනයේ නිකුත් කරන ලදී. මෙමගින් ශ්‍රී ලාංකේය නවක ක්‍රමලේඛකයන්ට කේතකරණය තවත් සරල වෙයි.
+          </p>
+</div>
+<!-- Visual Illustration Container -->
+<div class="relative w-full h-56 bg-surface-container-lowest overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Holographic user interface showing bilingual code translation between Sinhala natural language typography and glowing futuristic Python terminal code, dark cyberpunk vibe with cyan lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9lPmZK5QIaQoCwHz6UCP9Fa5qgWCOgHTP7TgqhGjOm293QvvuSkf2ubkAkVE-pId0f9vN9l87jmlW4XXnSnmjzm9EX8tw16nt4U9CiX-g6aFWy7mseaNW2vIOopFwunnSew_vf7UUFKuxCSutF7GKA_du3ObBhxj8G7bHOojSBOUQyNqc3UpzCkS_Q-qAOIBGuX8drGT9Lm87RLbwerM4tM8lMUnrblJUAZ4JP1c"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-low via-transparent to-transparent"></div>
+<div class="absolute bottom-3 left-3 flex items-center gap-2">
+<span class="bg-surface-container-lowest/80 backdrop-blur-md px-2.5 py-1 rounded-full text-primary font-label-sm text-label-sm flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-[14px]">auto_awesome</span>
+              SinhalaCode-7B Live
+            </span>
+</div>
+</div>
+<!-- AI Audio Summary Widget -->
+<div class="mx-3.5 mt-3 p-2.5 bg-surface-container rounded-lg flex items-center justify-between gap-3">
+<div class="flex items-center gap-2.5 min-w-0">
+<button class="w-9 h-9 rounded-full bg-primary text-on-primary flex items-center justify-center shrink-0 shadow-md active:scale-95 transition-transform" onclick="const icon = this.querySelector('.material-symbols-outlined'); icon.textContent = icon.textContent === 'play_arrow' ? 'pause' : 'play_arrow';">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md text-on-surface font-semibold flex items-center gap-1.5 truncate">
+                AI ශ්‍රව්‍ය සාරාංශය (Audio Brief)
+                <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant truncate">විනාඩි 1:15 • සිංහල AI හඬින්</span>
+</div>
+</div>
+<!-- Animated waveform bars SVG -->
+<div class="flex items-center gap-0.5 shrink-0 px-2">
+<span class="w-0.5 h-3 bg-primary/40 rounded-full"></span>
+<span class="w-0.5 h-5 bg-primary rounded-full"></span>
+<span class="w-0.5 h-2 bg-primary/60 rounded-full"></span>
+<span class="w-0.5 h-6 bg-primary rounded-full"></span>
+<span class="w-0.5 h-4 bg-primary/70 rounded-full"></span>
+<span class="w-0.5 h-7 bg-primary rounded-full"></span>
+<span class="w-0.5 h-3 bg-primary/50 rounded-full"></span>
+</div>
+</div>
+<!-- Social Engagement Metrics -->
+<div class="px-3.5 pt-3 pb-1 flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
+<div class="flex items-center gap-1.5">
+<div class="flex -space-x-1">
+<span class="w-5 h-5 rounded-full bg-primary text-on-primary flex items-center justify-center text-[11px] shadow-sm">👍</span>
+<span class="w-5 h-5 rounded-full bg-error text-on-error flex items-center justify-center text-[11px] shadow-sm">❤️</span>
+</div>
+<span>1.4k කැමතියි</span>
+</div>
+<div class="flex items-center gap-3">
+<span>අදහස් 342</span>
+<span>•</span>
+<span>බෙදාගැනීම් 128</span>
+</div>
+</div>
+<!-- Engagement Action Bar -->
+<div class="p-2 mx-2 my-1 flex items-center justify-between bg-surface-container/50 rounded-lg">
+<button class="flex items-center justify-center gap-1.5 flex-1 py-1.5 rounded-md text-on-surface-variant hover:text-primary active:scale-95 transition-all" onclick="this.classList.toggle('text-primary'); this.classList.toggle('text-on-surface-variant');">
+<span class="material-symbols-outlined text-[18px]">thumb_up</span>
+<span class="font-label-md text-label-md">කැමතියි</span>
+</button>
+<button class="flex items-center justify-center gap-1.5 flex-1 py-1.5 rounded-md text-on-surface-variant hover:text-primary active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[18px]">chat_bubble</span>
+<span class="font-label-md text-label-md">අදහස්</span>
+</button>
+<button class="flex items-center justify-center gap-1.5 flex-1 py-1.5 rounded-md text-on-surface-variant hover:text-primary active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[18px]">reply</span>
+<span class="font-label-md text-label-md">බෙදාගන්න</span>
+</button>
+<button class="w-9 h-9 flex items-center justify-center rounded-md text-on-surface-variant hover:text-secondary active:scale-95 transition-all" onclick="const icon = this.querySelector('.material-symbols-outlined'); const isFill = icon.style.fontVariationSettings.includes('FILL\' 1'); icon.style.fontVariationSettings = isFill ? '' : '\'FILL\' 1'; this.classList.toggle('text-secondary');">
+<span class="material-symbols-outlined text-[20px]">bookmark</span>
+</button>
+</div>
+</article>
+<!-- CARD 2: Gadget & AI War Poll Card -->
+<article class="bg-surface-container-low rounded-xl p-4 shadow-lg transition-all">
+<!-- Post Header -->
+<div class="flex items-center justify-between mb-2.5">
+<div class="flex items-center gap-2.5 min-w-0">
+<img class="w-9 h-9 rounded-full object-cover shrink-0" data-alt="Avatar photo of tech reviewer in modern studio with glowing purple lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDlwpAQU3s5yj4can0Ma9TsiR8Ax3UDioXi1hpYTF_VLRRxgcLXphjHogro-HhPGceuKA8YJx5RLgKtqEK3DIg7iku0sq1Ktyd3JEbmyE7r85ga1aIsrFqqHZL4IUvL1Y1mxaG8Y22-zP4AiuBpJ1KcqzvXPa7Ssw89tJusfTQUrSr8w-SeP8qmdZma0q-RF4g2EnxWkT4mzU4NExrRLBYX7jBN7uQzyCuhT4z32qo"/>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1">
+<span class="font-headline-sm text-headline-sm text-on-surface truncate">Tech Market Asia</span>
+<span class="material-symbols-outlined text-[16px] text-primary" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+<div class="flex items-center gap-2 font-label-sm text-label-sm text-on-surface-variant">
+<span class="text-secondary font-semibold">නවීන උපකරණ</span>
+<span>•</span>
+<span>පැය 2කට පෙර</span>
+</div>
+</div>
+</div>
+<button class="w-8 h-8 flex items-center justify-center rounded-full text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]">more_horiz</span>
+</button>
+</div>
+<!-- Headline -->
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface mb-2 font-bold leading-snug">
+          DeepSeek සහ OpenAI නවතම තරඟය: මෙවර ආසියානු වෙළඳපොළට ලැබෙන බලපෑම කුමක්ද?
+        </h2>
+<p class="font-body-md text-body-md text-on-surface-variant mb-3 leading-relaxed">
+          විශාල පරිගණක සම්පත් වැය නොකර අඩු වියදමකින් බලගැන්වෙන DeepSeek නව සංස්කරණය ලොව පුරා තාක්ෂණික සමාගම්වල අවධානය දිනාගනී.
+        </p>
+<!-- Interactive Poll Widget -->
+<div class="bg-surface-container p-3.5 rounded-xl flex flex-col gap-2.5 mb-3">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface font-semibold flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-primary">how_to_vote</span>
+              ඔබ වඩාත්ම භාවිතා කරන්නේ කුමන AI සේවාවද?
+            </span>
+<span class="font-label-sm text-label-sm text-primary bg-primary/10 px-2 py-0.5 rounded-full font-medium">ඡන්ද 4.8k</span>
+</div>
+<!-- Poll Options -->
+<div class="flex flex-col gap-2 mt-1">
+<!-- Option 1: ChatGPT -->
+<button class="w-full relative overflow-hidden rounded-lg bg-surface-container-high p-2.5 text-left transition-all active:scale-[0.99] group" onclick="alert('ඔබගේ ඡන්දය සටහන් විය: ChatGPT');">
+<div class="absolute inset-y-0 left-0 bg-primary/20 w-[52%] rounded-l-lg transition-all"></div>
+<div class="relative z-10 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-primary">check_circle</span>
+<span class="font-body-md text-body-md text-on-surface font-medium">ChatGPT (OpenAI)</span>
+</div>
+<span class="font-label-md text-label-md text-primary font-bold">52%</span>
+</div>
+</button>
+<!-- Option 2: DeepSeek -->
+<button class="w-full relative overflow-hidden rounded-lg bg-surface-container-high p-2.5 text-left transition-all active:scale-[0.99] group" onclick="alert('ඔබගේ ඡන්දය සටහන් විය: DeepSeek');">
+<div class="absolute inset-y-0 left-0 bg-secondary/25 w-[31%] rounded-l-lg transition-all"></div>
+<div class="relative z-10 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-secondary">radio_button_unchecked</span>
+<span class="font-body-md text-body-md text-on-surface font-medium">DeepSeek AI</span>
+</div>
+<span class="font-label-md text-label-md text-secondary font-bold">31%</span>
+</div>
+</button>
+<!-- Option 3: Claude -->
+<button class="w-full relative overflow-hidden rounded-lg bg-surface-container-high p-2.5 text-left transition-all active:scale-[0.99] group" onclick="alert('ඔබගේ ඡන්දය සටහන් විය: Claude');">
+<div class="absolute inset-y-0 left-0 bg-tertiary/20 w-[11%] rounded-l-lg transition-all"></div>
+<div class="relative z-10 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant">radio_button_unchecked</span>
+<span class="font-body-md text-body-md text-on-surface">Claude 3.5 Sonnet</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant">11%</span>
+</div>
+</button>
+<!-- Option 4: Gemini -->
+<button class="w-full relative overflow-hidden rounded-lg bg-surface-container-high p-2.5 text-left transition-all active:scale-[0.99] group" onclick="alert('ඔබගේ ඡන්දය සටහන් විය: Google Gemini');">
+<div class="absolute inset-y-0 left-0 bg-outline/15 w-[6%] rounded-l-lg transition-all"></div>
+<div class="relative z-10 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant">radio_button_unchecked</span>
+<span class="font-body-md text-body-md text-on-surface">Google Gemini</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant">6%</span>
+</div>
+</button>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant text-right">ඡන්දය ප්‍රකාශ කිරීමට තෝරන්න • ඉතිරි කාලය පැය 18</span>
+</div>
+<!-- Engagement Bar -->
+<div class="flex items-center justify-between pt-1 text-on-surface-variant">
+<button class="flex items-center gap-1.5 py-1 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">thumb_up</span>
+<span class="font-label-sm text-label-sm">892</span>
+</button>
+<button class="flex items-center gap-1.5 py-1 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">chat_bubble_outline</span>
+<span class="font-label-sm text-label-sm">154</span>
+</button>
+<button class="flex items-center gap-1.5 py-1 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">share</span>
+<span class="font-label-sm text-label-sm">45</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:text-secondary">
+<span class="material-symbols-outlined text-[20px]">bookmark_border</span>
+</button>
+</div>
+</article>
+<!-- CARD 3: Developer & Robotics Community Post -->
+<article class="bg-surface-container-low rounded-xl p-4 shadow-lg transition-all">
+<!-- Post Header -->
+<div class="flex items-center justify-between mb-2.5">
+<div class="flex items-center gap-2.5 min-w-0">
+<div class="relative">
+<img class="w-10 h-10 rounded-full object-cover shrink-0 ring-2 ring-primary/30" data-alt="Close up portrait of a young Sri Lankan AI software engineer wearing glasses smiling warmly in front of multiple curved monitors showing robotics telemetry code" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBUA38VMOd3ECTS_q5BN65AkoN3-bvd-Yh10hWy-lwz8VzLpCwl-CMKWGfjcbXOMr3qf2bnuv1tbn6-zF3uhJTfj4sHWynNyslFIsxcB5sZpPzktaaU_YKJOlQrPU1aCqphCzTVsbCnTzFYhRfm-WHda799f89DEB62ssotQl8HT1eOdELx4YV3jL824jmEHM2cFwVMGTejbFxMfnjQFGKzWEmPOVG02MmWttr5Vrw"/>
+<span class="absolute bottom-0 right-0 w-3 h-3 bg-primary rounded-full ring-1 ring-surface-container-low"></span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-headline-sm text-headline-sm text-on-surface truncate">දිනේෂ් පෙරේරා</span>
+<span class="material-symbols-outlined text-[15px] text-primary" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="font-label-sm text-label-sm bg-surface-container-high text-primary px-1.5 py-0.2 rounded">AI Engineer</span>
+</div>
+<div class="flex items-center gap-2 font-label-sm text-label-sm text-on-surface-variant">
+<span>@dinesh_ai</span>
+<span>•</span>
+<span>පැය 4කට පෙර</span>
+</div>
+</div>
+</div>
+<button class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-on-primary font-label-sm text-label-sm font-semibold transition-all">
+<span class="material-symbols-outlined text-[14px]">person_add</span>
+<span>Follow</span>
+</button>
+</div>
+<!-- Post Content -->
+<p class="font-body-md text-body-md text-on-surface mb-3 leading-relaxed">
+          රොබෝ අතක් (Robotic Arm) සිංහලෙන් දෙන Voice Commands වලින් ක්‍රියාත්මක කරන්න මම ලියපු සරල ROS2 + Whisper node එකක් මෙන්න. පරීක්ෂා කරලා ඔබගේ අදහස් දක්වන්න! 👇🤖
+        </p>
+<!-- Code Snippet Box -->
+<div class="rounded-lg bg-surface-container-lowest overflow-hidden shadow-inner mb-3">
+<div class="flex items-center justify-between px-3 py-1.5 bg-surface-container-high/60">
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-error"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-primary"></span>
+<span class="ml-2 font-mono text-[11px] text-on-surface-variant">arm_voice_control.py</span>
+</div>
+<button class="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1 font-label-sm text-label-sm" onclick="this.innerHTML='&lt;span class=\'material-symbols-outlined text-[14px]\'&gt;check&lt;/span&gt; Copied'; setTimeout(() =&gt; this.innerHTML='&lt;span class=\'material-symbols-outlined text-[14px]\'&gt;content_copy&lt;/span&gt; Copy', 2000);">
+<span class="material-symbols-outlined text-[14px]">content_copy</span>
+<span>Copy</span>
+</button>
+</div>
+<pre class="p-3 text-[12px] font-mono leading-relaxed overflow-x-auto text-on-surface-variant no-scrollbar"><code class="text-on-surface"><span class="text-secondary">import</span> rclpy
+<span class="text-secondary">from</span> techpulse_ai <span class="text-secondary">import</span> SinhalaSpeechRecognizer
+
+<span class="text-primary-container"># සිංහල විධාන හඳුනාගැනීම</span>
+<span class="text-primary">def</span> <span class="text-tertiary">handle_voice_command</span>(audio_stream):
+    command = SinhalaSpeechRecognizer.parse(audio_stream)
+    <span class="text-secondary">if</span> <span class="text-primary-container">"අත ඔසවන්න"</span> <span class="text-secondary">in</span> command:
+        robotic_arm.execute_trajectory(<span class="text-primary-fixed">"LIFT_ARM"</span>)
+    <span class="text-secondary">return</span> <span class="text-primary">{</span><span class="text-primary-fixed">"status"</span>: <span class="text-primary-container">"ක්‍රියාත්මකයි"</span><span class="text-primary">}</span></code></pre>
+</div>
+<!-- Mini Tags -->
+<div class="flex flex-wrap gap-1.5 mb-3">
+<span class="font-label-sm text-label-sm text-primary bg-primary/10 px-2 py-0.5 rounded-full">#RoboticsLK</span>
+<span class="font-label-sm text-label-sm text-secondary bg-secondary/10 px-2 py-0.5 rounded-full">#PythonSinhala</span>
+<span class="font-label-sm text-label-sm text-tertiary bg-tertiary/10 px-2 py-0.5 rounded-full">#OpenSource</span>
+</div>
+<!-- Threaded Comment Preview -->
+<div class="bg-surface-container/60 rounded-lg p-2.5 mb-3">
+<div class="flex items-start gap-2">
+<img alt="Commenter" class="w-6 h-6 rounded-full object-cover shrink-0 mt-0.5" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqDdvBDeA1CSOehAb1qZ-LGkHErzQN6zgSfuBWQ5fpgu-q18hIOSmEkSy8Hqnqiu2C_k9EI23XvVZ59DvJXjrYS8qxDILPqHFcNiVcDwAjbBjjTLVcpudwncMLe0e83mz51QsR81aSpHko0Eo2P3Yzfe9b8zC1RjoYn4AYINi4t96FeM3CVlFin80uRw1d4LDmRG16YF1hKC-DJoB7LbW913TJXGJcameTTbvs1hQ"/>
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-label-md text-label-md font-semibold text-on-surface truncate">කසුන් මධුෂංක</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">පැය 1කට පෙර</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+                නියමයි දිනේෂ් අයියා! Raspberry Pi 5 එකේ latency එක කොහොමද?
+              </p>
+<div class="flex items-center gap-3 mt-1.5 font-label-sm text-label-sm text-primary">
+<button class="hover:underline">පිළිතුරු දෙන්න (Reply)</button>
+<span>•</span>
+<span class="text-on-surface-variant">කැමතියි 14</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Action Strip -->
+<div class="flex items-center justify-between pt-1">
+<button class="flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">thumb_up</span>
+<span class="font-label-sm text-label-sm">523</span>
+</button>
+<button class="flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">comment</span>
+<span class="font-label-sm text-label-sm">84 අදහස්</span>
+</button>
+<button class="flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">share</span>
+<span class="font-label-sm text-label-sm">38</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:text-secondary">
+<span class="material-symbols-outlined text-[20px]">bookmark_border</span>
+</button>
+</div>
+</article>
+<!-- Feed End Catch-up Delight State -->
+<div class="py-6 flex flex-col items-center justify-center text-center gap-2">
+<div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-primary shadow-inner">
+<span class="material-symbols-outlined text-[26px]">done_all</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-on-surface">ඔබ සියලු පුවත් කියවා අවසන්!</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant max-w-xs">
+          නව AI සහ තාක්ෂණික තොරතුරු සඳහා තිරය පහළට ඇද නැවුම් කරන්න (Pull to Refresh).
+        </p>
+<button class="mt-2 px-4 py-1.5 rounded-full bg-surface-container-high text-primary font-label-md text-label-md flex items-center gap-1 hover:bg-surface-variant active:scale-95 transition-all" onclick="window.scrollTo({top: 0, behavior: 'smooth'});">
+<span class="material-symbols-outlined text-[16px]">arrow_upward</span>
+<span>ඉහළට යන්න</span>
+</button>
+</div>
+</div>
+</div>
+</div></main><nav class="fixed bottom-0 inset-x-0 z-50 pb-safe bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_-4px_20px_rgba(0,0,0,0.5)]" data-active-classes="text-primary font-semibold"><div class="flex justify-around items-center h-16 px-space-xs"><a aria-current="page" class="flex flex-col items-center justify-center gap-0.5 w-16 h-12 transition-colors text-primary font-semibold" data-path="feed" href="#"><span class="material-symbols-outlined text-[22px]">newspaper</span><span class="font-label-sm text-label-sm">පුවත්</span></a><a class="flex flex-col items-center justify-center gap-0.5 w-16 h-12 text-on-surface-variant transition-colors" data-path="explore" href="#"><span class="material-symbols-outlined text-[22px]">explore</span><span class="font-label-sm text-label-sm">සොයන්න</span></a><a class="flex flex-col items-center justify-center gap-0.5 w-16 h-12 text-on-surface-variant transition-colors" data-path="bookmarks" href="#"><span class="material-symbols-outlined text-[22px]">bookmark</span><span class="font-label-sm text-label-sm">සුරැකි</span></a><a class="flex flex-col items-center justify-center gap-0.5 w-16 h-12 text-on-surface-variant transition-colors" data-path="account" href="#"><span class="material-symbols-outlined text-[22px]">account_circle</span><span class="font-label-sm text-label-sm">ගිණුම</span></a></div></nav></body></html>

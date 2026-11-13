@@ -1,0 +1,1696 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>TechPulse AI - Bilingual Tech & AI News Feed</title>
+  
+  <!-- Invalidate legacy PWA caches -->
+  <script>
+    if ('caches' in window) {
+      caches.keys().then(function(keys) {
+        keys.forEach(function(key) {
+          if (key !== 'techpulse-shell-v6') {
+            caches.delete(key);
+          }
+        });
+      });
+    }
+  </script>
+
+  <!-- PWA Meta -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#0b1326" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="apple-touch-icon" href="/icon-192.png" />
+  <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+
+  <!-- Fonts & Material Symbols -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Sinhala:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface-variant": "#2d3449",
+            "background": "#0b1326",
+            "on-surface": "#dae2fd",
+            "on-tertiary-fixed-variant": "#003ea8",
+            "on-tertiary": "#002a78",
+            "outline": "#869397",
+            "on-error": "#690005",
+            "on-tertiary-container": "#003490",
+            "surface-container-low": "#131b2e",
+            "surface-tint": "#4cd7f6",
+            "primary": "#4cd7f6",
+            "on-primary-fixed": "#001f26",
+            "outline-variant": "#3d494c",
+            "surface": "#0b1326",
+            "inverse-surface": "#dae2fd",
+            "error-container": "#93000a",
+            "on-tertiary-fixed": "#00174b",
+            "tertiary": "#b4c5ff",
+            "tertiary-container": "#85a3ff",
+            "secondary": "#d0bcff",
+            "surface-bright": "#31394d",
+            "on-background": "#dae2fd",
+            "surface-dim": "#0b1326",
+            "on-primary-container": "#00424f",
+            "on-error-container": "#ffdad6",
+            "inverse-primary": "#00687a",
+            "on-secondary": "#3c0091",
+            "inverse-on-surface": "#283044",
+            "secondary-container": "#571bc1",
+            "on-primary-fixed-variant": "#004e5c",
+            "primary-fixed": "#acedff",
+            "on-secondary-fixed": "#23005c",
+            "primary-container": "#06b6d4",
+            "on-primary": "#003640",
+            "surface-container-highest": "#2d3449",
+            "surface-container-lowest": "#060e20",
+            "tertiary-fixed-dim": "#b4c5ff",
+            "on-secondary-container": "#c4abff",
+            "secondary-fixed-dim": "#d0bcff",
+            "primary-fixed-dim": "#4cd7f6",
+            "surface-container-high": "#222a3d",
+            "surface-container": "#171f33",
+            "on-secondary-fixed-variant": "#5516be",
+            "secondary-fixed": "#e9ddff",
+            "error": "#ffb4ab",
+            "on-surface-variant": "#bcc9cd",
+            "tertiary-fixed": "#dbe1ff"
+          },
+          fontFamily: {
+            sans: ["Inter", "Noto Sans Sinhala", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    @layer base {
+      html, body {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        min-height: 100%;
+        font-family: 'Inter', 'Noto Sans Sinhala', sans-serif;
+      }
+      body {
+        overscroll-behavior-y: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    /* Light mode overrides */
+    html:not(.dark) body {
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+    html:not(.dark) .bg-background {
+      background-color: #f8fafc !important;
+    }
+    html:not(.dark) .bg-surface-container-low {
+      background-color: #ffffff !important;
+      border: 1px solid #e2e8f0;
+    }
+    html:not(.dark) .bg-surface-container {
+      background-color: #f1f5f9 !important;
+    }
+    html:not(.dark) .bg-surface-container-high {
+      background-color: #e2e8f0 !important;
+    }
+    html:not(.dark) .bg-surface-container-highest {
+      background-color: #cbd5e1 !important;
+    }
+    html:not(.dark) .bg-surface {
+      background-color: rgba(255, 255, 255, 0.9) !important;
+    }
+    html:not(.dark) .text-on-surface {
+      color: #0f172a !important;
+    }
+    html:not(.dark) .text-on-surface-variant {
+      color: #475569 !important;
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface min-h-screen flex flex-col relative selection:bg-primary selection:text-on-primary">
+
+  <!-- Ambient Background Glows -->
+  <div class="fixed -top-24 -left-24 w-80 h-80 bg-primary/10 rounded-full blur-3xl pointer-events-none z-0"></div>
+  <div class="fixed top-1/3 -right-28 w-96 h-96 bg-secondary-container/20 rounded-full blur-3xl pointer-events-none z-0"></div>
+  <div class="fixed -bottom-24 left-1/3 w-96 h-96 bg-primary-container/10 rounded-full blur-3xl pointer-events-none z-0"></div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm pointer-events-none"></div>
+
+  <!-- PWA Install Prompt Banner / Modal -->
+  <div id="pwa-install-banner" class="fixed bottom-4 inset-x-4 max-w-lg mx-auto z-50 hidden">
+    <div class="bg-surface-container-high/95 backdrop-blur-xl border border-primary/30 p-4 rounded-2xl shadow-2xl flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <img src="/icon.svg" alt="App Icon" class="w-11 h-11 rounded-xl p-1 bg-surface-container-lowest shadow-md flex-shrink-0" />
+        <div class="flex flex-col min-w-0">
+          <span class="font-bold text-sm text-on-surface flex items-center gap-1.5">
+            Install TechPulse AI
+            <span class="w-2 h-2 rounded-full bg-primary animate-ping"></span>
+          </span>
+          <span id="pwa-desc" class="text-xs text-on-surface-variant truncate">Add to your Home Screen for instant access to real-time AI feeds.</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-1.5 flex-shrink-0">
+        <button id="pwa-install-btn" class="px-3.5 py-1.5 rounded-xl bg-primary text-on-primary font-semibold text-xs shadow-md shadow-primary/20 hover:scale-105 active:scale-95 transition-all">
+          Install
+        </button>
+        <button id="pwa-close-btn" class="w-8 h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:text-on-surface" title="Dismiss">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Navigation Header (Shown when authenticated) -->
+  <header id="main-header" class="fixed top-0 inset-x-0 z-40 bg-surface/85 backdrop-blur-xl border-b border-surface-container-high/60 shadow-sm hidden">
+    <div class="max-w-4xl mx-auto h-16 px-4 flex items-center justify-between gap-2">
+      
+      <!-- Brand Logo & Name -->
+      <div class="flex items-center gap-2.5 min-w-0 cursor-pointer" onclick="filterByTag('All')">
+        <div class="relative w-9 h-9 rounded-xl bg-surface-container-lowest p-1.5 flex items-center justify-center shadow-md flex-shrink-0 border border-primary/20">
+          <img src="/icon.svg" alt="TechPulse Logo" class="w-full h-full object-contain filter drop-shadow-[0_0_6px_rgba(76,215,246,0.6)]" />
+        </div>
+        <div class="flex flex-col min-w-0">
+          <div class="flex items-center gap-1.5">
+            <span class="font-bold text-lg text-primary tracking-tight">TechPulse</span>
+            <span class="text-[10px] font-bold bg-surface-container-high text-primary px-1.5 py-0.5 rounded-full border border-primary/20">Feed</span>
+          </div>
+          <span class="text-[11px] text-on-surface-variant leading-none">Sinhala Tech & AI Intelligence</span>
+        </div>
+      </div>
+
+      <!-- Right Controls -->
+      <div class="flex items-center gap-2">
+        <!-- Admin Panel Button (Admin only) -->
+        <button id="admin-panel-btn" class="hidden items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary-container/80 hover:bg-secondary-container text-secondary text-xs font-semibold border border-secondary/30 shadow-sm transition-all" onclick="openAdminModal()">
+          <span class="material-symbols-outlined text-[18px]">admin_panel_settings</span>
+          <span class="hidden sm:inline">Admin Panel</span>
+        </button>
+
+        <!-- Theme Toggle -->
+        <button id="theme-toggle-btn" class="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container transition-all" title="Toggle Theme" onclick="toggleTheme()">
+          <span class="material-symbols-outlined text-[20px]" id="theme-icon">light_mode</span>
+        </button>
+
+        <!-- User Profile Pill & Logout -->
+        <div class="flex items-center gap-2 bg-surface-container-high/60 pl-2 pr-1 py-1 rounded-full border border-surface-container-highest">
+          <div class="flex items-center gap-1.5 min-w-0">
+            <span id="nav-user-avatar" class="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-xs uppercase">U</span>
+            <span id="nav-user-name" class="text-xs font-semibold text-on-surface truncate max-w-[110px]">User</span>
+            <span id="nav-user-role" class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-primary text-on-primary">User</span>
+          </div>
+          <button class="w-7 h-7 rounded-full flex items-center justify-center text-on-surface-variant hover:text-error hover:bg-surface-container transition-colors" title="Logout" onclick="handleLogout()">
+            <span class="material-symbols-outlined text-[18px]">logout</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================================================== -->
+  <!-- 1. AUTHENTICATION VIEW (Shown when unauthenticated)  -->
+  <!-- ==================================================== -->
+  <section id="auth-view" class="flex-1 flex flex-col items-center justify-center p-4 relative z-10 my-auto">
+    <div class="w-full max-w-md flex flex-col">
+      
+      <!-- Futuristic Branding Header -->
+      <div class="flex flex-col items-center text-center mb-6">
+        <div class="relative mb-3 group">
+          <div class="absolute -inset-2 bg-gradient-to-tr from-primary to-secondary rounded-3xl blur-lg opacity-40 group-hover:opacity-70 transition-opacity"></div>
+          <div class="relative w-20 h-20 rounded-2xl bg-surface-container-lowest p-3 shadow-2xl flex items-center justify-center border border-primary/30">
+            <img src="/icon.svg" alt="TechPulse AI Logo" class="w-full h-full object-contain filter drop-shadow-[0_0_10px_rgba(76,215,246,0.5)]" />
+          </div>
+          <div class="absolute -bottom-1 -right-1 bg-surface-container-highest px-2 py-0.5 rounded-full flex items-center gap-1 shadow-md border border-primary/20">
+            <span class="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></span>
+            <span class="text-[9px] uppercase font-bold tracking-wider text-primary">Live</span>
+          </div>
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-on-surface flex items-center gap-2">
+          <span>TechPulse</span>
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary-container to-secondary">AI</span>
+        </h1>
+        <p class="text-xs sm:text-sm text-on-surface-variant mt-1 max-w-xs leading-relaxed">
+          Sri Lanka's Premier Tech & AI Intelligence Network
+        </p>
+      </div>
+
+      <!-- Auth Card -->
+      <div class="bg-surface-container/80 backdrop-blur-2xl rounded-2xl p-6 shadow-2xl border border-surface-container-high relative overflow-hidden">
+        
+        <!-- Auth Tabs (Login / Register) -->
+        <div class="grid grid-cols-2 gap-1 bg-surface-container-lowest p-1 rounded-xl mb-5">
+          <button id="tab-login" class="py-2 rounded-lg font-semibold text-xs sm:text-sm text-on-primary bg-primary shadow-sm transition-all" onclick="switchAuthTab('login')">
+            Sign In
+          </button>
+          <button id="tab-register" class="py-2 rounded-lg font-semibold text-xs sm:text-sm text-on-surface-variant hover:text-on-surface transition-all" onclick="switchAuthTab('register')">
+            Create Account
+          </button>
+        </div>
+
+        <!-- Error Alert Banner -->
+        <div id="auth-error-banner" class="hidden mb-4 p-3 rounded-xl bg-error-container/40 border border-error/40 text-on-error-container text-xs flex items-start gap-2">
+          <span class="material-symbols-outlined text-[18px] text-error flex-shrink-0">error</span>
+          <span id="auth-error-message" class="leading-relaxed"></span>
+        </div>
+
+        <!-- LOGIN FORM -->
+        <form id="login-form" class="flex flex-col gap-3.5" onsubmit="handleLoginSubmit(event)">
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-medium text-on-surface-variant" for="login-username">Username</label>
+            <div class="relative flex items-center rounded-xl bg-surface-container-lowest focus-within:ring-2 focus-within:ring-primary/50 transition-all border border-surface-container-high">
+              <span class="material-symbols-outlined absolute left-3.5 text-on-surface-variant text-[20px] pointer-events-none">account_circle</span>
+              <input id="login-username" type="text" required placeholder="Enter your username" autocomplete="username" class="w-full bg-transparent py-2.5 pl-11 pr-3 text-sm text-on-surface placeholder:text-outline/50 focus:outline-none" />
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-medium text-on-surface-variant" for="login-password">Password</label>
+            <div class="relative flex items-center rounded-xl bg-surface-container-lowest focus-within:ring-2 focus-within:ring-primary/50 transition-all border border-surface-container-high">
+              <span class="material-symbols-outlined absolute left-3.5 text-on-surface-variant text-[20px] pointer-events-none">lock</span>
+              <input id="login-password" type="password" required placeholder="••••••••" autocomplete="current-password" class="w-full bg-transparent py-2.5 pl-11 pr-10 text-sm text-on-surface placeholder:text-outline/50 focus:outline-none" />
+              <button type="button" class="absolute right-3 text-on-surface-variant hover:text-on-surface" title="Toggle visibility" onclick="togglePasswordVisibility('login-password', this)">
+                <span class="material-symbols-outlined text-[18px]">visibility</span>
+              </button>
+            </div>
+          </div>
+
+          <button id="login-submit-btn" type="submit" class="w-full mt-2 py-3 px-4 rounded-xl bg-gradient-to-r from-primary-container via-primary to-surface-tint text-on-primary-container font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:opacity-95 active:scale-[0.99] transition-all">
+            <span>Sign In</span>
+            <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+          </button>
+        </form>
+
+        <!-- REGISTER FORM -->
+        <form id="register-form" class="hidden flex flex-col gap-3.5" onsubmit="handleRegisterSubmit(event)">
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-medium text-on-surface-variant" for="reg-displayname">Display Name</label>
+            <div class="relative flex items-center rounded-xl bg-surface-container-lowest focus-within:ring-2 focus-within:ring-primary/50 transition-all border border-surface-container-high">
+              <span class="material-symbols-outlined absolute left-3.5 text-on-surface-variant text-[20px] pointer-events-none">badge</span>
+              <input id="reg-displayname" type="text" required placeholder="e.g. Kasun Perera" class="w-full bg-transparent py-2.5 pl-11 pr-3 text-sm text-on-surface placeholder:text-outline/50 focus:outline-none" />
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-medium text-on-surface-variant" for="reg-username">Username</label>
+            <div class="relative flex items-center rounded-xl bg-surface-container-lowest focus-within:ring-2 focus-within:ring-primary/50 transition-all border border-surface-container-high">
+              <span class="material-symbols-outlined absolute left-3.5 text-on-surface-variant text-[20px] pointer-events-none">alternate_email</span>
+              <input id="reg-username" type="text" required placeholder="Choose a unique username" autocomplete="username" class="w-full bg-transparent py-2.5 pl-11 pr-3 text-sm text-on-surface placeholder:text-outline/50 focus:outline-none" />
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-medium text-on-surface-variant" for="reg-password">Password</label>
+            <div class="relative flex items-center rounded-xl bg-surface-container-lowest focus-within:ring-2 focus-within:ring-primary/50 transition-all border border-surface-container-high">
+              <span class="material-symbols-outlined absolute left-3.5 text-on-surface-variant text-[20px] pointer-events-none">lock</span>
+              <input id="reg-password" type="password" required placeholder="••••••••" autocomplete="new-password" class="w-full bg-transparent py-2.5 pl-11 pr-10 text-sm text-on-surface placeholder:text-outline/50 focus:outline-none" />
+              <button type="button" class="absolute right-3 text-on-surface-variant hover:text-on-surface" title="Toggle visibility" onclick="togglePasswordVisibility('reg-password', this)">
+                <span class="material-symbols-outlined text-[18px]">visibility</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="p-2.5 rounded-lg bg-surface-container-high/50 border border-primary/20 text-[11px] text-on-surface-variant flex items-center gap-2">
+            <span class="material-symbols-outlined text-[16px] text-primary">info</span>
+            <span>The very first registered user will automatically be assigned the Admin role.</span>
+          </div>
+
+          <button id="register-submit-btn" type="submit" class="w-full mt-1 py-3 px-4 rounded-xl bg-gradient-to-r from-primary-container via-primary to-surface-tint text-on-primary-container font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:opacity-95 active:scale-[0.99] transition-all">
+            <span>Create Account</span>
+            <span class="material-symbols-outlined text-[18px]">person_add</span>
+          </button>
+        </form>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================================================== -->
+  <!-- 2. MAIN FEED VIEW (Authenticated Users Only)         -->
+  <!-- ==================================================== -->
+  <main id="feed-view" class="flex-1 w-full max-w-3xl mx-auto px-4 pt-20 pb-16 flex flex-col gap-4 relative z-10 hidden">
+    
+    <!-- Category Filter Carousel -->
+    <div class="w-full overflow-x-auto no-scrollbar py-1">
+      <div class="flex items-center gap-2 min-w-max">
+        <button id="filter-all" class="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary text-on-primary font-semibold text-xs shadow-[0_0_12px_rgba(76,215,246,0.35)] transition-all" onclick="filterByTag('All')">
+          <span class="material-symbols-outlined text-[16px]">bolt</span>
+          <span>All</span>
+        </button>
+        <button id="filter-ai" class="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-surface-container-high text-on-surface-variant hover:text-on-surface font-semibold text-xs transition-all border border-surface-container-highest" onclick="filterByTag('#AI')">
+          <span class="material-symbols-outlined text-[16px] text-primary">psychology</span>
+          <span>#AI</span>
+        </button>
+        <button id="filter-tech" class="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-surface-container-high text-on-surface-variant hover:text-on-surface font-semibold text-xs transition-all border border-surface-container-highest" onclick="filterByTag('#Tech')">
+          <span class="material-symbols-outlined text-[16px] text-secondary">memory</span>
+          <span>#Tech</span>
+        </button>
+        <button id="filter-community" class="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-surface-container-high text-on-surface-variant hover:text-on-surface font-semibold text-xs transition-all border border-surface-container-highest" onclick="filterByTag('#Community')">
+          <span class="material-symbols-outlined text-[16px] text-tertiary">groups</span>
+          <span>#Community</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Create Post Quick Card / Form -->
+    <div class="bg-surface-container-low rounded-2xl p-4 shadow-xl border border-surface-container-high/60 transition-all">
+      <div id="post-box-collapsed" class="flex items-center gap-3 cursor-pointer" onclick="expandPostBox(true)">
+        <div id="create-post-avatar" class="w-10 h-10 rounded-full bg-primary/20 text-primary font-bold flex items-center justify-center flex-shrink-0 text-sm uppercase ring-2 ring-primary/30">
+          U
+        </div>
+        <div class="flex-1 bg-surface-container-high/70 hover:bg-surface-container-high transition-colors px-4 py-2.5 rounded-full text-xs sm:text-sm text-on-surface-variant flex items-center justify-between">
+          <span class="truncate">Share a Sinhala tech news update or article...</span>
+          <span class="material-symbols-outlined text-[18px] text-primary">edit_note</span>
+        </div>
+      </div>
+
+      <!-- Expanded Post Form -->
+      <form id="post-box-expanded" class="hidden flex flex-col gap-3 pt-1" onsubmit="handleCreatePost(event)">
+        <div class="flex items-center justify-between border-b border-surface-container-high pb-2">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-[20px]">post_add</span>
+            <span class="text-sm font-bold text-on-surface">Submit New Post (Sinhala Content)</span>
+          </div>
+          <button type="button" class="w-7 h-7 rounded-full text-on-surface-variant hover:text-on-surface flex items-center justify-center" title="Close" onclick="expandPostBox(false)">
+            <span class="material-symbols-outlined text-[18px]">close</span>
+          </button>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-medium text-on-surface-variant">Sinhala Title *</label>
+          <input id="post-title" type="text" required placeholder="Enter article title in Sinhala..." class="w-full bg-surface-container-lowest py-2 px-3 text-sm rounded-xl text-on-surface border border-surface-container-high focus:outline-none focus:ring-2 focus:ring-primary/50" />
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-medium text-on-surface-variant">Sinhala Summary *</label>
+          <textarea id="post-summary" rows="2" required placeholder="Brief summary in Sinhala (2-3 sentences for the feed)..." class="w-full bg-surface-container-lowest py-2 px-3 text-sm rounded-xl text-on-surface border border-surface-container-high focus:outline-none focus:ring-2 focus:ring-primary/50 leading-relaxed"></textarea>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-medium text-on-surface-variant">Full Article Content in Sinhala (Optional)</label>
+          <textarea id="post-content" rows="4" placeholder="Full article content in Sinhala (for in-app reader)..." class="w-full bg-surface-container-lowest py-2 px-3 text-sm rounded-xl text-on-surface border border-surface-container-high focus:outline-none focus:ring-2 focus:ring-primary/50 leading-relaxed"></textarea>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-medium text-on-surface-variant">Category Tag *</label>
+            <select id="post-tag" class="w-full bg-surface-container-lowest py-2 px-3 text-sm rounded-xl text-on-surface border border-surface-container-high focus:outline-none focus:ring-2 focus:ring-primary/50">
+              <option value="#Community" selected>#Community</option>
+              <option value="#AI">#AI</option>
+              <option value="#Tech">#Tech</option>
+            </select>
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-medium text-on-surface-variant">Image URL (Optional)</label>
+            <input id="post-image-url" type="url" placeholder="https://.../photo.jpg" class="w-full bg-surface-container-lowest py-2 px-3 text-sm rounded-xl text-on-surface border border-surface-container-high focus:outline-none focus:ring-2 focus:ring-primary/50" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-medium text-on-surface-variant">Source Link (Optional)</label>
+            <input id="post-link" type="url" placeholder="https://example.com/..." class="w-full bg-surface-container-lowest py-2 px-3 text-sm rounded-xl text-on-surface border border-surface-container-high focus:outline-none focus:ring-2 focus:ring-primary/50" />
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between pt-2">
+          <span class="text-[11px] text-on-surface-variant italic">
+            * Submitted posts remain 'Pending' until approved by an Admin.
+          </span>
+          <div class="flex items-center gap-2">
+            <button type="button" class="px-3 py-1.5 rounded-xl text-xs text-on-surface-variant hover:text-on-surface" onclick="expandPostBox(false)">
+              Cancel
+            </button>
+            <button id="create-post-submit-btn" type="submit" class="px-4 py-2 rounded-xl bg-primary text-on-primary font-semibold text-xs flex items-center gap-1.5 shadow-md shadow-primary/20 hover:opacity-90 transition-all">
+              <span>Submit Post</span>
+              <span class="material-symbols-outlined text-[16px]">send</span>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Feed Stream Container -->
+    <div id="posts-container" class="flex flex-col gap-4">
+      <!-- Loading Skeleton -->
+      <div id="feed-loading" class="flex flex-col gap-4">
+        <div class="bg-surface-container-low rounded-2xl p-5 animate-pulse flex flex-col gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-surface-container-high"></div>
+            <div class="flex flex-col gap-1.5 flex-1">
+              <div class="w-32 h-3.5 bg-surface-container-high rounded"></div>
+              <div class="w-20 h-2.5 bg-surface-container-high rounded"></div>
+            </div>
+          </div>
+          <div class="w-3/4 h-5 bg-surface-container-high rounded"></div>
+          <div class="w-full h-12 bg-surface-container-high rounded"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ==================================================== -->
+  <!-- 3. FULL ARTICLE READER MODAL (Read without leaving)  -->
+  <!-- ==================================================== -->
+  <div id="article-reader-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex justify-center overflow-y-auto p-2 sm:p-4 hidden">
+    <div class="w-full max-w-2xl bg-surface-container-low/95 border border-primary/30 rounded-2xl shadow-2xl flex flex-col my-auto max-h-[96vh] overflow-hidden">
+      
+      <!-- Reader Header Bar -->
+      <header class="p-3.5 border-b border-surface-container-high flex items-center justify-between bg-surface/90 sticky top-0 z-20 backdrop-blur-md">
+        <button class="flex items-center gap-1 px-3 py-1.5 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-semibold transition-all active:scale-95" onclick="closeArticleReader()">
+          <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+          <span>Back to Feed</span>
+        </button>
+        <div class="flex items-center gap-1.5">
+          <span id="reader-tag-badge" class="px-2.5 py-0.5 rounded-full bg-primary/20 text-primary border border-primary/30 font-bold text-xs">#AI</span>
+          <button class="w-8 h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors" title="Share" onclick="shareCurrentArticle()">
+            <span class="material-symbols-outlined text-[18px]">share</span>
+          </button>
+          <button class="w-8 h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors" title="Close" onclick="closeArticleReader()">
+            <span class="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Reader Scrollable Body -->
+      <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 text-on-surface" id="reader-scroll-container">
+        
+        <!-- Metadata Row -->
+        <div class="flex items-center justify-between text-xs text-on-surface-variant border-b border-surface-container-high/60 pb-3">
+          <div class="flex items-center gap-2.5">
+            <div id="reader-author-avatar" class="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-xs">A</div>
+            <div>
+              <span id="reader-author-name" class="font-bold text-on-surface text-xs block">Source Name</span>
+              <span id="reader-post-date" class="text-[10px] text-on-surface-variant block">Date</span>
+            </div>
+          </div>
+          <span class="px-2.5 py-1 rounded-full bg-surface-container text-primary font-semibold text-[11px] flex items-center gap-1">
+            <span class="material-symbols-outlined text-[14px]">timer</span>
+            <span>3 min read</span>
+          </span>
+        </div>
+
+        <!-- Headline (Sinhala) -->
+        <h1 id="reader-title" class="font-extrabold text-xl sm:text-2xl text-on-surface leading-snug">
+          Article Headline
+        </h1>
+
+        <!-- Hero Image Canvas -->
+        <div id="reader-image-container" class="relative w-full h-56 sm:h-72 rounded-2xl overflow-hidden shadow-xl bg-surface-container-lowest">
+          <img id="reader-image" src="" alt="Article Visual" class="w-full h-full object-cover" onerror="document.getElementById('reader-image-container').classList.add('hidden')" />
+          <div class="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent"></div>
+          <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+            <span id="reader-image-caption" class="bg-surface/85 backdrop-blur-md px-3 py-1 rounded-lg text-primary text-xs font-semibold">
+              TechPulse AI Brief
+            </span>
+          </div>
+        </div>
+
+        <!-- AI Quick Summary Callout Box -->
+        <div class="relative p-4 rounded-2xl bg-surface-container/90 border border-primary/20 shadow-xl overflow-hidden">
+          <div class="absolute -top-10 -right-10 w-28 h-28 bg-primary/20 rounded-full blur-2xl pointer-events-none"></div>
+          <div class="flex items-center justify-between gap-2 mb-2 relative z-10">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
+                <span class="material-symbols-outlined text-[18px]">auto_awesome</span>
+              </div>
+              <h3 class="font-bold text-sm text-on-surface">AI Quick Summary</h3>
+            </div>
+            <span class="px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container text-[10px] font-semibold">30s brief</span>
+          </div>
+          <p id="reader-summary" class="text-xs sm:text-sm text-on-surface-variant leading-relaxed relative z-10 font-medium">
+            Sinhala summary text...
+          </p>
+        </div>
+
+        <!-- Full Article Body (Sinhala) -->
+        <div class="space-y-3 pt-2 text-sm sm:text-base leading-relaxed text-on-surface font-normal">
+          <div id="reader-content" class="space-y-3 whitespace-pre-line leading-relaxed">
+            Full Sinhala article content...
+          </div>
+        </div>
+
+        <!-- Original Source Link Button -->
+        <div id="reader-link-container" class="pt-3 border-t border-surface-container-high/60 flex items-center justify-between">
+          <span class="text-xs text-on-surface-variant">External Source:</span>
+          <a id="reader-external-link" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-primary font-semibold text-xs border border-primary/20 transition-all">
+            <span>View Original Article</span>
+            <span class="material-symbols-outlined text-[14px]">open_in_new</span>
+          </a>
+        </div>
+
+        <!-- Comments Inside Reader -->
+        <div class="pt-6 border-t border-surface-container-high/60 flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-sm text-on-surface flex items-center gap-2">
+              <span class="material-symbols-outlined text-primary text-[18px]">forum</span>
+              <span>Discussion & Comments</span>
+            </h3>
+            <span id="reader-comment-count" class="px-2 py-0.5 rounded-full bg-surface-container-high text-xs font-semibold">0</span>
+          </div>
+
+          <!-- Reader Comments List -->
+          <div id="reader-comments-list" class="flex flex-col gap-2.5 max-h-72 overflow-y-auto pr-1"></div>
+
+          <!-- Add Comment Form Inside Reader -->
+          <form class="flex items-center gap-2 pt-2" onsubmit="handleAddReaderComment(event)">
+            <input type="text" id="reader-comment-input" placeholder="Write a comment..." required class="flex-1 bg-surface-container-lowest py-2.5 px-3.5 text-xs sm:text-sm rounded-xl text-on-surface border border-surface-container-high focus:outline-none focus:ring-1 focus:ring-primary/60" />
+            <button type="submit" class="px-4 py-2.5 rounded-xl bg-primary text-on-primary font-semibold text-xs flex items-center gap-1 shadow-md hover:opacity-90 active:scale-95 transition-all">
+              <span>Send</span>
+              <span class="material-symbols-outlined text-[16px]">send</span>
+            </button>
+          </form>
+        </div>
+
+      </div>
+
+      <!-- Reader Footer Bar -->
+      <footer class="p-3 border-t border-surface-container-high bg-surface-container-lowest/80 flex items-center justify-between">
+        <button class="px-3 py-1.5 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-semibold flex items-center gap-1" onclick="closeArticleReader()">
+          <span class="material-symbols-outlined text-[16px]">arrow_back</span>
+          <span>Back to Feed</span>
+        </button>
+        <button class="px-4 py-1.5 rounded-xl bg-primary text-on-primary font-semibold text-xs shadow-md" onclick="closeArticleReader()">
+          Close
+        </button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- ==================================================== -->
+  <!-- 4. ADMIN DASHBOARD MODAL (Admin Only)                -->
+  <!-- ==================================================== -->
+  <div id="admin-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="w-full max-w-3xl bg-surface-container-low/95 border border-primary/30 rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
+      
+      <!-- Modal Header -->
+      <div class="p-4 border-b border-surface-container-high flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-secondary-container text-secondary flex items-center justify-center">
+            <span class="material-symbols-outlined text-[20px]">admin_panel_settings</span>
+          </div>
+          <div>
+            <h2 class="font-bold text-base text-on-surface">Admin Management Panel</h2>
+            <p class="text-[11px] text-on-surface-variant">Review pending posts and manage user access</p>
+          </div>
+        </div>
+        <button class="w-8 h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:text-on-surface" title="Close" onclick="closeAdminModal()">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
+      <!-- Admin Tabs -->
+      <div class="grid grid-cols-2 p-2 bg-surface-container-lowest/80 border-b border-surface-container-high gap-2">
+        <button id="admin-tab-pending" class="py-2 px-3 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 bg-primary text-on-primary transition-all" onclick="switchAdminTab('pending')">
+          <span class="material-symbols-outlined text-[18px]">pending_actions</span>
+          <span>Pending Posts Queue</span>
+          <span id="pending-badge" class="px-1.5 py-0.2 rounded-full bg-on-primary text-primary font-bold text-[10px]">0</span>
+        </button>
+        <button id="admin-tab-users" class="py-2 px-3 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 text-on-surface-variant hover:text-on-surface transition-all" onclick="switchAdminTab('users')">
+          <span class="material-symbols-outlined text-[18px]">manage_accounts</span>
+          <span>User Management</span>
+          <span id="users-badge" class="px-1.5 py-0.2 rounded-full bg-surface-container-high text-on-surface font-bold text-[10px]">0</span>
+        </button>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <div class="flex-1 overflow-y-auto p-4 space-y-4">
+        
+        <!-- PENDING POSTS SECTION -->
+        <div id="admin-pending-section" class="flex flex-col gap-3">
+          <div id="pending-list" class="flex flex-col gap-3">
+            <div class="p-8 text-center text-xs text-on-surface-variant">Loading queue...</div>
+          </div>
+        </div>
+
+        <!-- USERS MANAGEMENT SECTION -->
+        <div id="admin-users-section" class="hidden flex flex-col gap-3">
+          <div id="users-list" class="flex flex-col gap-2">
+            <div class="p-8 text-center text-xs text-on-surface-variant">Loading users...</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-3 border-t border-surface-container-high bg-surface-container-lowest/50 flex justify-end">
+        <button class="px-4 py-1.5 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-semibold" onclick="closeAdminModal()">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Logic JavaScript -->
+  <script>
+    // App State
+    let currentUser = null;
+    let allPosts = [];
+    let currentFilter = 'All';
+    let currentReadingPostId = null;
+    let deferredPrompt = null;
+
+    // 1. Initialize PWA & Theme
+    document.addEventListener('DOMContentLoaded', () => {
+      initTheme();
+      initServiceWorker();
+      checkAuthAndInit();
+    });
+
+    function initTheme() {
+      const savedTheme = localStorage.getItem('techpulse-theme') || 'dark';
+      if (savedTheme === 'light') {
+        document.documentElement.classList.remove('dark');
+        document.getElementById('theme-icon').textContent = 'dark_mode';
+      } else {
+        document.documentElement.classList.add('dark');
+        document.getElementById('theme-icon').textContent = 'light_mode';
+      }
+    }
+
+    function toggleTheme() {
+      const isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('techpulse-theme', isDark ? 'dark' : 'light');
+      document.getElementById('theme-icon').textContent = isDark ? 'light_mode' : 'dark_mode';
+    }
+
+    function initServiceWorker() {
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js?v=6').then((reg) => {
+            reg.update();
+            reg.onupdatefound = () => {
+              const newWorker = reg.installing;
+              if (newWorker) {
+                newWorker.onstatechange = () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    window.location.reload();
+                  }
+                };
+              }
+            };
+          }).catch((err) => {
+            console.log('SW registration failed:', err);
+          });
+
+          navigator.serviceWorker.addEventListener('controllerchange', () => {
+            window.location.reload();
+          });
+        });
+      }
+
+      // PWA Install prompt listener
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        const banner = document.getElementById('pwa-install-banner');
+        if (banner && !sessionStorage.getItem('pwa-dismissed')) {
+          banner.classList.remove('hidden');
+        }
+      });
+
+      // iOS Safari Add to Home Screen detection
+      const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+      const isInStandaloneMode = ('standalone' in window.navigator) && (window.navigator.standalone);
+      if (isIos && !isInStandaloneMode && !sessionStorage.getItem('pwa-dismissed')) {
+        const banner = document.getElementById('pwa-install-banner');
+        const desc = document.getElementById('pwa-desc');
+        const btn = document.getElementById('pwa-install-btn');
+        if (banner && desc && btn) {
+          desc.textContent = "For iOS: Tap Share (⎋) then select 'Add to Home Screen'.";
+          btn.classList.add('hidden');
+          banner.classList.remove('hidden');
+        }
+      }
+
+      const installBtn = document.getElementById('pwa-install-btn');
+      if (installBtn) {
+        installBtn.addEventListener('click', async () => {
+          if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            deferredPrompt = null;
+            document.getElementById('pwa-install-banner').classList.add('hidden');
+          }
+        });
+      }
+
+      const closeBtn = document.getElementById('pwa-close-btn');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+          document.getElementById('pwa-install-banner').classList.add('hidden');
+          sessionStorage.setItem('pwa-dismissed', 'true');
+        });
+      }
+    }
+
+    // 2. Authentication Flow
+    async function checkAuthAndInit() {
+      try {
+        const res = await fetch('/api/auth/me', { credentials: 'include' });
+        if (res.ok) {
+          currentUser = await res.json();
+          renderAuthenticatedState();
+          await loadFeed();
+        } else {
+          renderUnauthenticatedState();
+        }
+      } catch (err) {
+        renderUnauthenticatedState();
+      }
+    }
+
+    function renderAuthenticatedState() {
+      document.getElementById('auth-view').classList.add('hidden');
+      document.getElementById('main-header').classList.remove('hidden');
+      document.getElementById('feed-view').classList.remove('hidden');
+
+      // Update Nav User Info
+      document.getElementById('nav-user-name').textContent = currentUser.displayName;
+      document.getElementById('nav-user-avatar').textContent = (currentUser.displayName || 'U')[0].toUpperCase();
+      document.getElementById('create-post-avatar').textContent = (currentUser.displayName || 'U')[0].toUpperCase();
+      
+      const roleBadge = document.getElementById('nav-user-role');
+      roleBadge.textContent = currentUser.role;
+      if (currentUser.role === 'Admin') {
+        roleBadge.className = 'text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-secondary text-on-secondary';
+        document.getElementById('admin-panel-btn').classList.remove('hidden');
+        document.getElementById('admin-panel-btn').classList.add('flex');
+      } else {
+        roleBadge.className = 'text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-primary text-on-primary';
+        document.getElementById('admin-panel-btn').classList.add('hidden');
+        document.getElementById('admin-panel-btn').classList.remove('flex');
+      }
+    }
+
+    function renderUnauthenticatedState() {
+      currentUser = null;
+      document.getElementById('auth-view').classList.remove('hidden');
+      document.getElementById('main-header').classList.add('hidden');
+      document.getElementById('feed-view').classList.add('hidden');
+      document.getElementById('admin-modal').classList.add('hidden');
+      document.getElementById('article-reader-modal').classList.add('hidden');
+    }
+
+    function switchAuthTab(tab) {
+      const loginTab = document.getElementById('tab-login');
+      const regTab = document.getElementById('tab-register');
+      const loginForm = document.getElementById('login-form');
+      const regForm = document.getElementById('register-form');
+      const errBanner = document.getElementById('auth-error-banner');
+      errBanner.classList.add('hidden');
+
+      if (tab === 'login') {
+        loginTab.className = 'py-2 rounded-lg font-semibold text-xs sm:text-sm text-on-primary bg-primary shadow-sm transition-all';
+        regTab.className = 'py-2 rounded-lg font-semibold text-xs sm:text-sm text-on-surface-variant hover:text-on-surface transition-all';
+        loginForm.classList.remove('hidden');
+        regForm.classList.add('hidden');
+      } else {
+        regTab.className = 'py-2 rounded-lg font-semibold text-xs sm:text-sm text-on-primary bg-primary shadow-sm transition-all';
+        loginTab.className = 'py-2 rounded-lg font-semibold text-xs sm:text-sm text-on-surface-variant hover:text-on-surface transition-all';
+        regForm.classList.remove('hidden');
+        loginForm.classList.add('hidden');
+      }
+    }
+
+    function togglePasswordVisibility(inputId, btn) {
+      const input = document.getElementById(inputId);
+      const icon = btn.querySelector('.material-symbols-outlined');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.textContent = 'visibility_off';
+      } else {
+        input.type = 'password';
+        icon.textContent = 'visibility';
+      }
+    }
+
+    function showAuthError(msg) {
+      const errBanner = document.getElementById('auth-error-banner');
+      const errMsg = document.getElementById('auth-error-message');
+      errMsg.textContent = msg;
+      errBanner.classList.remove('hidden');
+    }
+
+    async function handleLoginSubmit(e) {
+      e.preventDefault();
+      const btn = document.getElementById('login-submit-btn');
+      btn.disabled = true;
+      btn.classList.add('opacity-75');
+
+      const username = document.getElementById('login-username').value.trim();
+      const password = document.getElementById('login-password').value;
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password }),
+          credentials: 'include'
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          currentUser = data;
+          showToast('Welcome back, ' + currentUser.displayName + '!', 'success');
+          renderAuthenticatedState();
+          await loadFeed();
+        } else {
+          showAuthError(data.message || 'Login failed. Please verify your username and password.');
+        }
+      } catch (err) {
+        showAuthError('Network error. Please try again.');
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('opacity-75');
+      }
+    }
+
+    async function handleRegisterSubmit(e) {
+      e.preventDefault();
+      const btn = document.getElementById('register-submit-btn');
+      btn.disabled = true;
+      btn.classList.add('opacity-75');
+
+      const displayName = document.getElementById('reg-displayname').value.trim();
+      const username = document.getElementById('reg-username').value.trim();
+      const password = document.getElementById('reg-password').value;
+
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ displayName, username, password }),
+          credentials: 'include'
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          currentUser = data;
+          showToast('Account created successfully! Registered as ' + currentUser.role + '.', 'success');
+          renderAuthenticatedState();
+          await loadFeed();
+        } else {
+          showAuthError(data.message || 'Registration failed.');
+        }
+      } catch (err) {
+        showAuthError('Network error. Please try again.');
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('opacity-75');
+      }
+    }
+
+    async function handleLogout() {
+      try {
+        await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+        showToast('Successfully logged out.', 'info');
+      } catch (_) {}
+      renderUnauthenticatedState();
+    }
+
+    // 3. Feed & Posts Handling
+    async function loadFeed() {
+      const container = document.getElementById('posts-container');
+      try {
+        const res = await fetch('/api/feed', { credentials: 'include' });
+        if (res.status === 401 || res.status === 403) {
+          renderUnauthenticatedState();
+          return;
+        }
+        allPosts = await res.json();
+        renderPosts();
+      } catch (err) {
+        container.innerHTML = `
+          <div class="p-8 text-center text-on-surface-variant text-sm">
+            Unable to load news feed. Please try again later.
+          </div>
+        `;
+      }
+    }
+
+    function filterByTag(tag) {
+      currentFilter = tag;
+      const pills = {
+        'All': document.getElementById('filter-all'),
+        '#AI': document.getElementById('filter-ai'),
+        '#Tech': document.getElementById('filter-tech'),
+        '#Community': document.getElementById('filter-community')
+      };
+
+      for (const [key, el] of Object.entries(pills)) {
+        if (!el) continue;
+        if (key === tag) {
+          el.className = 'flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary text-on-primary font-semibold text-xs shadow-[0_0_12px_rgba(76,215,246,0.35)] transition-all';
+        } else {
+          el.className = 'flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-surface-container-high text-on-surface-variant hover:text-on-surface font-semibold text-xs transition-all border border-surface-container-highest';
+        }
+      }
+      renderPosts();
+    }
+
+    function renderPosts() {
+      const container = document.getElementById('posts-container');
+      const filtered = currentFilter === 'All'
+        ? allPosts
+        : allPosts.filter(p => p.tag && p.tag.toLowerCase() === currentFilter.toLowerCase());
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="bg-surface-container-low rounded-2xl p-8 text-center text-on-surface-variant border border-surface-container-high">
+            <span class="material-symbols-outlined text-[36px] text-primary/60 mb-2">newspaper</span>
+            <p class="text-sm font-semibold text-on-surface">No posts found</p>
+            <p class="text-xs mt-1">There are no posts available under this category.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(post => createPostCardHtml(post)).join('');
+    }
+
+    function createPostCardHtml(post) {
+      const isAuto = post.isAutoNews;
+      const authorName = isAuto ? post.source : (post.author ? post.author.displayName : post.source);
+      const authorInitial = authorName ? authorName[0].toUpperCase() : 'T';
+      const timeStr = formatRelativeTime(post.createdAt);
+      const tag = post.tag || '#AI';
+      const comments = post.comments || [];
+      const isAdmin = currentUser && currentUser.role === 'Admin';
+
+      let tagColor = 'bg-primary/20 text-primary border-primary/30';
+      if (tag === '#Tech') tagColor = 'bg-secondary/20 text-secondary border-secondary/30';
+      if (tag === '#Community') tagColor = 'bg-tertiary/20 text-tertiary border-tertiary/30';
+
+      return `
+        <article class="bg-surface-container-low rounded-2xl p-4 sm:p-5 shadow-xl border border-surface-container-high/60 transition-all hover:border-primary/30 relative" id="post-card-${post.id}">
+          
+          <!-- Post Header -->
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-10 h-10 rounded-full ${isAuto ? 'bg-primary/20 text-primary' : 'bg-surface-container-high text-on-surface'} flex items-center justify-center font-bold text-sm ring-1 ring-white/10 flex-shrink-0">
+                ${isAuto ? '<span class="material-symbols-outlined text-[20px]">neurology</span>' : authorInitial}
+              </div>
+              <div class="flex flex-col min-w-0">
+                <div class="flex items-center gap-1.5">
+                  <span class="font-bold text-sm text-on-surface truncate">${escapeHtml(authorName)}</span>
+                  ${isAuto ? '<span class="material-symbols-outlined text-[16px] text-primary" title="Verified AI News Feed">verified</span>' : ''}
+                </div>
+                <div class="flex items-center gap-2 text-[11px] text-on-surface-variant">
+                  <span class="px-2 py-0.2 rounded-full border ${tagColor} font-semibold">${escapeHtml(tag)}</span>
+                  <span>•</span>
+                  <span>${timeStr}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Admin Post Deletion Trigger -->
+            ${isAdmin ? `
+              <button class="w-8 h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:text-error hover:bg-error-container/30 transition-colors" title="Delete Post" onclick="handleDeletePost(${post.id})">
+                <span class="material-symbols-outlined text-[18px]">delete</span>
+              </button>
+            ` : ''}
+          </div>
+
+          <!-- Hero Image Banner in Feed Card -->
+          ${post.imageUrl ? `
+            <div class="relative w-full h-48 sm:h-60 rounded-xl overflow-hidden shadow-lg bg-surface-container-lowest my-2 group cursor-pointer" onclick="openArticleReader(${post.id})">
+              <img src="${escapeHtml(post.imageUrl)}" alt="${escapeHtml(post.sinhalaTitle)}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.parentElement.style.display='none'" />
+              <div class="absolute inset-0 bg-gradient-to-t from-surface-container-low via-transparent to-transparent"></div>
+              <div class="absolute bottom-2.5 left-2.5 flex items-center gap-2">
+                <span class="bg-surface-container-lowest/80 backdrop-blur-md px-2.5 py-1 rounded-full text-primary text-[11px] font-semibold flex items-center gap-1 shadow-sm border border-primary/20">
+                  <span class="material-symbols-outlined text-[13px]">auto_awesome</span>
+                  <span>${escapeHtml(tag)}</span>
+                </span>
+                <span class="bg-primary/90 text-on-primary text-[10px] font-bold px-2 py-0.5 rounded shadow-sm">
+                  Full Article
+                </span>
+              </div>
+            </div>
+          ` : ''}
+
+          <!-- Headline & Summary (Sinhala Content) -->
+          <div class="mb-2">
+            <h2 class="font-bold text-base sm:text-lg text-on-surface mb-2 leading-snug cursor-pointer hover:text-primary transition-colors" onclick="openArticleReader(${post.id})">
+              ${escapeHtml(post.sinhalaTitle)}
+            </h2>
+            <p class="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
+              ${escapeHtml(post.sinhalaSummary)}
+            </p>
+          </div>
+
+          <!-- Read More & Source Actions Row -->
+          <div class="my-3 flex items-center gap-2 flex-wrap">
+            <button class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-primary-container/20 to-primary/20 hover:from-primary hover:to-primary-container text-primary hover:text-on-primary font-semibold text-xs border border-primary/30 transition-all active:scale-95 shadow-sm group" onclick="openArticleReader(${post.id})">
+              <span class="material-symbols-outlined text-[16px] group-hover:scale-110 transition-transform">menu_book</span>
+              <span>Read More (In-App)</span>
+            </button>
+            ${post.link ? `
+              <a href="${escapeHtml(post.link)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface text-xs font-medium border border-surface-container-highest transition-all" title="Open external link">
+                <span>Source</span>
+                <span class="material-symbols-outlined text-[13px]">open_in_new</span>
+              </a>
+            ` : ''}
+          </div>
+
+          <!-- Action & Engagement Bar -->
+          <div class="pt-2 border-t border-surface-container-high/60 flex items-center justify-between text-xs text-on-surface-variant">
+            <div class="flex items-center gap-1">
+              <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-surface-container hover:text-primary transition-colors" onclick="toggleCommentsSection(${post.id})">
+                <span class="material-symbols-outlined text-[18px]">chat_bubble</span>
+                <span id="comment-count-${post.id}" class="font-semibold">${comments.length}</span>
+              </button>
+            </div>
+            <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-surface-container hover:text-primary transition-colors" onclick="sharePost(${post.id}, '${escapeHtml(post.sinhalaTitle)}')">
+              <span class="material-symbols-outlined text-[18px]">share</span>
+              <span class="hidden sm:inline">Share</span>
+            </button>
+          </div>
+
+          <!-- Comments Section (Collapsed by default) -->
+          <div id="comments-section-${post.id}" class="hidden mt-3 pt-3 border-t border-surface-container-high/60 flex flex-col gap-3">
+            
+            <!-- Comments List -->
+            <div id="comments-list-${post.id}" class="flex flex-col gap-2 max-h-64 overflow-y-auto pr-1">
+              ${comments.length === 0 ? `
+                <div class="text-[11px] text-on-surface-variant py-2 text-center" id="empty-comment-${post.id}">
+                  No comments yet. Be the first to share your thoughts!
+                </div>
+              ` : comments.map(c => renderCommentItemHtml(post.id, c)).join('')}
+            </div>
+
+            <!-- Add Comment Input Box -->
+            <form class="flex items-center gap-2 pt-1" onsubmit="handleAddComment(event, ${post.id})">
+              <input type="text" placeholder="Write a comment..." required class="flex-1 bg-surface-container-lowest py-2 px-3 text-xs sm:text-sm rounded-xl text-on-surface border border-surface-container-high focus:outline-none focus:ring-1 focus:ring-primary/60" id="comment-input-${post.id}" />
+              <button type="submit" class="px-3.5 py-2 rounded-xl bg-primary text-on-primary font-semibold text-xs flex items-center gap-1 shadow-sm hover:opacity-90 active:scale-95 transition-all">
+                <span>Send</span>
+                <span class="material-symbols-outlined text-[15px]">send</span>
+              </button>
+            </form>
+          </div>
+
+        </article>
+      `;
+    }
+
+    function renderCommentItemHtml(postId, comment) {
+      const isAdmin = currentUser && currentUser.role === 'Admin';
+      const userDisplay = comment.user ? comment.user.displayName : 'Anonymous';
+      const username = comment.user ? comment.user.username : '';
+      const userInitial = userDisplay ? userDisplay[0].toUpperCase() : 'U';
+      const timeStr = formatRelativeTime(comment.createdAt);
+
+      return `
+        <div class="p-2.5 rounded-xl bg-surface-container flex items-start justify-between gap-2.5" id="comment-${comment.id}">
+          <div class="flex items-start gap-2.5 min-w-0 flex-1">
+            <div class="w-7 h-7 rounded-full bg-surface-container-high text-primary flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5">
+              ${userInitial}
+            </div>
+            <div class="flex flex-col min-w-0 flex-1">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="text-xs font-semibold text-on-surface">${escapeHtml(userDisplay)}</span>
+                <span class="text-[10px] text-on-surface-variant">@${escapeHtml(username)}</span>
+                <span class="text-[10px] text-on-surface-variant opacity-60">• ${timeStr}</span>
+              </div>
+              <p class="text-xs text-on-surface-variant mt-0.5 leading-relaxed break-words">
+                ${escapeHtml(comment.content)}
+              </p>
+            </div>
+          </div>
+          ${isAdmin ? `
+            <button class="w-6 h-6 rounded-full flex items-center justify-center text-on-surface-variant hover:text-error hover:bg-error-container/30 transition-colors flex-shrink-0" title="Delete Comment" onclick="handleDeleteComment(${postId}, ${comment.id})">
+              <span class="material-symbols-outlined text-[16px]">delete</span>
+            </button>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    // 4. In-App Full Article Reader (Read More without leaving)
+    function openArticleReader(postId) {
+      const post = allPosts.find(p => p.id === postId);
+      if (!post) return;
+
+      currentReadingPostId = postId;
+      const modal = document.getElementById('article-reader-modal');
+      const titleEl = document.getElementById('reader-title');
+      const authorNameEl = document.getElementById('reader-author-name');
+      const authorAvatarEl = document.getElementById('reader-author-avatar');
+      const dateEl = document.getElementById('reader-post-date');
+      const tagBadge = document.getElementById('reader-tag-badge');
+      const summaryEl = document.getElementById('reader-summary');
+      const contentEl = document.getElementById('reader-content');
+      const imgContainer = document.getElementById('reader-image-container');
+      const imgEl = document.getElementById('reader-image');
+      const extLink = document.getElementById('reader-external-link');
+      const linkContainer = document.getElementById('reader-link-container');
+      const commentsList = document.getElementById('reader-comments-list');
+      const commentCount = document.getElementById('reader-comment-count');
+
+      // Populate Article Details (Sinhala text preserved)
+      titleEl.textContent = post.sinhalaTitle;
+      const authorName = post.isAutoNews ? post.source : (post.author ? post.author.displayName : post.source);
+      authorNameEl.textContent = authorName;
+      authorAvatarEl.textContent = authorName ? authorName[0].toUpperCase() : 'T';
+      dateEl.textContent = formatRelativeTime(post.createdAt) + ' • ' + new Date(post.createdAt).toLocaleDateString();
+      tagBadge.textContent = post.tag || '#AI';
+      summaryEl.textContent = post.sinhalaSummary;
+
+      // Full content or summary
+      const fullText = post.sinhalaContent || post.sinhalaSummary;
+      contentEl.textContent = fullText;
+
+      // Image
+      if (post.imageUrl) {
+        imgEl.src = post.imageUrl;
+        imgContainer.classList.remove('hidden');
+      } else {
+        imgContainer.classList.add('hidden');
+      }
+
+      // External link (optional)
+      if (post.link) {
+        extLink.href = post.link;
+        linkContainer.classList.remove('hidden');
+      } else {
+        linkContainer.classList.add('hidden');
+      }
+
+      // Render comments in reader
+      const comments = post.comments || [];
+      commentCount.textContent = comments.length;
+      if (comments.length === 0) {
+        commentsList.innerHTML = '<div class="text-xs text-on-surface-variant py-2 text-center" id="reader-empty-comments">No comments yet. Be the first to share your thoughts!</div>';
+      } else {
+        commentsList.innerHTML = comments.map(c => renderCommentItemHtml(post.id, c)).join('');
+      }
+
+      modal.classList.remove('hidden');
+      document.getElementById('reader-scroll-container').scrollTop = 0;
+    }
+
+    function closeArticleReader() {
+      document.getElementById('article-reader-modal').classList.add('hidden');
+      currentReadingPostId = null;
+    }
+
+    function shareCurrentArticle() {
+      if (!currentReadingPostId) return;
+      const post = allPosts.find(p => p.id === currentReadingPostId);
+      if (post) sharePost(post.id, post.sinhalaTitle);
+    }
+
+    async function handleAddReaderComment(e) {
+      e.preventDefault();
+      if (!currentReadingPostId) return;
+      const input = document.getElementById('reader-comment-input');
+      const content = input.value.trim();
+      if (!content) return;
+
+      try {
+        const res = await fetch(`/api/posts/${currentReadingPostId}/comments`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content }),
+          credentials: 'include'
+        });
+
+        if (res.ok) {
+          const createdComment = await res.json();
+          input.value = '';
+
+          const post = allPosts.find(p => p.id === currentReadingPostId);
+          if (post) {
+            if (!post.comments) post.comments = [];
+            post.comments.push(createdComment);
+
+            // Update in reader
+            const countEl = document.getElementById('reader-comment-count');
+            if (countEl) countEl.textContent = post.comments.length;
+
+            const emptyNotice = document.getElementById('reader-empty-comments');
+            if (emptyNotice) emptyNotice.remove();
+
+            const readerList = document.getElementById('reader-comments-list');
+            if (readerList) {
+              readerList.insertAdjacentHTML('beforeend', renderCommentItemHtml(post.id, createdComment));
+            }
+
+            // Also update feed card
+            const feedCountEl = document.getElementById(`comment-count-${post.id}`);
+            if (feedCountEl) feedCountEl.textContent = post.comments.length;
+
+            const feedList = document.getElementById(`comments-list-${post.id}`);
+            if (feedList) {
+              const feedEmptyNotice = document.getElementById(`empty-comment-${post.id}`);
+              if (feedEmptyNotice) feedEmptyNotice.remove();
+              feedList.insertAdjacentHTML('beforeend', renderCommentItemHtml(post.id, createdComment));
+            }
+          }
+          showToast('Comment posted successfully!', 'success');
+        } else {
+          const err = await res.json();
+          showToast(err.message || 'Failed to post comment.', 'error');
+        }
+      } catch (err) {
+        showToast('Network error occurred.', 'error');
+      }
+    }
+
+    function toggleCommentsSection(postId) {
+      const section = document.getElementById(`comments-section-${postId}`);
+      if (section) {
+        section.classList.toggle('hidden');
+      }
+    }
+
+    function sharePost(postId, title) {
+      const url = window.location.origin + '#post-' + postId;
+      if (navigator.share) {
+        navigator.share({ title: title, url: url }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(url).then(() => {
+          showToast('Link copied to clipboard!', 'info');
+        });
+      }
+    }
+
+    // 5. Create Post & Comments Actions
+    function expandPostBox(expand) {
+      const collapsed = document.getElementById('post-box-collapsed');
+      const expanded = document.getElementById('post-box-expanded');
+      if (expand) {
+        collapsed.classList.add('hidden');
+        expanded.classList.remove('hidden');
+        document.getElementById('post-title').focus();
+      } else {
+        expanded.classList.add('hidden');
+        collapsed.classList.remove('hidden');
+      }
+    }
+
+    async function handleCreatePost(e) {
+      e.preventDefault();
+      const btn = document.getElementById('create-post-submit-btn');
+      btn.disabled = true;
+
+      const sinhalaTitle = document.getElementById('post-title').value.trim();
+      const sinhalaSummary = document.getElementById('post-summary').value.trim();
+      const sinhalaContent = document.getElementById('post-content').value.trim();
+      const tag = document.getElementById('post-tag').value;
+      const imageUrl = document.getElementById('post-image-url').value.trim();
+      const link = document.getElementById('post-link').value.trim();
+
+      try {
+        const res = await fetch('/api/posts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sinhalaTitle, sinhalaSummary, sinhalaContent, tag, imageUrl, link }),
+          credentials: 'include'
+        });
+
+        if (res.ok) {
+          showToast('Your post has been submitted and is pending Admin approval.', 'success', 6000);
+          document.getElementById('post-title').value = '';
+          document.getElementById('post-summary').value = '';
+          document.getElementById('post-content').value = '';
+          document.getElementById('post-image-url').value = '';
+          document.getElementById('post-link').value = '';
+          expandPostBox(false);
+        } else {
+          const err = await res.json();
+          showToast(err.message || 'Failed to submit post.', 'error');
+        }
+      } catch (err) {
+        showToast('Network error. Please try again.', 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function handleAddComment(e, postId) {
+      e.preventDefault();
+      const input = document.getElementById(`comment-input-${postId}`);
+      const content = input.value.trim();
+      if (!content) return;
+
+      try {
+        const res = await fetch(`/api/posts/${postId}/comments`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content }),
+          credentials: 'include'
+        });
+
+        if (res.ok) {
+          const createdComment = await res.json();
+          input.value = '';
+          
+          const post = allPosts.find(p => p.id === postId);
+          if (post) {
+            if (!post.comments) post.comments = [];
+            post.comments.push(createdComment);
+            
+            const countEl = document.getElementById(`comment-count-${postId}`);
+            if (countEl) countEl.textContent = post.comments.length;
+
+            const emptyNotice = document.getElementById(`empty-comment-${postId}`);
+            if (emptyNotice) emptyNotice.remove();
+
+            const list = document.getElementById(`comments-list-${postId}`);
+            if (list) {
+              list.insertAdjacentHTML('beforeend', renderCommentItemHtml(postId, createdComment));
+            }
+          }
+          showToast('Comment posted successfully!', 'success');
+        } else {
+          const err = await res.json();
+          showToast(err.message || 'Failed to add comment.', 'error');
+        }
+      } catch (err) {
+        showToast('Network error occurred.', 'error');
+      }
+    }
+
+    async function handleDeleteComment(postId, commentId) {
+      if (!confirm('Are you sure you want to delete this comment?')) return;
+
+      try {
+        const res = await fetch(`/api/admin/comments/${commentId}`, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+
+        if (res.ok) {
+          const commentEl = document.getElementById(`comment-${commentId}`);
+          if (commentEl) commentEl.remove();
+
+          const readerCommentEl = document.querySelector(`#reader-comments-list #comment-${commentId}`);
+          if (readerCommentEl) readerCommentEl.remove();
+
+          const post = allPosts.find(p => p.id === postId);
+          if (post && post.comments) {
+            post.comments = post.comments.filter(c => c.id !== commentId);
+            const countEl = document.getElementById(`comment-count-${postId}`);
+            if (countEl) countEl.textContent = post.comments.length;
+            const readerCountEl = document.getElementById('reader-comment-count');
+            if (readerCountEl) readerCountEl.textContent = post.comments.length;
+          }
+          showToast('Comment deleted.', 'info');
+        } else {
+          showToast('Failed to delete comment.', 'error');
+        }
+      } catch (err) {
+        showToast('Network error occurred.', 'error');
+      }
+    }
+
+    async function handleDeletePost(postId) {
+      if (!confirm('Are you sure you want to delete this entire post?')) return;
+
+      try {
+        const res = await fetch(`/api/admin/posts/${postId}`, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+
+        if (res.ok) {
+          allPosts = allPosts.filter(p => p.id !== postId);
+          const card = document.getElementById(`post-card-${postId}`);
+          if (card) card.remove();
+          if (currentReadingPostId === postId) closeArticleReader();
+          showToast('Post deleted successfully.', 'info');
+        } else {
+          showToast('Failed to delete post.', 'error');
+        }
+      } catch (err) {
+        showToast('Network error occurred.', 'error');
+      }
+    }
+
+    // 6. Admin Panel Management
+    async function openAdminModal() {
+      if (!currentUser || currentUser.role !== 'Admin') return;
+      document.getElementById('admin-modal').classList.remove('hidden');
+      switchAdminTab('pending');
+      await Promise.all([loadPendingPosts(), loadAllUsers()]);
+    }
+
+    function closeAdminModal() {
+      document.getElementById('admin-modal').classList.add('hidden');
+    }
+
+    function switchAdminTab(tab) {
+      const pendingBtn = document.getElementById('admin-tab-pending');
+      const usersBtn = document.getElementById('admin-tab-users');
+      const pendingSec = document.getElementById('admin-pending-section');
+      const usersSec = document.getElementById('admin-users-section');
+
+      if (tab === 'pending') {
+        pendingBtn.className = 'py-2 px-3 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 bg-primary text-on-primary transition-all';
+        usersBtn.className = 'py-2 px-3 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 text-on-surface-variant hover:text-on-surface transition-all';
+        pendingSec.classList.remove('hidden');
+        usersSec.classList.add('hidden');
+        loadPendingPosts();
+      } else {
+        usersBtn.className = 'py-2 px-3 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 bg-primary text-on-primary transition-all';
+        pendingBtn.className = 'py-2 px-3 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 text-on-surface-variant hover:text-on-surface transition-all';
+        usersSec.classList.remove('hidden');
+        pendingSec.classList.add('hidden');
+        loadAllUsers();
+      }
+    }
+
+    async function loadPendingPosts() {
+      const list = document.getElementById('pending-list');
+      const badge = document.getElementById('pending-badge');
+      try {
+        const res = await fetch('/api/admin/posts/pending', { credentials: 'include' });
+        if (!res.ok) return;
+        const pending = await res.json();
+        badge.textContent = pending.length;
+
+        if (pending.length === 0) {
+          list.innerHTML = `
+            <div class="p-8 text-center text-on-surface-variant text-xs">
+              <span class="material-symbols-outlined text-[32px] text-primary/40 mb-1">done_all</span>
+              <p>No pending posts awaiting review.</p>
+            </div>
+          `;
+          return;
+        }
+
+        list.innerHTML = pending.map(post => `
+          <div class="p-3.5 rounded-xl bg-surface-container border border-surface-container-high flex flex-col gap-2" id="pending-card-${post.id}">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-xs text-on-surface">${escapeHtml(post.author ? post.author.displayName : post.source)}</span>
+                <span class="text-[10px] text-on-surface-variant">(@${escapeHtml(post.author ? post.author.username : '')})</span>
+                <span class="px-2 py-0.2 rounded-full bg-tertiary/20 text-tertiary text-[10px] font-semibold">${escapeHtml(post.tag)}</span>
+              </div>
+              <span class="text-[10px] text-on-surface-variant">${formatRelativeTime(post.createdAt)}</span>
+            </div>
+            ${post.imageUrl ? `<img src="${escapeHtml(post.imageUrl)}" class="w-full h-32 object-cover rounded-lg" onerror="this.style.display='none'" />` : ''}
+            <div>
+              <h3 class="font-bold text-sm text-on-surface leading-snug">${escapeHtml(post.sinhalaTitle)}</h3>
+              <p class="text-xs text-on-surface-variant mt-1 leading-relaxed">${escapeHtml(post.sinhalaSummary)}</p>
+            </div>
+            ${post.link ? `<div class="text-[11px] text-primary truncate"><a href="${escapeHtml(post.link)}" target="_blank" class="hover:underline">${escapeHtml(post.link)}</a></div>` : ''}
+            <div class="flex items-center justify-end gap-2 pt-1 border-t border-surface-container-high/60">
+              <button class="px-3 py-1 rounded-lg bg-error-container/60 hover:bg-error-container text-on-error-container text-xs font-semibold flex items-center gap-1 transition-all" onclick="handleRejectPendingPost(${post.id})">
+                <span class="material-symbols-outlined text-[14px]">close</span>
+                <span>Reject & Delete</span>
+              </button>
+              <button class="px-3 py-1 rounded-lg bg-primary text-on-primary text-xs font-semibold flex items-center gap-1 shadow-sm hover:opacity-90 transition-all" onclick="handleApprovePendingPost(${post.id})">
+                <span class="material-symbols-outlined text-[14px]">check</span>
+                <span>Approve Post</span>
+              </button>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        list.innerHTML = '<div class="p-4 text-center text-xs text-error">Failed to load pending queue.</div>';
+      }
+    }
+
+    async function handleApprovePendingPost(id) {
+      try {
+        const res = await fetch(`/api/admin/posts/${id}/approve`, {
+          method: 'PATCH',
+          credentials: 'include'
+        });
+        if (res.ok) {
+          showToast('Post approved successfully!', 'success');
+          const card = document.getElementById(`pending-card-${id}`);
+          if (card) card.remove();
+          await Promise.all([loadPendingPosts(), loadFeed()]);
+        } else {
+          showToast('Failed to approve post.', 'error');
+        }
+      } catch (err) {
+        showToast('An error occurred.', 'error');
+      }
+    }
+
+    async function handleRejectPendingPost(id) {
+      if (!confirm('Are you sure you want to reject and delete this post?')) return;
+      try {
+        const res = await fetch(`/api/admin/posts/${id}`, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+        if (res.ok) {
+          showToast('Post rejected and deleted.', 'info');
+          const card = document.getElementById(`pending-card-${id}`);
+          if (card) card.remove();
+          await loadPendingPosts();
+        } else {
+          showToast('Failed to reject post.', 'error');
+        }
+      } catch (err) {
+        showToast('An error occurred.', 'error');
+      }
+    }
+
+    async function loadAllUsers() {
+      const list = document.getElementById('users-list');
+      const badge = document.getElementById('users-badge');
+      try {
+        const res = await fetch('/api/admin/users', { credentials: 'include' });
+        if (!res.ok) return;
+        const users = await res.json();
+        badge.textContent = users.length;
+
+        list.innerHTML = users.map(user => {
+          const isSelf = currentUser && currentUser.id === user.id;
+          const statusBadge = user.isActive
+            ? '<span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-semibold border border-emerald-500/30">Active</span>'
+            : '<span class="px-2 py-0.5 rounded-full bg-error-container/60 text-on-error-container text-[10px] font-semibold border border-error/30">Deactivated</span>';
+
+          return `
+            <div class="p-3 rounded-xl bg-surface-container flex items-center justify-between gap-3" id="user-row-${user.id}">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-8 h-8 rounded-full bg-surface-container-high text-primary flex items-center justify-center font-bold text-xs">
+                  ${(user.displayName || 'U')[0].toUpperCase()}
+                </div>
+                <div class="flex flex-col min-w-0">
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="font-bold text-xs text-on-surface truncate">${escapeHtml(user.displayName)}</span>
+                    <span class="text-[10px] text-on-surface-variant">@${escapeHtml(user.username)}</span>
+                    <span class="text-[9px] uppercase font-bold px-1.5 py-0.2 rounded-full ${user.role === 'Admin' ? 'bg-secondary/20 text-secondary' : 'bg-surface-container-high text-on-surface-variant'}">${user.role}</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-[10px] text-on-surface-variant mt-0.5">
+                    ${statusBadge}
+                    <span>• Joined: ${new Date(user.createdAt).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="flex-shrink-0">
+                ${isSelf ? `
+                  <span class="text-[11px] text-on-surface-variant italic">(Your Account)</span>
+                ` : `
+                  <button class="px-3 py-1 rounded-lg text-xs font-semibold transition-all ${user.isActive ? 'bg-error-container/40 text-error hover:bg-error-container/80' : 'bg-primary/20 text-primary hover:bg-primary/40'}" onclick="handleToggleUserActive(${user.id})">
+                    ${user.isActive ? 'Deactivate' : 'Activate'}
+                  </button>
+                `}
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        list.innerHTML = '<div class="p-4 text-center text-xs text-error">Failed to load user list.</div>';
+      }
+    }
+
+    async function handleToggleUserActive(userId) {
+      try {
+        const res = await fetch(`/api/admin/users/${userId}/toggle-active`, {
+          method: 'PATCH',
+          credentials: 'include'
+        });
+        if (res.ok) {
+          const updated = await res.json();
+          showToast(`User status set to ${updated.isActive ? 'Active' : 'Deactivated'}.`, 'info');
+          await loadAllUsers();
+        } else {
+          const err = await res.json();
+          showToast(err.message || 'Failed to toggle user status.', 'error');
+        }
+      } catch (err) {
+        showToast('An error occurred.', 'error');
+      }
+    }
+
+    // 7. Utility Functions
+    function showToast(message, type = 'info', duration = 4000) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      
+      let border = 'border-primary/40';
+      let icon = 'info';
+      if (type === 'success') {
+        border = 'border-emerald-500/50';
+        icon = 'check_circle';
+      } else if (type === 'error') {
+        border = 'border-error/50';
+        icon = 'error';
+      }
+
+      toast.className = `pointer-events-auto bg-surface-container-high/95 backdrop-blur-xl border ${border} text-on-surface p-3.5 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs font-medium animate-bounce`;
+      toast.innerHTML = `
+        <span class="material-symbols-outlined text-[18px] ${type === 'success' ? 'text-emerald-400' : type === 'error' ? 'text-error' : 'text-primary'}">${icon}</span>
+        <span class="flex-1 leading-snug">${escapeHtml(message)}</span>
+      `;
+
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-8px)';
+        setTimeout(() => toast.remove(), 400);
+      }, duration);
+    }
+
+    function formatRelativeTime(dateInput) {
+      if (!dateInput) return '';
+      const date = new Date(dateInput);
+      const now = new Date();
+      const diffSec = Math.floor((now - date) / 1000);
+
+      if (diffSec < 60) return 'Just now';
+      const diffMin = Math.floor(diffSec / 60);
+      if (diffMin < 60) return `${diffMin}m ago`;
+      const diffHour = Math.floor(diffMin / 60);
+      if (diffHour < 24) return `${diffHour}h ago`;
+      const diffDay = Math.floor(diffHour / 24);
+      if (diffDay < 7) return `${diffDay}d ago`;
+      return date.toLocaleDateString();
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>

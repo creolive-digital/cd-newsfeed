@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>cd_newsfeed</RootNamespace>
+    <UserSecretsId>505b1054-feb0-4908-a445-1cb591232ffa</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="NewsFeed.Tests/**/*.cs" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.15" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.15" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.15" />
+    <PackageReference Include="System.ServiceModel.Syndication" Version="10.0.15" />
+  </ItemGroup>
+
+</Project>
