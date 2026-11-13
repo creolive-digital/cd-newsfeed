@@ -5,6 +5,17 @@ public class User
     public int Id { get; set; }
     public string DisplayName { get; set; } = string.Empty;
     public string Username { get; set; } = string.Empty;
+    public string? Email { get; set; }
+    public DateTime? EmailVerifiedAt { get; set; }
+    public string? PendingEmail { get; set; }
+    public string? EmailVerificationTokenHash { get; set; }
+    public DateTime? EmailVerificationExpiresAt { get; set; }
+    public string? PasswordResetTokenHash { get; set; }
+    public DateTime? PasswordResetExpiresAt { get; set; }
+    public string? ProfileImageUrl { get; set; }
+    public string? Bio { get; set; }
+    public string? Location { get; set; }
+    public string? WebsiteUrl { get; set; }
     public string PasswordHash { get; set; } = string.Empty;
     public string Role { get; set; } = "User"; // "Admin" or "User"
     public bool IsActive { get; set; } = true;
@@ -12,4 +23,6 @@ public class User
 
     public ICollection<Post> Posts { get; set; } = new List<Post>();
     public ICollection<Comment> Comments { get; set; } = new List<Comment>();
+    public ICollection<PostLike> Likes { get; set; } = new List<PostLike>();
+    public ICollection<PostBookmark> Bookmarks { get; set; } = new List<PostBookmark>();
 }

@@ -10,7 +10,7 @@
     if ('caches' in window) {
       caches.keys().then(function(keys) {
         keys.forEach(function(key) {
-          if (key !== 'techpulse-shell-v9') {
+          if (key !== 'techpulse-shell-v12') {
             caches.delete(key);
           }
         });
@@ -32,6 +32,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Sinhala:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js" crossorigin="anonymous"></script>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -197,7 +198,7 @@
             <span class="font-bold text-lg text-primary tracking-tight">TechPulse</span>
             <span class="text-[10px] font-bold bg-surface-container-high text-primary px-1.5 py-0.5 rounded-full border border-primary/20">Feed</span>
           </div>
-          <span class="text-[11px] text-on-surface-variant leading-none">Sinhala Tech & AI Intelligence</span>
+          <span class="hidden sm:block text-[11px] text-on-surface-variant leading-none">Sinhala Tech & AI Intelligence</span>
         </div>
       </div>
 
@@ -209,8 +210,16 @@
           <span class="hidden sm:inline">Admin Panel</span>
         </button>
 
+        <button id="notification-button" class="relative w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container transition-all" title="Notifications" onclick="toggleNotifications()">
+          <span class="material-symbols-outlined text-[20px]">notifications</span>
+          <span id="notification-badge" class="hidden absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-error text-white text-[9px] font-bold items-center justify-center">0</span>
+        </button>
+        <button class="hidden sm:flex w-9 h-9 rounded-full items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container transition-all" title="Edit profile" onclick="openProfileModal()">
+          <span class="material-symbols-outlined text-[20px]">manage_accounts</span>
+        </button>
+
         <!-- Theme Toggle -->
-        <button id="theme-toggle-btn" class="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container transition-all" title="Toggle Theme" onclick="toggleTheme()">
+        <button id="theme-toggle-btn" class="hidden sm:flex w-9 h-9 rounded-full items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container transition-all" title="Toggle Theme" onclick="toggleTheme()">
           <span class="material-symbols-outlined text-[20px]" id="theme-icon">light_mode</span>
         </button>
 
@@ -218,8 +227,8 @@
         <div class="flex items-center gap-2 bg-surface-container-high/60 pl-2 pr-1 py-1 rounded-full border border-surface-container-highest">
           <div class="flex items-center gap-1.5 min-w-0">
             <span id="nav-user-avatar" class="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-xs uppercase">U</span>
-            <span id="nav-user-name" class="text-xs font-semibold text-on-surface truncate max-w-[110px]">User</span>
-            <span id="nav-user-role" class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-primary text-on-primary">User</span>
+            <span id="nav-user-name" class="hidden md:block text-xs font-semibold text-on-surface truncate max-w-[110px]">User</span>
+            <span id="nav-user-role" class="hidden sm:inline-block text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-primary text-on-primary">User</span>
           </div>
           <button class="w-7 h-7 rounded-full flex items-center justify-center text-on-surface-variant hover:text-error hover:bg-surface-container transition-colors" title="Logout" onclick="handleLogout()">
             <span class="material-symbols-outlined text-[18px]">logout</span>
@@ -228,6 +237,16 @@
       </div>
     </div>
   </header>
+
+  <section id="notifications-panel" class="hidden fixed top-20 right-3 sm:right-6 z-50 w-[min(92vw,390px)] max-h-[70vh] overflow-hidden rounded-2xl border border-surface-container-high bg-surface-container-low shadow-2xl">
+    <div class="flex items-center justify-between p-4 border-b border-surface-container-high">
+      <div><h2 class="font-bold text-sm">Notifications</h2><p class="text-[11px] text-on-surface-variant mt-0.5">Likes and comments on your posts</p></div>
+      <button class="text-[11px] font-semibold text-primary hover:underline" onclick="markAllNotificationsRead()">Mark all read</button>
+    </div>
+    <div id="notifications-list" class="max-h-[58vh] overflow-y-auto flex flex-col">
+      <div class="p-8 text-center text-xs text-on-surface-variant">Loading activity...</div>
+    </div>
+  </section>
 
   <!-- ==================================================== -->
   <!-- 1. AUTHENTICATION VIEW (Shown when unauthenticated)  -->
@@ -294,6 +313,7 @@
             <span>Sign In</span>
             <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
           </button>
+          <button type="button" onclick="openPasswordRecovery()" class="self-end text-[11px] font-semibold text-primary hover:underline">Forgot password?</button>
         </form>
 
         <!-- REGISTER FORM -->
@@ -312,6 +332,11 @@
               <span class="material-symbols-outlined absolute left-3.5 text-on-surface-variant text-[20px] pointer-events-none">alternate_email</span>
               <input id="reg-username" type="text" required placeholder="Choose a unique username" autocomplete="username" class="w-full bg-transparent py-2.5 pl-11 pr-3 text-sm text-on-surface placeholder:text-outline/50 focus:outline-none" />
             </div>
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-medium text-on-surface-variant" for="reg-email">Recovery Email (Optional)</label>
+            <input id="reg-email" type="email" autocomplete="email" placeholder="you@example.com" class="w-full bg-surface-container-lowest py-2.5 px-3 text-sm rounded-xl text-on-surface border border-surface-container-high focus:outline-none focus:ring-2 focus:ring-primary/50" />
           </div>
 
           <div class="flex flex-col gap-1">
@@ -340,11 +365,45 @@
     </div>
   </section>
 
+  <div id="password-recovery-modal" class="hidden fixed inset-0 z-[70] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <section class="w-full max-w-md rounded-2xl border border-surface-container-high bg-surface-container-low p-5 shadow-2xl">
+      <div class="flex items-start justify-between gap-3"><div><h2 class="font-bold">Account recovery</h2><p id="recovery-description" class="mt-1 text-xs text-on-surface-variant">Enter the recovery email linked to your account.</p></div><button onclick="closePasswordRecovery()" aria-label="Close recovery" class="text-on-surface-variant"><span class="material-symbols-outlined">close</span></button></div>
+      <form id="recovery-request-form" class="mt-4 flex flex-col gap-3" onsubmit="requestPasswordReset(event)"><input id="recovery-email" type="email" autocomplete="email" required placeholder="you@example.com" class="rounded-xl border border-surface-container-high bg-surface-container-lowest px-3 py-2.5 text-sm text-on-surface" /><button class="rounded-xl bg-primary px-4 py-2.5 text-xs font-bold text-on-primary">Send recovery link</button></form>
+      <form id="recovery-confirm-form" class="hidden mt-4 flex flex-col gap-3" onsubmit="confirmPasswordReset(event)"><input id="recovery-new-password" type="password" minlength="8" autocomplete="new-password" required placeholder="New password (at least 8 characters)" class="rounded-xl border border-surface-container-high bg-surface-container-lowest px-3 py-2.5 text-sm text-on-surface" /><button class="rounded-xl bg-primary px-4 py-2.5 text-xs font-bold text-on-primary">Reset password</button></form>
+      <p id="recovery-message" class="hidden mt-3 text-xs"></p>
+    </section>
+  </div>
+
   <!-- ==================================================== -->
   <!-- 2. MAIN FEED VIEW (Authenticated Users Only)         -->
   <!-- ==================================================== -->
   <main id="feed-view" class="flex-1 w-full max-w-3xl mx-auto px-4 pt-20 pb-16 flex flex-col gap-4 relative z-10 hidden">
     
+    <!-- Feed discovery controls -->
+    <div class="flex flex-col sm:flex-row gap-2">
+      <label class="relative flex-1">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-on-surface-variant">search</span>
+        <input id="feed-search" type="search" autocomplete="off" oninput="searchFeedInput()" placeholder="Search headlines, summaries, or sources..." aria-label="Search the feed" class="w-full rounded-xl border border-surface-container-high bg-surface-container-low py-2.5 pl-10 pr-3 text-xs sm:text-sm text-on-surface placeholder:text-on-surface-variant/70 focus:outline-none focus:ring-2 focus:ring-primary/50" />
+      </label>
+      <div class="flex gap-2">
+        <select id="feed-sort" onchange="loadFeed()" aria-label="Sort feed" class="min-w-0 flex-1 sm:flex-none rounded-xl border border-surface-container-high bg-surface-container-low px-3 py-2.5 text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50">
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+          <option value="popular">Most liked</option>
+        </select>
+        <button id="saved-posts-toggle" type="button" onclick="toggleSavedPosts()" aria-pressed="false" class="inline-flex items-center justify-center gap-1.5 rounded-xl border border-surface-container-high bg-surface-container-low px-3 py-2 text-xs font-semibold text-on-surface-variant hover:text-primary transition-colors">
+          <span class="material-symbols-outlined text-[17px]">bookmark</span><span>Saved</span>
+        </button>
+        <button id="following-feed-toggle" type="button" onclick="toggleFollowingFeed()" aria-pressed="false" class="inline-flex items-center justify-center gap-1.5 rounded-xl border border-surface-container-high bg-surface-container-low px-3 py-2 text-xs font-semibold text-on-surface-variant hover:text-primary transition-colors">
+          <span class="material-symbols-outlined text-[17px]">group</span><span>Following</span>
+        </button>
+      </div>
+    </div>
+    <div class="flex items-center justify-between px-1 text-[11px] text-on-surface-variant">
+      <span id="feed-result-count" aria-live="polite">Loading stories...</span>
+      <button type="button" onclick="loadFeed()" class="inline-flex items-center gap-1 hover:text-primary"><span class="material-symbols-outlined text-[15px]">refresh</span>Refresh</button>
+    </div>
+
     <!-- Category Filter Carousel -->
     <div class="w-full overflow-x-auto no-scrollbar py-1">
       <div class="flex items-center gap-2 min-w-max">
@@ -416,7 +475,8 @@
             </select>
           </div>
           <div class="flex flex-col gap-1">
-            <label class="text-xs font-medium text-on-surface-variant">Image URL (Optional)</label>
+            <label class="text-xs font-medium text-on-surface-variant" for="post-image-file">Upload an image (Optional · up to 5 MB)</label>
+            <input id="post-image-file" type="file" accept="image/png,image/jpeg,image/webp" onchange="uploadPostImage(event)" class="w-full text-xs text-on-surface-variant file:mr-2 file:rounded-lg file:border-0 file:bg-primary/15 file:px-2 file:py-1.5 file:text-xs file:font-semibold file:text-primary" />
             <input id="post-image-url" type="url" placeholder="https://.../photo.jpg" class="w-full bg-surface-container-lowest py-2 px-3 text-sm rounded-xl text-on-surface border border-surface-container-high focus:outline-none focus:ring-2 focus:ring-primary/50" />
           </div>
           <div class="flex flex-col gap-1">
@@ -459,7 +519,19 @@
         </div>
       </div>
     </div>
+    <button id="load-more-posts" class="hidden w-full rounded-xl border border-surface-container-high bg-surface-container-low py-3 text-xs font-semibold text-primary hover:bg-surface-container transition-colors" onclick="loadMorePosts()">Load more stories</button>
   </main>
+
+  <div id="edit-post-modal" class="hidden fixed inset-0 z-[65] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <form id="edit-post-form" onsubmit="savePostEdit(event)" class="w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl border border-surface-container-high bg-surface-container-low p-5 shadow-2xl flex flex-col gap-3">
+      <div class="flex items-center justify-between"><div><h2 class="font-bold">Edit your post</h2><p class="text-xs text-on-surface-variant">Changes go to the admin review queue.</p></div><button type="button" onclick="closePostEditor()" aria-label="Close editor"><span class="material-symbols-outlined">close</span></button></div>
+      <input id="edit-post-title" required maxlength="500" placeholder="Title in Sinhala" class="rounded-xl border border-surface-container-high bg-surface-container-lowest px-3 py-2 text-sm text-on-surface" />
+      <textarea id="edit-post-summary" required maxlength="10000" rows="3" placeholder="Summary in Sinhala" class="rounded-xl border border-surface-container-high bg-surface-container-lowest px-3 py-2 text-sm text-on-surface"></textarea>
+      <textarea id="edit-post-content" maxlength="100000" rows="6" placeholder="Full article content (optional)" class="rounded-xl border border-surface-container-high bg-surface-container-lowest px-3 py-2 text-sm text-on-surface"></textarea>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2"><select id="edit-post-tag" class="rounded-xl border border-surface-container-high bg-surface-container-lowest p-2 text-sm text-on-surface"><option>#Community</option><option>#AI</option><option>#Tech</option></select><input id="edit-post-image" type="url" placeholder="Image URL" class="rounded-xl border border-surface-container-high bg-surface-container-lowest p-2 text-xs text-on-surface" /><input id="edit-post-link" type="url" placeholder="Source link" class="rounded-xl border border-surface-container-high bg-surface-container-lowest p-2 text-xs text-on-surface" /></div>
+      <div class="flex justify-end gap-2"><button type="button" onclick="closePostEditor()" class="rounded-xl px-4 py-2 text-xs">Cancel</button><button id="edit-post-submit" class="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-on-primary">Submit for review</button></div>
+    </form>
+  </div>
 
   <!-- ==================================================== -->
   <!-- 3. FULL ARTICLE READER MODAL (Read without leaving)  -->
@@ -589,6 +661,107 @@
     </div>
   </div>
 
+  <div id="profile-modal" class="hidden fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5">
+    <section class="w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-2xl border border-surface-container-high bg-surface-container-low shadow-2xl">
+      <header class="sticky top-0 z-10 flex items-center justify-between px-5 py-4 border-b border-surface-container-high bg-surface-container-low/95 backdrop-blur">
+        <div><h2 class="font-bold text-base">Your profile</h2><p class="text-xs text-on-surface-variant mt-0.5">Update how you appear in the community</p></div>
+        <button class="w-8 h-8 rounded-full hover:bg-surface-container-high text-on-surface-variant" onclick="closeProfileModal()" aria-label="Close profile editor"><span class="material-symbols-outlined">close</span></button>
+      </header>
+      <form id="profile-form" class="p-5 flex flex-col gap-4" onsubmit="saveProfile(event)">
+        <div class="flex items-center gap-4">
+          <div id="profile-image-preview" class="w-20 h-20 rounded-full bg-primary/20 text-primary flex items-center justify-center text-2xl font-bold overflow-hidden ring-2 ring-primary/30">U</div>
+          <div class="flex flex-col gap-2">
+            <label for="profile-image-input" class="cursor-pointer px-3 py-2 rounded-xl bg-primary/15 text-primary text-xs font-semibold hover:bg-primary/25">Change profile photo</label>
+            <input id="profile-image-input" class="hidden" type="file" accept="image/png,image/jpeg,image/webp" onchange="uploadProfileImage(event)" />
+            <span class="text-[10px] text-on-surface-variant">PNG, JPG, or WebP · up to 2 MB</span>
+          </div>
+        </div>
+        <label class="flex flex-col gap-1.5 text-xs font-medium text-on-surface-variant">Display name
+          <input id="profile-display-name" maxlength="100" required class="bg-surface-container-lowest rounded-xl px-3 py-2.5 text-sm text-on-surface border border-surface-container-high focus:outline-none focus:ring-2 focus:ring-primary/40" />
+        </label>
+        <label class="flex flex-col gap-1.5 text-xs font-medium text-on-surface-variant">About you
+          <textarea id="profile-bio" maxlength="500" rows="3" placeholder="Tell the community a little about yourself" class="bg-surface-container-lowest rounded-xl px-3 py-2.5 text-sm text-on-surface border border-surface-container-high focus:outline-none focus:ring-2 focus:ring-primary/40"></textarea>
+        </label>
+        <div class="grid sm:grid-cols-2 gap-3">
+          <label class="flex flex-col gap-1.5 text-xs font-medium text-on-surface-variant">Location
+            <input id="profile-location" maxlength="100" placeholder="City, country" class="bg-surface-container-lowest rounded-xl px-3 py-2.5 text-sm text-on-surface border border-surface-container-high focus:outline-none focus:ring-2 focus:ring-primary/40" />
+          </label>
+          <label class="flex flex-col gap-1.5 text-xs font-medium text-on-surface-variant">Website
+            <input id="profile-website" maxlength="300" type="url" placeholder="https://example.com" class="bg-surface-container-lowest rounded-xl px-3 py-2.5 text-sm text-on-surface border border-surface-container-high focus:outline-none focus:ring-2 focus:ring-primary/40" />
+          </label>
+          <label class="flex flex-col gap-1.5 text-xs font-medium text-on-surface-variant sm:col-span-2">Recovery email
+            <input id="profile-email" maxlength="254" type="email" autocomplete="email" placeholder="you@example.com" class="bg-surface-container-lowest rounded-xl px-3 py-2.5 text-sm text-on-surface border border-surface-container-high focus:outline-none focus:ring-2 focus:ring-primary/40" />
+            <span id="profile-email-hint" class="text-[10px] font-normal">Used to recover your account. Keep it up to date.</span>
+            <button id="verify-email-button" type="button" onclick="requestEmailVerification()" class="hidden self-start text-[10px] font-semibold text-primary hover:underline">Send verification email</button>
+          </label>
+        </div>
+        <p id="profile-error" class="hidden text-xs text-error"></p>
+        <div class="flex justify-end gap-2 pt-1">
+          <button type="button" onclick="closeProfileModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-on-surface-variant hover:bg-surface-container-high">Cancel</button>
+          <button id="profile-save-button" type="submit" class="px-5 py-2 rounded-xl bg-primary text-on-primary text-xs font-bold hover:opacity-90">Save profile</button>
+        </div>
+      </form>
+      <section class="px-5 pb-5" aria-label="Your community activity">
+        <h3 class="text-sm font-bold mb-3">Your activity</h3>
+        <div class="grid grid-cols-3 gap-2 mb-4">
+          <div class="rounded-xl bg-surface-container-high/70 p-3 text-center"><strong id="profile-post-count" class="block text-lg text-primary">—</strong><span class="text-[10px] text-on-surface-variant">Posts</span></div>
+          <div class="rounded-xl bg-surface-container-high/70 p-3 text-center"><strong id="profile-likes-count" class="block text-lg text-rose-400">—</strong><span class="text-[10px] text-on-surface-variant">Likes</span></div>
+          <div class="rounded-xl bg-surface-container-high/70 p-3 text-center"><strong id="profile-comments-count" class="block text-lg text-secondary">—</strong><span class="text-[10px] text-on-surface-variant">Comments</span></div>
+        </div>
+        <div id="my-activity-list" class="flex flex-col gap-2"><div class="text-xs text-on-surface-variant">Loading your posts...</div></div>
+      </section>
+      <section class="px-5 pb-5" aria-label="Notification settings">
+        <h3 class="text-sm font-bold mb-3">Notification preferences</h3>
+        <div class="flex flex-col gap-2 text-xs text-on-surface-variant">
+          <label class="flex items-center gap-2"><input id="notify-likes" type="checkbox" checked class="accent-cyan-400" onchange="saveNotificationPreferences()" /> Likes on my posts</label>
+          <label class="flex items-center gap-2"><input id="notify-comments" type="checkbox" checked class="accent-cyan-400" onchange="saveNotificationPreferences()" /> Comments on my posts</label>
+        </div>
+        <div class="mt-4 flex flex-wrap gap-2">
+          <button type="button" onclick="changePassword()" class="rounded-lg border border-surface-container-high px-3 py-2 text-[11px] font-semibold hover:text-primary">Change password</button>
+        </div>
+        <h4 class="mt-4 mb-2 text-xs font-semibold">Topics in your Following feed</h4>
+        <div class="flex flex-wrap gap-3 text-xs text-on-surface-variant"><label><input id="follow-topic-ai" type="checkbox" onchange="toggleTopicFollow('#AI',this.checked)" class="accent-cyan-400" /> AI</label><label><input id="follow-topic-tech" type="checkbox" onchange="toggleTopicFollow('#Tech',this.checked)" class="accent-cyan-400" /> Tech</label><label><input id="follow-topic-community" type="checkbox" onchange="toggleTopicFollow('#Community',this.checked)" class="accent-cyan-400" /> Community</label></div>
+      </section>
+    </section>
+  </div>
+
+  <div id="public-profile-modal" class="hidden fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5">
+    <section class="w-full max-w-xl max-h-[92vh] overflow-y-auto rounded-2xl border border-surface-container-high bg-surface-container-low shadow-2xl">
+      <header class="sticky top-0 z-10 flex items-center justify-between px-5 py-4 border-b border-surface-container-high bg-surface-container-low/95 backdrop-blur">
+        <h2 class="font-bold text-base">Community profile</h2>
+        <button class="w-8 h-8 rounded-full hover:bg-surface-container-high text-on-surface-variant" onclick="closePublicProfile()" aria-label="Close profile"><span class="material-symbols-outlined">close</span></button>
+      </header>
+      <div class="p-5">
+        <div class="flex items-center gap-4">
+          <div id="public-profile-avatar" class="w-20 h-20 rounded-full bg-primary/20 text-primary flex items-center justify-center text-2xl font-bold overflow-hidden ring-2 ring-primary/30">U</div>
+          <div class="min-w-0"><h3 id="public-profile-name" class="text-lg font-bold truncate"></h3><p id="public-profile-username" class="text-xs text-on-surface-variant"></p></div>
+        </div>
+        <button id="public-profile-follow" class="mt-4 rounded-xl border border-primary/40 bg-primary/10 px-4 py-2 text-xs font-semibold text-primary hover:bg-primary/20" onclick="toggleProfileFollow()">Follow</button>
+        <p id="public-profile-bio" class="hidden mt-4 text-sm leading-relaxed text-on-surface-variant whitespace-pre-wrap"></p>
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-2 mt-3 text-xs text-on-surface-variant">
+          <span id="public-profile-location" class="hidden items-center gap-1"><span class="material-symbols-outlined text-[15px]">location_on</span><span></span></span>
+          <a id="public-profile-website" class="hidden items-center gap-1 text-primary hover:underline" target="_blank" rel="noopener noreferrer"><span class="material-symbols-outlined text-[15px]">link</span><span>Website</span></a>
+        </div>
+        <div class="grid grid-cols-3 gap-2 mt-5">
+          <div class="rounded-xl bg-surface-container-high/70 p-3 text-center"><strong id="public-profile-post-count" class="block text-lg text-primary">0</strong><span class="text-[10px] text-on-surface-variant">Posts</span></div>
+          <div class="rounded-xl bg-surface-container-high/70 p-3 text-center"><strong id="public-profile-likes-count" class="block text-lg text-rose-400">0</strong><span class="text-[10px] text-on-surface-variant">Likes</span></div>
+          <div class="rounded-xl bg-surface-container-high/70 p-3 text-center"><strong id="public-profile-comments-count" class="block text-lg text-secondary">0</strong><span class="text-[10px] text-on-surface-variant">Comments</span></div>
+        </div>
+        <h4 class="mt-6 mb-3 text-sm font-bold">Recent posts</h4>
+        <div id="public-profile-posts" class="flex flex-col gap-2"></div>
+      </div>
+    </section>
+  </div>
+
+  <nav id="app-bottom-nav" class="hidden fixed bottom-0 inset-x-0 z-40 border-t border-surface-container-high bg-surface/95 backdrop-blur-xl pb-[env(safe-area-inset-bottom)]">
+    <div class="max-w-xl mx-auto h-14 flex items-center justify-around">
+      <button class="flex flex-col items-center justify-center gap-0.5 text-primary min-w-[64px]" onclick="window.scrollTo({top:0,behavior:'smooth'})"><span class="material-symbols-outlined text-[21px]">home</span><span class="text-[9px] font-semibold">Feed</span></button>
+      <button class="flex flex-col items-center justify-center gap-0.5 text-on-surface-variant min-w-[64px]" onclick="toggleNotifications(true)"><span class="material-symbols-outlined text-[21px]">notifications</span><span class="text-[9px] font-semibold">Activity</span></button>
+      <button class="flex flex-col items-center justify-center gap-0.5 text-on-surface-variant min-w-[64px]" onclick="expandPostBox(true); window.scrollTo({top:0,behavior:'smooth'})"><span class="material-symbols-outlined text-[21px]">add_box</span><span class="text-[9px] font-semibold">Post</span></button>
+      <button class="flex flex-col items-center justify-center gap-0.5 text-on-surface-variant min-w-[64px]" onclick="openProfileModal()"><span class="material-symbols-outlined text-[21px]">account_circle</span><span class="text-[9px] font-semibold">Profile</span></button>
+    </div>
+  </nav>
+
   <!-- ==================================================== -->
   <!-- 4. ADMIN DASHBOARD MODAL (Admin Only)                -->
   <!-- ==================================================== -->
@@ -612,7 +785,7 @@
       </div>
 
       <!-- Admin Tabs -->
-      <div class="grid grid-cols-2 p-2 bg-surface-container-lowest/80 border-b border-surface-container-high gap-2">
+      <div class="grid grid-cols-2 sm:grid-cols-4 p-2 bg-surface-container-lowest/80 border-b border-surface-container-high gap-2">
         <button id="admin-tab-pending" class="py-2 px-3 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 bg-primary text-on-primary transition-all" onclick="switchAdminTab('pending')">
           <span class="material-symbols-outlined text-[18px]">pending_actions</span>
           <span>Pending Posts Queue</span>
@@ -623,6 +796,8 @@
           <span>User Management</span>
           <span id="users-badge" class="px-1.5 py-0.2 rounded-full bg-surface-container-high text-on-surface font-bold text-[10px]">0</span>
         </button>
+        <button id="admin-tab-reports" class="py-2 px-3 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 text-on-surface-variant hover:text-on-surface transition-all" onclick="switchAdminTab('reports')"><span class="material-symbols-outlined text-[18px]">flag</span><span>Reports</span><span id="reports-badge" class="px-1.5 py-0.2 rounded-full bg-surface-container-high text-on-surface font-bold text-[10px]">0</span></button>
+        <button id="admin-tab-insights" class="py-2 px-3 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 text-on-surface-variant hover:text-on-surface transition-all" onclick="switchAdminTab('insights')"><span class="material-symbols-outlined text-[18px]">query_stats</span><span>Insights</span></button>
       </div>
 
       <!-- Modal Body (Scrollable) -->
@@ -641,6 +816,8 @@
             <div class="p-8 text-center text-xs text-on-surface-variant">Loading users...</div>
           </div>
         </div>
+        <div id="admin-reports-section" class="hidden flex flex-col gap-3"><div id="reports-list" class="flex flex-col gap-2"></div></div>
+        <div id="admin-insights-section" class="hidden"><div id="insights-panel" class="grid grid-cols-2 sm:grid-cols-4 gap-3"></div></div>
 
       </div>
 
@@ -659,14 +836,44 @@
     let currentUser = null;
     let allPosts = [];
     let currentFilter = 'All';
+    let showingSavedPosts = false;
+    let followingOnly = false;
+    let feedPage = 1;
+    let feedHasMore = false;
+    let feedTotal = 0;
+    let feedSearchTimer = null;
+    let currentProfileUserId = null;
+    let postImageUploading = false;
     let currentReadingPostId = null;
     let deferredPrompt = null;
+    let notificationRefreshTimer = null;
+    let realtimeConnection = null;
+    let realtimeFeedRefresh = null;
+    let realtimeFeedQueued = false;
+    let realtimeRetryTimer = null;
+    let realtimeFallbackTimer = null;
 
     // 1. Initialize PWA & Theme
     document.addEventListener('DOMContentLoaded', () => {
       initTheme();
       initServiceWorker();
       checkAuthAndInit();
+      const resetToken = new URLSearchParams(window.location.search).get('resetToken');
+      if (resetToken) {
+        sessionStorage.setItem('password-reset-token', resetToken);
+        document.getElementById('recovery-request-form').classList.add('hidden');
+        document.getElementById('recovery-confirm-form').classList.remove('hidden');
+        document.getElementById('recovery-description').textContent = 'Choose a new password. This recovery link can only be used once.';
+        document.getElementById('password-recovery-modal').classList.remove('hidden');
+        history.replaceState({}, document.title, window.location.pathname);
+      }
+      const verifyToken = new URLSearchParams(window.location.search).get('verifyEmailToken');
+      if (verifyToken) {
+        history.replaceState({}, document.title, window.location.pathname);
+        fetch('/api/auth/email/verification/confirm', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: verifyToken }) })
+          .then(async response => { const data = await response.json(); showToast(data.message || (response.ok ? 'Email verified.' : 'Email verification failed.'), response.ok ? 'success' : 'error', 7000); })
+          .catch(() => showToast('Could not verify email. Please try again.', 'error'));
+      }
     });
 
     function initTheme() {
@@ -689,7 +896,7 @@
     function initServiceWorker() {
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js?v=9').then((reg) => {
+          navigator.serviceWorker.register('/sw.js?v=12').then((reg) => {
             reg.update();
             reg.onupdatefound = () => {
               const newWorker = reg.installing;
@@ -779,17 +986,21 @@
 
       // Update Nav User Info
       document.getElementById('nav-user-name').textContent = currentUser.displayName;
-      document.getElementById('nav-user-avatar').textContent = (currentUser.displayName || 'U')[0].toUpperCase();
-      document.getElementById('create-post-avatar').textContent = (currentUser.displayName || 'U')[0].toUpperCase();
+      setAvatar(document.getElementById('nav-user-avatar'), currentUser);
+      setAvatar(document.getElementById('create-post-avatar'), currentUser);
+      document.getElementById('app-bottom-nav').classList.remove('hidden');
+      loadNotifications();
+      if (!notificationRefreshTimer) notificationRefreshTimer = setInterval(loadNotifications, 60000);
+      connectRealtime();
       
       const roleBadge = document.getElementById('nav-user-role');
       roleBadge.textContent = currentUser.role;
       if (currentUser.role === 'Admin') {
-        roleBadge.className = 'text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-secondary text-on-secondary';
+        roleBadge.className = 'hidden sm:inline-block text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-secondary text-on-secondary';
         document.getElementById('admin-panel-btn').classList.remove('hidden');
         document.getElementById('admin-panel-btn').classList.add('flex');
       } else {
-        roleBadge.className = 'text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-primary text-on-primary';
+        roleBadge.className = 'hidden sm:inline-block text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-primary text-on-primary';
         document.getElementById('admin-panel-btn').classList.add('hidden');
         document.getElementById('admin-panel-btn').classList.remove('flex');
       }
@@ -802,6 +1013,189 @@
       document.getElementById('feed-view').classList.add('hidden');
       document.getElementById('admin-modal').classList.add('hidden');
       document.getElementById('article-reader-modal').classList.add('hidden');
+      document.getElementById('notifications-panel').classList.add('hidden');
+      document.getElementById('profile-modal').classList.add('hidden');
+      document.getElementById('public-profile-modal').classList.add('hidden');
+      document.getElementById('app-bottom-nav').classList.add('hidden');
+      if (notificationRefreshTimer) {
+        clearInterval(notificationRefreshTimer);
+        notificationRefreshTimer = null;
+      }
+      if (realtimeConnection) {
+        realtimeConnection.stop().catch(() => {});
+        realtimeConnection = null;
+      }
+      if (realtimeRetryTimer) { clearTimeout(realtimeRetryTimer); realtimeRetryTimer = null; }
+      if (realtimeFallbackTimer) { clearInterval(realtimeFallbackTimer); realtimeFallbackTimer = null; }
+    }
+
+    async function connectRealtime() {
+      if (!currentUser || realtimeConnection) return;
+      if (!window.signalR) {
+        if (!realtimeRetryTimer) realtimeRetryTimer = setTimeout(() => { realtimeRetryTimer = null; connectRealtime(); }, 5000);
+        if (!realtimeFallbackTimer) realtimeFallbackTimer = setInterval(() => { if (currentUser && !realtimeConnection) refreshFeedLive(); }, 30000);
+        return;
+      }
+      const connection = new signalR.HubConnectionBuilder().withUrl('/hubs/feed').withAutomaticReconnect().build();
+      connection.on('FeedChanged', () => refreshFeedLive());
+      connection.on('NotificationsChanged', () => loadNotifications());
+      connection.on('ModerationChanged', () => {
+        if (currentUser?.role === 'Admin' && !document.getElementById('admin-modal').classList.contains('hidden')) {
+          loadPendingPosts();
+          loadAdminReports();
+          loadAdminInsights();
+        }
+      });
+      connection.onreconnected(() => { refreshFeedLive(); loadNotifications(); });
+      connection.onclose(() => {
+        realtimeConnection = null;
+        if (currentUser && !realtimeRetryTimer) realtimeRetryTimer = setTimeout(() => { realtimeRetryTimer = null; connectRealtime(); }, 5000);
+      });
+      realtimeConnection = connection;
+      try { await connection.start(); }
+      catch (error) {
+        console.warn('Live updates are temporarily unavailable; retrying shortly.', error);
+        realtimeConnection = null;
+        connection.stop().catch(() => {});
+        if (!realtimeRetryTimer) realtimeRetryTimer = setTimeout(() => { realtimeRetryTimer = null; connectRealtime(); }, 5000);
+        if (!realtimeFallbackTimer) realtimeFallbackTimer = setInterval(() => { if (currentUser && !realtimeConnection) refreshFeedLive(); }, 30000);
+      }
+    }
+
+    async function refreshFeedLive() {
+      if (!currentUser) return;
+      if (realtimeFeedRefresh) { realtimeFeedQueued = true; return realtimeFeedRefresh; }
+      realtimeFeedRefresh = (async () => {
+        const requestedPages = Math.max(1, feedPage);
+        const pages = await Promise.all(Array.from({ length: requestedPages }, async (_, index) => {
+          const params = new URLSearchParams({ page: String(index + 1), pageSize: '20', followingOnly: String(followingOnly), search: document.getElementById('feed-search').value.trim(), sort: document.getElementById('feed-sort').value, tag: currentFilter });
+          const response = await fetch(`/api/feed?${params}`, { credentials: 'include' });
+          if (!response.ok) throw new Error('Feed refresh failed.');
+          return response.json();
+        }));
+        allPosts = pages.flatMap(page => page.items || page);
+        const lastPage = pages[pages.length - 1];
+        feedTotal = lastPage.total ?? allPosts.length;
+        feedHasMore = !!lastPage.hasMore;
+        document.getElementById('load-more-posts').classList.toggle('hidden', !feedHasMore);
+        renderPosts();
+        if (currentReadingPostId && !document.getElementById('article-reader-modal').classList.contains('hidden')) {
+          const readerScroll = document.getElementById('reader-scroll-container').scrollTop;
+          openArticleReader(currentReadingPostId);
+          document.getElementById('reader-scroll-container').scrollTop = readerScroll;
+        }
+      })().catch(error => console.warn('Could not refresh the feed from live update.', error)).finally(() => {
+        realtimeFeedRefresh = null;
+        if (realtimeFeedQueued) { realtimeFeedQueued = false; refreshFeedLive(); }
+      });
+      return realtimeFeedRefresh;
+    }
+
+    function setAvatar(element, user, extraClass = '') {
+      if (!element) return;
+      const imageUrl = user?.profileImageUrl;
+      if (imageUrl) {
+        element.innerHTML = `<img src="${escapeHtml(imageUrl)}" alt="" class="w-full h-full rounded-full object-cover ${extraClass}" />`;
+      } else {
+        element.textContent = (user?.displayName || user?.username || 'U')[0].toUpperCase();
+      }
+    }
+
+    function avatarMarkup(user, sizeClass = 'w-10 h-10') {
+      const name = user?.displayName || user?.username || 'User';
+      return `<div class="${sizeClass} rounded-full bg-primary/15 text-primary flex items-center justify-center flex-shrink-0 overflow-hidden ring-1 ring-white/10 font-bold">${user?.profileImageUrl ? `<img src="${escapeHtml(user.profileImageUrl)}" alt="" class="w-full h-full object-cover" />` : escapeHtml(name[0].toUpperCase())}</div>`;
+    }
+
+    async function openUserProfile(userId) {
+      if (currentUser?.id === userId) {
+        await openProfileModal();
+        return;
+      }
+      try {
+        const response = await fetch(`/api/users/${userId}/profile`, { credentials: 'include' });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Could not load this profile.');
+        setAvatar(document.getElementById('public-profile-avatar'), data);
+        document.getElementById('public-profile-name').textContent = data.displayName;
+        currentProfileUserId = data.id;
+        const followButton = document.getElementById('public-profile-follow');
+        const currentFollows = await fetch('/api/follows', { credentials: 'include' }).then(response => response.ok ? response.json() : []);
+        const isFollowing = currentFollows.some(follow => follow.userId === data.id);
+        followButton.textContent = isFollowing ? 'Following · Unfollow' : 'Follow';
+        document.getElementById('public-profile-username').textContent = `@${data.username}`;
+        const bio = document.getElementById('public-profile-bio');
+        bio.textContent = data.bio || '';
+        bio.classList.toggle('hidden', !data.bio);
+        const location = document.getElementById('public-profile-location');
+        location.classList.toggle('hidden', !data.location);
+        location.classList.toggle('flex', !!data.location);
+        location.querySelector('span:last-child').textContent = data.location || '';
+        const website = document.getElementById('public-profile-website');
+        const websiteUrl = data.websiteUrl;
+        if (websiteUrl && /^https?:\/\//i.test(websiteUrl)) {
+          website.href = websiteUrl;
+          website.querySelector('span:last-child').textContent = new URL(websiteUrl).hostname;
+          website.classList.remove('hidden');
+          website.classList.add('inline-flex');
+        } else {
+          website.classList.add('hidden');
+          website.classList.remove('inline-flex');
+        }
+        document.getElementById('public-profile-post-count').textContent = data.postCount;
+        document.getElementById('public-profile-likes-count').textContent = data.likesReceived;
+        document.getElementById('public-profile-comments-count').textContent = data.commentsReceived;
+        const posts = document.getElementById('public-profile-posts');
+        posts.innerHTML = data.posts.length ? data.posts.map(post => `
+          <button class="w-full rounded-xl bg-surface-container-high/60 p-3 text-left hover:bg-surface-container-high transition-colors" onclick="closePublicProfile(); openArticleReader(${post.id})">
+            <span class="block text-xs font-semibold text-on-surface line-clamp-2">${escapeHtml(post.title)}</span>
+            <span class="block mt-1 text-[10px] text-on-surface-variant">${escapeHtml(post.tag)} · ${formatRelativeTime(post.createdAt)} · ${post.likes} likes · ${post.comments} comments</span>
+          </button>`).join('') : '<div class="rounded-xl bg-surface-container-high/50 p-4 text-xs text-on-surface-variant">No approved posts yet.</div>';
+        document.getElementById('public-profile-modal').classList.remove('hidden');
+      } catch (error) {
+        showToast(error.message || 'Network error. Please try again.', 'error');
+      }
+    }
+
+    function closePublicProfile() {
+      document.getElementById('public-profile-modal').classList.add('hidden');
+    }
+
+    async function toggleProfileFollow() {
+      if (!currentProfileUserId) return;
+      try {
+        const response = await fetch(`/api/follows/users/${currentProfileUserId}`, { method: 'POST', credentials: 'include' });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Could not update your following list.');
+        document.getElementById('public-profile-follow').textContent = data.followed ? 'Following · Unfollow' : 'Follow';
+        showToast(data.followed ? 'You are now following this user.' : 'User unfollowed.', 'success');
+        if (followingOnly) await loadFeed();
+      } catch (error) { showToast(error.message, 'error'); }
+    }
+
+    async function loadFollowPreferences() {
+      try {
+        const response = await fetch('/api/follows', { credentials: 'include' });
+        if (!response.ok) return;
+        const follows = await response.json();
+        for (const [topic, id] of [['#AI', 'follow-topic-ai'], ['#Tech', 'follow-topic-tech'], ['#Community', 'follow-topic-community']]) {
+          document.getElementById(id).checked = follows.some(follow => follow.topic === topic);
+        }
+      } catch (_) {}
+    }
+
+    async function toggleTopicFollow(topic, shouldFollow) {
+      try {
+        const response = await fetch(`/api/follows/topics/${encodeURIComponent(topic)}`, { method: 'POST', credentials: 'include' });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Could not update topic preferences.');
+        if (data.followed !== shouldFollow) return;
+        if (followingOnly) await loadFeed();
+        showToast(shouldFollow ? `${topic} added to your Following feed.` : `${topic} removed from your Following feed.`, 'success');
+      } catch (error) {
+        const id = { '#AI': 'follow-topic-ai', '#Tech': 'follow-topic-tech', '#Community': 'follow-topic-community' }[topic];
+        document.getElementById(id).checked = !shouldFollow;
+        showToast(error.message, 'error');
+      }
     }
 
     function switchAuthTab(tab) {
@@ -833,6 +1227,279 @@
       const errMsg = document.getElementById('auth-error-message');
       errMsg.textContent = msg;
       errBanner.classList.remove('hidden');
+    }
+
+    async function openProfileModal() {
+      if (!currentUser) return;
+      try {
+        const profileResponse = await fetch('/api/auth/me', { credentials: 'include' });
+        if (profileResponse.ok) {
+          currentUser = await profileResponse.json();
+          renderAuthenticatedState();
+        }
+      } catch (_) {}
+      document.getElementById('profile-display-name').value = currentUser.displayName || '';
+      document.getElementById('profile-bio').value = currentUser.bio || '';
+      document.getElementById('profile-location').value = currentUser.location || '';
+      document.getElementById('profile-website').value = currentUser.websiteUrl || '';
+      document.getElementById('profile-email').value = currentUser.pendingEmail || currentUser.email || '';
+      const needsVerification = !!currentUser.pendingEmail;
+      document.getElementById('profile-email-hint').textContent = needsVerification ? `Pending verification: ${currentUser.pendingEmail}` : currentUser.emailVerified ? `Verified recovery email: ${currentUser.email}` : 'Used to recover your account after verification.';
+      document.getElementById('verify-email-button').classList.toggle('hidden', !needsVerification);
+      setAvatar(document.getElementById('profile-image-preview'), currentUser);
+      document.getElementById('profile-error').classList.add('hidden');
+      document.getElementById('profile-modal').classList.remove('hidden');
+      await loadNotificationPreferences();
+      await loadFollowPreferences();
+      await loadMyActivity();
+    }
+
+    async function loadMyActivity() {
+      const list = document.getElementById('my-activity-list');
+      try {
+        const response = await fetch('/api/auth/activity', { credentials: 'include' });
+        if (!response.ok) throw new Error('Unable to load activity.');
+        const data = await response.json();
+        document.getElementById('profile-post-count').textContent = data.postCount;
+        document.getElementById('profile-likes-count').textContent = data.likesReceived;
+        document.getElementById('profile-comments-count').textContent = data.commentsReceived;
+        list.innerHTML = data.posts.length ? data.posts.map(post => `
+          <div class="flex items-start justify-between gap-3 rounded-xl bg-surface-container-high/60 p-3">
+            <div class="min-w-0 flex-1"><p class="text-xs font-semibold text-on-surface line-clamp-2">${escapeHtml(post.title)}</p><p class="mt-1 text-[10px] text-on-surface-variant">${formatRelativeTime(post.createdAt)} · ${post.likes} likes · ${post.comments} comments</p><div class="mt-2 flex gap-3"><button class="text-[10px] font-semibold text-primary" onclick="openPostEditor(${post.id})">Edit</button><button class="text-[10px] font-semibold text-error" onclick="deleteOwnPost(${post.id})">Delete</button></div></div>
+            <span class="shrink-0 rounded-full px-2 py-1 text-[9px] font-bold uppercase ${post.status === 'Approved' ? 'bg-emerald-500/15 text-emerald-400' : post.status === 'Pending' ? 'bg-amber-500/15 text-amber-300' : 'bg-surface-container text-on-surface-variant'}">${escapeHtml(post.status)}</span>
+          </div>`).join('') : '<div class="rounded-xl bg-surface-container-high/50 p-4 text-xs text-on-surface-variant">You have not shared a post yet. Start a conversation from the feed.</div>';
+      } catch (error) {
+        list.innerHTML = `<div class="text-xs text-error">${escapeHtml(error.message)}</div>`;
+      }
+    }
+
+    function closeProfileModal() {
+      document.getElementById('profile-modal').classList.add('hidden');
+    }
+
+    async function saveProfile(event) {
+      event.preventDefault();
+      const button = document.getElementById('profile-save-button');
+      const error = document.getElementById('profile-error');
+      button.disabled = true;
+      error.classList.add('hidden');
+      try {
+        const response = await fetch('/api/auth/profile', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            displayName: document.getElementById('profile-display-name').value.trim(),
+            bio: document.getElementById('profile-bio').value,
+            location: document.getElementById('profile-location').value,
+            websiteUrl: document.getElementById('profile-website').value.trim(),
+            email: document.getElementById('profile-email').value.trim()
+          })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Could not update your profile.');
+        currentUser = { ...currentUser, ...data };
+        renderAuthenticatedState();
+        closeProfileModal();
+        await loadFeed();
+        if (data.pendingEmail) {
+          const verifyResponse = await fetch('/api/auth/email/verification/request', { method: 'POST', credentials: 'include' });
+          const verifyData = await verifyResponse.json();
+          showToast(verifyData.message || 'Profile updated.', verifyResponse.ok ? 'success' : 'error', 7000);
+        } else showToast('Profile updated.', 'success');
+      } catch (errorValue) {
+        error.textContent = errorValue.message || 'Network error. Please try again.';
+        error.classList.remove('hidden');
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    async function loadNotificationPreferences() {
+      try {
+        const response = await fetch('/api/notifications/preferences', { credentials: 'include' });
+        if (!response.ok) return;
+        const preferences = await response.json();
+        document.getElementById('notify-likes').checked = preferences.likesEnabled;
+        document.getElementById('notify-comments').checked = preferences.commentsEnabled;
+      } catch (_) {}
+    }
+
+    async function saveNotificationPreferences() {
+      try {
+        const response = await fetch('/api/notifications/preferences', {
+          method: 'PATCH', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+          body: JSON.stringify({ likesEnabled: document.getElementById('notify-likes').checked, commentsEnabled: document.getElementById('notify-comments').checked })
+        });
+        if (!response.ok) throw new Error('Could not save notification preferences.');
+        showToast('Notification preferences saved.', 'success');
+      } catch (error) { showToast(error.message, 'error'); }
+    }
+
+    async function changePassword() {
+      const currentPassword = prompt('Enter your current password:');
+      if (!currentPassword) return;
+      const newPassword = prompt('Enter a new password (at least 8 characters):');
+      if (!newPassword) return;
+      try {
+        const response = await fetch('/api/auth/password/change', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ currentPassword, newPassword }) });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Could not change password.');
+        showToast(data.message, 'success');
+      } catch (error) { showToast(error.message, 'error'); }
+    }
+
+    async function requestEmailVerification() {
+      try {
+        const response = await fetch('/api/auth/email/verification/request', { method: 'POST', credentials: 'include' });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Could not send verification email.');
+        showToast(data.message, 'success');
+      } catch (error) { showToast(error.message, 'error', 6000); }
+    }
+
+    function openPasswordRecovery() {
+      document.getElementById('recovery-request-form').classList.remove('hidden');
+      document.getElementById('recovery-confirm-form').classList.add('hidden');
+      document.getElementById('recovery-description').textContent = 'Enter the recovery email linked to your account.';
+      document.getElementById('recovery-message').classList.add('hidden');
+      document.getElementById('password-recovery-modal').classList.remove('hidden');
+    }
+    function closePasswordRecovery() { document.getElementById('password-recovery-modal').classList.add('hidden'); }
+
+    async function requestPasswordReset(event) {
+      event.preventDefault();
+      const message = document.getElementById('recovery-message');
+      try {
+        const response = await fetch('/api/auth/password-reset/request', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: document.getElementById('recovery-email').value.trim() }) });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Could not send a recovery link.');
+        message.textContent = data.message;
+        message.className = 'mt-3 text-xs text-primary';
+        message.classList.remove('hidden');
+      } catch (error) {
+        message.textContent = error.message;
+        message.className = 'mt-3 text-xs text-error';
+        message.classList.remove('hidden');
+      }
+    }
+
+    async function confirmPasswordReset(event) {
+      event.preventDefault();
+      const message = document.getElementById('recovery-message');
+      try {
+        const response = await fetch('/api/auth/password-reset/confirm', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: sessionStorage.getItem('password-reset-token'), newPassword: document.getElementById('recovery-new-password').value }) });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Could not reset password.');
+        sessionStorage.removeItem('password-reset-token');
+        message.textContent = data.message;
+        message.className = 'mt-3 text-xs text-primary';
+        message.classList.remove('hidden');
+        document.getElementById('recovery-confirm-form').classList.add('hidden');
+      } catch (error) {
+        message.textContent = error.message;
+        message.className = 'mt-3 text-xs text-error';
+        message.classList.remove('hidden');
+      }
+    }
+
+    async function uploadProfileImage(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const error = document.getElementById('profile-error');
+      if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size > 2 * 1024 * 1024) {
+        error.textContent = 'Choose a PNG, JPG, or WebP image no larger than 2 MB.';
+        error.classList.remove('hidden');
+        event.target.value = '';
+        return;
+      }
+
+      const localPreview = URL.createObjectURL(file);
+      document.getElementById('profile-image-preview').innerHTML = `<img src="${localPreview}" alt="Profile photo preview" class="w-full h-full object-cover" />`;
+      error.classList.add('hidden');
+      try {
+        const formData = new FormData();
+        formData.append('image', file);
+        const response = await fetch('/api/auth/profile/image', { method: 'POST', body: formData, credentials: 'include' });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Could not upload profile image.');
+        currentUser.profileImageUrl = data.profileImageUrl;
+        setAvatar(document.getElementById('profile-image-preview'), currentUser);
+        setAvatar(document.getElementById('nav-user-avatar'), currentUser);
+        setAvatar(document.getElementById('create-post-avatar'), currentUser);
+        await loadFeed();
+        showToast('Profile photo updated.', 'success');
+      } catch (errorValue) {
+        error.textContent = errorValue.message || 'Network error. Please try again.';
+        error.classList.remove('hidden');
+        setAvatar(document.getElementById('profile-image-preview'), currentUser);
+      } finally {
+        URL.revokeObjectURL(localPreview);
+        event.target.value = '';
+      }
+    }
+
+    function setNotificationBadge(count) {
+      const badge = document.getElementById('notification-badge');
+      badge.textContent = count > 99 ? '99+' : String(count);
+      badge.classList.toggle('hidden', count === 0);
+      badge.classList.toggle('flex', count > 0);
+    }
+
+    async function loadNotifications() {
+      if (!currentUser) return;
+      try {
+        const response = await fetch('/api/notifications', { credentials: 'include' });
+        if (!response.ok) return;
+        const data = await response.json();
+        setNotificationBadge(data.unreadCount || 0);
+        const list = document.getElementById('notifications-list');
+        if (!data.items?.length) {
+          list.innerHTML = '<div class="p-8 text-center"><span class="material-symbols-outlined text-3xl text-primary/50">notifications_off</span><p class="mt-2 text-xs text-on-surface-variant">You are all caught up.</p></div>';
+          return;
+        }
+
+        list.innerHTML = data.items.map(item => {
+          const actor = item.actor?.displayName || 'A community member';
+          const action = item.type === 'Like' ? 'liked your post' : 'commented on your post';
+          const detail = item.type === 'Comment' ? item.preview : item.postTitle || item.preview;
+          return `<button class="w-full text-left flex items-start gap-3 p-3.5 border-b border-surface-container-high/60 hover:bg-surface-container-high/60 transition-colors ${item.isRead ? '' : 'bg-primary/5'}" onclick="openNotification(${item.id}, ${item.postId || 'null'})">
+            ${avatarMarkup(item.actor, 'w-10 h-10')}
+            <span class="flex-1 min-w-0"><span class="block text-xs text-on-surface leading-relaxed"><b>${escapeHtml(actor)}</b> ${action}</span>
+              <span class="block mt-0.5 text-[11px] text-on-surface-variant truncate">${escapeHtml(detail || '')}</span>
+              <span class="block mt-1 text-[10px] text-on-surface-variant">${formatRelativeTime(item.createdAt)}</span></span>
+            ${item.isRead ? '' : '<span class="w-2 h-2 mt-2 rounded-full bg-primary flex-shrink-0"></span>'}
+          </button>`;
+        }).join('');
+      } catch (error) {
+        console.warn('Could not load notifications.', error);
+      }
+    }
+
+    function toggleNotifications(forceOpen) {
+      const panel = document.getElementById('notifications-panel');
+      const shouldOpen = typeof forceOpen === 'boolean' ? forceOpen : panel.classList.contains('hidden');
+      panel.classList.toggle('hidden', !shouldOpen);
+      if (shouldOpen) loadNotifications();
+    }
+
+    async function openNotification(id, postId) {
+      await fetch(`/api/notifications/${id}/read`, { method: 'PATCH', credentials: 'include' });
+      toggleNotifications(false);
+      await loadNotifications();
+      if (postId) {
+        let post = allPosts.find(item => item.id === postId);
+        if (!post) {
+          await loadFeed();
+          post = allPosts.find(item => item.id === postId);
+        }
+        if (post) openArticleReader(postId);
+      }
+    }
+
+    async function markAllNotificationsRead() {
+      await fetch('/api/notifications/read-all', { method: 'PATCH', credentials: 'include' });
+      await loadNotifications();
     }
 
     async function handleLoginSubmit(e) {
@@ -877,20 +1544,21 @@
 
       const displayName = document.getElementById('reg-displayname').value.trim();
       const username = document.getElementById('reg-username').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
       const password = document.getElementById('reg-password').value;
 
       try {
         const res = await fetch('/api/auth/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ displayName, username, password }),
+          body: JSON.stringify({ displayName, username, password, email }),
           credentials: 'include'
         });
 
         const data = await res.json();
         if (res.ok) {
           currentUser = data;
-          showToast('Account created successfully! Registered as ' + currentUser.role + '.', 'success');
+        showToast('Account created. Add and verify a recovery email in your profile to enable password resets.', 'success', 7000);
           renderAuthenticatedState();
           await loadFeed();
         } else {
@@ -913,22 +1581,111 @@
     }
 
     // 3. Feed & Posts Handling
-    async function loadFeed() {
+    async function loadFeed(append = false) {
       const container = document.getElementById('posts-container');
+      if (!append) {
+        feedPage = 1;
+        feedHasMore = false;
+        document.getElementById('feed-result-count').textContent = 'Refreshing stories...';
+      }
       try {
-        const res = await fetch('/api/feed', { credentials: 'include' });
+        const params = new URLSearchParams({ page: String(append ? feedPage + 1 : 1), pageSize: '20', followingOnly: String(followingOnly), search: document.getElementById('feed-search').value.trim(), sort: document.getElementById('feed-sort').value, tag: currentFilter });
+        const res = await fetch(`/api/feed?${params}`, { credentials: 'include' });
         if (res.status === 401 || res.status === 403) {
           renderUnauthenticatedState();
           return;
         }
-        allPosts = await res.json();
+        if (!res.ok) throw new Error('The news feed is temporarily unavailable. Please try again.');
+        const payload = await res.json();
+        const items = Array.isArray(payload) ? payload : payload.items;
+        allPosts = append ? [...allPosts, ...items.filter(item => !allPosts.some(existing => existing.id === item.id))] : items;
+        feedPage = payload.page || 1;
+        feedHasMore = !!payload.hasMore;
+        feedTotal = payload.total ?? allPosts.length;
+        document.getElementById('load-more-posts').classList.toggle('hidden', !feedHasMore);
         renderPosts();
       } catch (err) {
+        if (append && allPosts.length) {
+          showToast('Could not load more stories. Try again.', 'error');
+          return;
+        }
+        document.getElementById('feed-result-count').textContent = 'Could not refresh';
         container.innerHTML = `
-          <div class="p-8 text-center text-on-surface-variant text-sm">
-            Unable to load news feed. Please try again later.
+          <div class="bg-surface-container-low rounded-2xl p-8 text-center border border-surface-container-high">
+            <span class="material-symbols-outlined text-[36px] text-primary/70">cloud_off</span>
+            <p class="mt-2 text-sm font-semibold text-on-surface">We could not load the feed</p>
+            <p class="mt-1 text-xs text-on-surface-variant">Check your connection and try again.</p>
+            <button class="mt-4 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-on-primary" onclick="loadFeed()">Try again</button>
           </div>
         `;
+      }
+    }
+
+    function searchFeedInput() {
+      clearTimeout(feedSearchTimer);
+      feedSearchTimer = setTimeout(() => loadFeed(), 300);
+    }
+
+    async function loadMorePosts() {
+      const button = document.getElementById('load-more-posts');
+      button.disabled = true;
+      button.textContent = 'Loading more stories...';
+      await loadFeed(true);
+      button.disabled = false;
+      button.textContent = 'Load more stories';
+    }
+
+    async function toggleFollowingFeed() {
+      followingOnly = !followingOnly;
+      const button = document.getElementById('following-feed-toggle');
+      button.setAttribute('aria-pressed', String(followingOnly));
+      button.className = `inline-flex items-center justify-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition-colors ${followingOnly ? 'border-primary/40 bg-primary/15 text-primary' : 'border-surface-container-high bg-surface-container-low text-on-surface-variant hover:text-primary'}`;
+      await loadFeed();
+    }
+
+    async function togglePostBookmark(postId) {
+      const post = allPosts.find(item => item.id === postId);
+      if (!post) return;
+      try {
+        const response = await fetch(`/api/posts/${postId}/bookmark`, { method: 'POST', credentials: 'include' });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Could not save this story.');
+        post.bookmarkedByCurrentUser = data.bookmarked;
+        showToast(data.bookmarked ? 'Story saved to your reading list.' : 'Story removed from your reading list.', 'success');
+        renderPosts();
+      } catch (error) {
+        showToast(error.message || 'Network error. Please try again.', 'error');
+      }
+    }
+
+    function toggleSavedPosts() {
+      showingSavedPosts = !showingSavedPosts;
+      const button = document.getElementById('saved-posts-toggle');
+      button.setAttribute('aria-pressed', String(showingSavedPosts));
+      button.className = `inline-flex items-center justify-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition-colors ${showingSavedPosts ? 'border-primary/40 bg-primary/15 text-primary' : 'border-surface-container-high bg-surface-container-low text-on-surface-variant hover:text-primary'}`;
+      renderPosts();
+    }
+
+    async function togglePostLike(postId) {
+      const button = document.getElementById(`like-button-${postId}`);
+      if (button) button.disabled = true;
+      try {
+        const response = await fetch(`/api/posts/${postId}/like`, { method: 'POST', credentials: 'include' });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Could not update your like.');
+        const post = allPosts.find(item => item.id === postId);
+        if (post) {
+          post.likedByCurrentUser = data.liked;
+          post.likeCount = data.likeCount;
+        }
+        const count = document.getElementById(`like-count-${postId}`);
+        if (count) count.textContent = data.likeCount;
+        if (button) button.className = `flex items-center justify-center gap-1.5 py-2 rounded-lg transition-colors ${data.liked ? 'text-rose-400 bg-rose-500/10' : 'hover:bg-surface-container hover:text-rose-400'}`;
+        if (currentUser?.id !== post?.author?.id) loadNotifications();
+      } catch (error) {
+        showToast(error.message || 'Network error. Please try again.', 'error');
+      } finally {
+        if (button) button.disabled = false;
       }
     }
 
@@ -949,21 +1706,35 @@
           el.className = 'flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-surface-container-high text-on-surface-variant hover:text-on-surface font-semibold text-xs transition-all border border-surface-container-highest';
         }
       }
-      renderPosts();
+      loadFeed();
     }
 
     function renderPosts() {
       const container = document.getElementById('posts-container');
-      const filtered = currentFilter === 'All'
+      const query = document.getElementById('feed-search').value.trim().toLocaleLowerCase();
+      let filtered = currentFilter === 'All'
         ? allPosts
         : allPosts.filter(p => p.tag && p.tag.toLowerCase() === currentFilter.toLowerCase());
+      if (showingSavedPosts) filtered = filtered.filter(post => post.bookmarkedByCurrentUser);
+      if (query) filtered = filtered.filter(post => [post.sinhalaTitle, post.sinhalaSummary, post.source, post.tag, post.author?.displayName].some(value => (value || '').toLocaleLowerCase().includes(query)));
+      const sortOrder = document.getElementById('feed-sort').value;
+      filtered = [...filtered].sort((a, b) => sortOrder === 'oldest'
+        ? new Date(a.createdAt) - new Date(b.createdAt)
+        : sortOrder === 'popular'
+          ? (b.likeCount || 0) - (a.likeCount || 0) || new Date(b.createdAt) - new Date(a.createdAt)
+          : new Date(b.createdAt) - new Date(a.createdAt));
+      document.getElementById('feed-result-count').textContent = showingSavedPosts
+        ? `${filtered.length} saved ${filtered.length === 1 ? 'story' : 'stories'} loaded`
+        : `${filtered.length} ${filtered.length === 1 ? 'story' : 'stories'} shown${feedHasMore ? ` · ${feedTotal} total` : ''}`;
 
       if (filtered.length === 0) {
+        const hasSearchOrSavedFilter = query || showingSavedPosts;
         container.innerHTML = `
           <div class="bg-surface-container-low rounded-2xl p-8 text-center text-on-surface-variant border border-surface-container-high">
-            <span class="material-symbols-outlined text-[36px] text-primary/60 mb-2">newspaper</span>
-            <p class="text-sm font-semibold text-on-surface">No posts found</p>
-            <p class="text-xs mt-1">There are no posts available under this category.</p>
+            <span class="material-symbols-outlined text-[36px] text-primary/60 mb-2">${showingSavedPosts ? 'bookmark_border' : 'newspaper'}</span>
+            <p class="text-sm font-semibold text-on-surface">${showingSavedPosts ? 'Your reading list is empty' : 'No stories found'}</p>
+            <p class="text-xs mt-1">${showingSavedPosts ? 'Save stories with the bookmark button and find them here later.' : hasSearchOrSavedFilter ? 'Try a different search or category.' : 'There are no stories available in this category yet.'}</p>
+            ${hasSearchOrSavedFilter ? '<button class="mt-3 text-xs font-semibold text-primary" onclick="document.getElementById(\'feed-search\').value=\'\'; showingSavedPosts=false; renderPosts()">Clear filters</button>' : ''}
           </div>
         `;
         return;
@@ -975,11 +1746,11 @@
     function createPostCardHtml(post) {
       const isAuto = post.isAutoNews;
       const authorName = isAuto ? post.source : (post.author ? post.author.displayName : post.source);
-      const authorInitial = authorName ? authorName[0].toUpperCase() : 'T';
       const timeStr = formatRelativeTime(post.createdAt);
       const tag = post.tag || '#AI';
       const comments = post.comments || [];
       const isAdmin = currentUser && currentUser.role === 'Admin';
+      const isOwner = !!currentUser && post.author?.id === currentUser.id;
 
       let tagColor = 'bg-primary/20 text-primary border-primary/30';
       if (tag === '#Tech') tagColor = 'bg-secondary/20 text-secondary border-secondary/30';
@@ -991,12 +1762,10 @@
           <!-- Post Header -->
           <div class="flex items-center justify-between mb-3">
             <div class="flex items-center gap-3 min-w-0">
-              <div class="w-10 h-10 rounded-full ${isAuto ? 'bg-primary/20 text-primary' : 'bg-surface-container-high text-on-surface'} flex items-center justify-center font-bold text-sm ring-1 ring-white/10 flex-shrink-0">
-                ${isAuto ? '<span class="material-symbols-outlined text-[20px]">neurology</span>' : authorInitial}
-              </div>
+              ${isAuto ? '<div class="w-10 h-10 rounded-full bg-primary/15 overflow-hidden ring-1 ring-white/10 flex-shrink-0"><img src="/logos/mini-logo.png" alt="" class="w-full h-full object-cover" /></div>' : `<button type="button" class="p-0 border-0 bg-transparent rounded-full" aria-label="View ${escapeHtml(authorName)} profile" onclick="openUserProfile(${post.author?.id || 0})">${avatarMarkup(post.author || { displayName: authorName }, 'w-10 h-10')}</button>`}
               <div class="flex flex-col min-w-0">
                 <div class="flex items-center gap-1.5">
-                  <span class="font-bold text-sm text-on-surface truncate">${escapeHtml(authorName)}</span>
+                  ${isAuto ? `<span class="font-bold text-sm text-on-surface truncate">${escapeHtml(authorName)}</span>` : `<button class="p-0 border-0 bg-transparent font-bold text-sm text-on-surface truncate hover:text-primary text-left" onclick="openUserProfile(${post.author?.id || 0})">${escapeHtml(authorName)}</button>`}
                   ${isAuto ? '<span class="material-symbols-outlined text-[16px] text-primary" title="Verified AI News Feed">verified</span>' : ''}
                 </div>
                 <div class="flex items-center gap-2 text-[11px] text-on-surface-variant">
@@ -1008,11 +1777,11 @@
             </div>
 
             <!-- Admin Post Deletion Trigger -->
-            ${isAdmin ? `
-              <button class="w-8 h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:text-error hover:bg-error-container/30 transition-colors" title="Delete Post" onclick="handleDeletePost(${post.id})">
-                <span class="material-symbols-outlined text-[18px]">delete</span>
-              </button>
-            ` : ''}
+            <div class="flex items-center gap-1">
+              ${isOwner ? `<button class="w-8 h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors" title="Edit post" onclick="openPostEditor(${post.id})"><span class="material-symbols-outlined text-[18px]">edit</span></button>` : ''}
+              ${isAdmin ? `<button class="w-8 h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:text-error hover:bg-error-container/30 transition-colors" title="Delete post" onclick="handleDeletePost(${post.id})"><span class="material-symbols-outlined text-[18px]">delete</span></button>` : ''}
+              ${isOwner ? `<button class="w-8 h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:text-error hover:bg-error-container/30 transition-colors" title="Delete your post" onclick="deleteOwnPost(${post.id})"><span class="material-symbols-outlined text-[18px]">delete</span></button>` : ''}
+            </div>
           </div>
 
           <!-- Hero Image Banner in Feed Card -->
@@ -1057,17 +1826,24 @@
           </div>
 
           <!-- Action & Engagement Bar -->
-          <div class="pt-2 border-t border-surface-container-high/60 flex items-center justify-between text-xs text-on-surface-variant">
-            <div class="flex items-center gap-1">
-              <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-surface-container hover:text-primary transition-colors" onclick="toggleCommentsSection(${post.id})">
+          <div class="pt-2 border-t border-surface-container-high/60 grid grid-cols-5 text-xs text-on-surface-variant">
+              <button id="like-button-${post.id}" class="flex items-center justify-center gap-1.5 py-2 rounded-lg transition-colors ${post.likedByCurrentUser ? 'text-rose-400 bg-rose-500/10' : 'hover:bg-surface-container hover:text-rose-400'}" onclick="togglePostLike(${post.id})">
+                <span class="material-symbols-outlined text-[18px]">favorite</span>
+                <span>Like</span><span id="like-count-${post.id}" class="font-semibold">${post.likeCount || 0}</span>
+              </button>
+              <button class="flex items-center justify-center gap-1.5 py-2 rounded-lg hover:bg-surface-container hover:text-primary transition-colors" onclick="toggleCommentsSection(${post.id})">
                 <span class="material-symbols-outlined text-[18px]">chat_bubble</span>
                 <span id="comment-count-${post.id}" class="font-semibold">${comments.length}</span>
               </button>
-            </div>
-            <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-surface-container hover:text-primary transition-colors" onclick="sharePost(${post.id}, '${escapeHtml(post.sinhalaTitle)}')">
+            <button class="flex items-center justify-center gap-1.5 py-2 rounded-lg hover:bg-surface-container hover:text-primary transition-colors" onclick="sharePost(${post.id}, '${escapeHtml(post.sinhalaTitle)}')">
               <span class="material-symbols-outlined text-[18px]">share</span>
-              <span class="hidden sm:inline">Share</span>
+              <span>Share</span>
             </button>
+            <button id="bookmark-button-${post.id}" aria-label="${post.bookmarkedByCurrentUser ? 'Remove saved story' : 'Save story'}" aria-pressed="${!!post.bookmarkedByCurrentUser}" class="flex items-center justify-center gap-1.5 py-2 rounded-lg transition-colors ${post.bookmarkedByCurrentUser ? 'text-primary bg-primary/10' : 'hover:bg-surface-container hover:text-primary'}" onclick="togglePostBookmark(${post.id})">
+              <span class="material-symbols-outlined text-[18px]">${post.bookmarkedByCurrentUser ? 'bookmark' : 'bookmark_add'}</span>
+              <span>Save</span>
+            </button>
+            ${!isAuto && !isOwner ? `<button class="flex items-center justify-center gap-1.5 py-2 rounded-lg hover:bg-surface-container hover:text-error transition-colors" aria-label="Report this post" onclick="reportContent(${post.id}, null)"><span class="material-symbols-outlined text-[18px]">flag</span><span>Report</span></button>` : ''}
           </div>
 
           <!-- Comments Section (Collapsed by default) -->
@@ -1098,20 +1874,18 @@
 
     function renderCommentItemHtml(postId, comment) {
       const isAdmin = currentUser && currentUser.role === 'Admin';
+      const isOwner = currentUser && comment.user?.id === currentUser.id;
       const userDisplay = comment.user ? comment.user.displayName : 'Anonymous';
       const username = comment.user ? comment.user.username : '';
-      const userInitial = userDisplay ? userDisplay[0].toUpperCase() : 'U';
       const timeStr = formatRelativeTime(comment.createdAt);
 
       return `
         <div class="p-2.5 rounded-xl bg-surface-container flex items-start justify-between gap-2.5" id="comment-${comment.id}">
           <div class="flex items-start gap-2.5 min-w-0 flex-1">
-            <div class="w-7 h-7 rounded-full bg-surface-container-high text-primary flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5">
-              ${userInitial}
-            </div>
+            ${comment.user ? `<button type="button" class="p-0 border-0 bg-transparent rounded-full" aria-label="View ${escapeHtml(userDisplay)} profile" onclick="openUserProfile(${comment.user.id})">${avatarMarkup(comment.user, 'w-7 h-7')}</button>` : avatarMarkup({ displayName: userDisplay }, 'w-7 h-7')}
             <div class="flex flex-col min-w-0 flex-1">
               <div class="flex items-center gap-1.5 flex-wrap">
-                <span class="text-xs font-semibold text-on-surface">${escapeHtml(userDisplay)}</span>
+                ${comment.user ? `<button class="p-0 border-0 bg-transparent text-xs font-semibold text-on-surface hover:text-primary" onclick="openUserProfile(${comment.user.id})">${escapeHtml(userDisplay)}</button>` : `<span class="text-xs font-semibold text-on-surface">${escapeHtml(userDisplay)}</span>`}
                 <span class="text-[10px] text-on-surface-variant">@${escapeHtml(username)}</span>
                 <span class="text-[10px] text-on-surface-variant opacity-60">• ${timeStr}</span>
               </div>
@@ -1120,11 +1894,10 @@
               </p>
             </div>
           </div>
-          ${isAdmin ? `
-            <button class="w-6 h-6 rounded-full flex items-center justify-center text-on-surface-variant hover:text-error hover:bg-error-container/30 transition-colors flex-shrink-0" title="Delete Comment" onclick="handleDeleteComment(${postId}, ${comment.id})">
-              <span class="material-symbols-outlined text-[16px]">delete</span>
-            </button>
-          ` : ''}
+          <div class="flex items-center gap-0.5 flex-shrink-0">
+            ${isOwner ? `<button class="w-6 h-6 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors" title="Edit comment" onclick="editComment(${postId}, ${comment.id})"><span class="material-symbols-outlined text-[15px]">edit</span></button>` : ''}
+            ${isOwner || isAdmin ? `<button class="w-6 h-6 rounded-full flex items-center justify-center text-on-surface-variant hover:text-error transition-colors" title="Delete comment" onclick="handleDeleteComment(${postId}, ${comment.id})"><span class="material-symbols-outlined text-[15px]">delete</span></button>` : `<button class="w-6 h-6 rounded-full flex items-center justify-center text-on-surface-variant hover:text-error transition-colors" title="Report comment" onclick="reportContent(null, ${comment.id})"><span class="material-symbols-outlined text-[15px]">flag</span></button>`}
+          </div>
         </div>
       `;
     }
@@ -1154,7 +1927,7 @@
       titleEl.textContent = post.sinhalaTitle;
       const authorName = post.isAutoNews ? post.source : (post.author ? post.author.displayName : post.source);
       authorNameEl.textContent = authorName;
-      authorAvatarEl.textContent = authorName ? authorName[0].toUpperCase() : 'T';
+      setAvatar(authorAvatarEl, post.isAutoNews ? { displayName: authorName, profileImageUrl: '/logos/mini-logo.png' } : (post.author || { displayName: authorName }));
       dateEl.textContent = formatRelativeTime(post.createdAt) + ' • ' + new Date(post.createdAt).toLocaleDateString();
       tagBadge.textContent = post.tag || '#AI';
       summaryEl.textContent = post.sinhalaSummary;
@@ -1294,6 +2067,7 @@
 
     async function handleCreatePost(e) {
       e.preventDefault();
+      if (postImageUploading) { showToast('Please wait for the image upload to finish.', 'info'); return; }
       const btn = document.getElementById('create-post-submit-btn');
       btn.disabled = true;
 
@@ -1319,6 +2093,7 @@
           document.getElementById('post-content').value = '';
           document.getElementById('post-image-url').value = '';
           document.getElementById('post-link').value = '';
+          document.getElementById('post-image-file').value = '';
           expandPostBox(false);
         } else {
           const err = await res.json();
@@ -1329,6 +2104,90 @@
       } finally {
         btn.disabled = false;
       }
+    }
+
+    async function uploadPostImage(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024) {
+        showToast('Choose a PNG, JPG, or WebP image no larger than 5 MB.', 'error');
+        event.target.value = '';
+        return;
+      }
+      const formData = new FormData();
+      formData.append('image', file);
+      postImageUploading = true;
+      showToast('Uploading image...', 'info', 2000);
+      try {
+        const response = await fetch('/api/posts/images', { method: 'POST', body: formData, credentials: 'include' });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Image upload failed.');
+        document.getElementById('post-image-url').value = data.imageUrl;
+        showToast('Image uploaded and attached to your post.', 'success');
+      } catch (error) {
+        showToast(error.message || 'Image upload failed.', 'error');
+        event.target.value = '';
+      } finally { postImageUploading = false; }
+    }
+
+    async function openPostEditor(postId) {
+      let post = allPosts.find(item => item.id === postId);
+      if (!post || post.author?.id !== currentUser?.id) {
+        const response = await fetch(`/api/posts/${postId}/edit`, { credentials: 'include' });
+        if (!response.ok) return showToast('You can only edit your own posts.', 'error');
+        const item = await response.json();
+        post = { id: item.id, sinhalaTitle: item.title, sinhalaSummary: item.summary, sinhalaContent: item.content, tag: item.tag, imageUrl: item.imageUrl, link: item.link, author: { id: currentUser.id } };
+      }
+      document.getElementById('edit-post-form').dataset.postId = postId;
+      document.getElementById('edit-post-title').value = post.sinhalaTitle;
+      document.getElementById('edit-post-summary').value = post.sinhalaSummary;
+      document.getElementById('edit-post-content').value = post.sinhalaContent || '';
+      document.getElementById('edit-post-tag').value = post.tag || '#Community';
+      document.getElementById('edit-post-image').value = post.imageUrl || '';
+      document.getElementById('edit-post-link').value = post.link || '';
+      document.getElementById('edit-post-modal').classList.remove('hidden');
+    }
+    function closePostEditor() { document.getElementById('edit-post-modal').classList.add('hidden'); }
+
+    async function savePostEdit(event) {
+      event.preventDefault();
+      const form = document.getElementById('edit-post-form');
+      const postId = Number(form.dataset.postId);
+      const button = document.getElementById('edit-post-submit');
+      button.disabled = true;
+      try {
+        const response = await fetch(`/api/posts/${postId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ sinhalaTitle: document.getElementById('edit-post-title').value, sinhalaSummary: document.getElementById('edit-post-summary').value, sinhalaContent: document.getElementById('edit-post-content').value, tag: document.getElementById('edit-post-tag').value, imageUrl: document.getElementById('edit-post-image').value, link: document.getElementById('edit-post-link').value }) });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Could not update this post.');
+        closePostEditor();
+        allPosts = allPosts.filter(post => post.id !== postId);
+        renderPosts();
+        showToast(data.message, 'success', 6000);
+      } catch (error) { showToast(error.message, 'error'); }
+      finally { button.disabled = false; }
+    }
+
+    async function deleteOwnPost(postId) {
+      if (!confirm('Delete this post and its discussion? This cannot be undone.')) return;
+      try {
+        const response = await fetch(`/api/posts/${postId}`, { method: 'DELETE', credentials: 'include' });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Could not delete your post.');
+        allPosts = allPosts.filter(post => post.id !== postId);
+        renderPosts();
+        showToast('Your post was deleted.', 'success');
+      } catch (error) { showToast(error.message, 'error'); }
+    }
+
+    async function reportContent(postId, commentId) {
+      const reason = prompt('Why are you reporting this content?');
+      if (!reason?.trim()) return;
+      try {
+        const response = await fetch('/api/reports', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ postId, commentId, reason: reason.trim() }) });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Could not submit report.');
+        showToast('Report submitted to the moderation team.', 'success');
+      } catch (error) { showToast(error.message, 'error'); }
     }
 
     async function handleAddComment(e, postId) {
@@ -1379,7 +2238,8 @@
       if (!confirm('Are you sure you want to delete this comment?')) return;
 
       try {
-        const res = await fetch(`/api/admin/comments/${commentId}`, {
+        const isAdmin = currentUser?.role === 'Admin';
+        const res = await fetch(isAdmin ? `/api/admin/comments/${commentId}` : `/api/comments/${commentId}`, {
           method: 'DELETE',
           credentials: 'include'
         });
@@ -1406,6 +2266,23 @@
       } catch (err) {
         showToast('Network error occurred.', 'error');
       }
+    }
+
+    async function editComment(postId, commentId) {
+      const post = allPosts.find(item => item.id === postId);
+      const comment = post?.comments?.find(item => item.id === commentId);
+      if (!comment) return;
+      const content = prompt('Edit your comment:', comment.content);
+      if (!content?.trim() || content.trim() === comment.content) return;
+      try {
+        const response = await fetch(`/api/comments/${commentId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ content: content.trim() }) });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Could not update comment.');
+        comment.content = data.content;
+        renderPosts();
+        if (currentReadingPostId === postId) openArticleReader(postId);
+        showToast('Comment updated.', 'success');
+      } catch (error) { showToast(error.message, 'error'); }
     }
 
     async function handleDeletePost(postId) {
@@ -1436,7 +2313,7 @@
       if (!currentUser || currentUser.role !== 'Admin') return;
       document.getElementById('admin-modal').classList.remove('hidden');
       switchAdminTab('pending');
-      await Promise.all([loadPendingPosts(), loadAllUsers()]);
+      await Promise.all([loadPendingPosts(), loadAllUsers(), loadAdminReports(), loadAdminInsights()]);
     }
 
     function closeAdminModal() {
@@ -1444,24 +2321,53 @@
     }
 
     function switchAdminTab(tab) {
-      const pendingBtn = document.getElementById('admin-tab-pending');
-      const usersBtn = document.getElementById('admin-tab-users');
-      const pendingSec = document.getElementById('admin-pending-section');
-      const usersSec = document.getElementById('admin-users-section');
-
-      if (tab === 'pending') {
-        pendingBtn.className = 'py-2 px-3 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 bg-primary text-on-primary transition-all';
-        usersBtn.className = 'py-2 px-3 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 text-on-surface-variant hover:text-on-surface transition-all';
-        pendingSec.classList.remove('hidden');
-        usersSec.classList.add('hidden');
-        loadPendingPosts();
-      } else {
-        usersBtn.className = 'py-2 px-3 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 bg-primary text-on-primary transition-all';
-        pendingBtn.className = 'py-2 px-3 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 text-on-surface-variant hover:text-on-surface transition-all';
-        usersSec.classList.remove('hidden');
-        pendingSec.classList.add('hidden');
-        loadAllUsers();
+      const tabs = ['pending', 'users', 'reports', 'insights'];
+      for (const name of tabs) {
+        document.getElementById(`admin-tab-${name}`).className = `py-2 px-3 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 transition-all ${name === tab ? 'bg-primary text-on-primary' : 'text-on-surface-variant hover:text-on-surface'}`;
+        document.getElementById(`admin-${name}-section`).classList.toggle('hidden', name !== tab);
       }
+      if (tab === 'pending') loadPendingPosts();
+      if (tab === 'users') loadAllUsers();
+      if (tab === 'reports') loadAdminReports();
+      if (tab === 'insights') loadAdminInsights();
+    }
+
+    async function loadAdminReports() {
+      const list = document.getElementById('reports-list');
+      try {
+        const response = await fetch('/api/admin/reports', { credentials: 'include' });
+        if (!response.ok) throw new Error('Could not load reports.');
+        const reports = await response.json();
+        document.getElementById('reports-badge').textContent = reports.filter(report => report.status === 'Open').length;
+        list.innerHTML = reports.length ? reports.map(report => `<article class="rounded-xl border border-surface-container-high bg-surface-container p-3"><div class="flex items-center justify-between gap-2"><strong class="text-xs">${escapeHtml(report.reason)}</strong><span class="rounded-full px-2 py-1 text-[9px] font-bold ${report.status === 'Open' ? 'bg-amber-500/15 text-amber-300' : 'bg-emerald-500/15 text-emerald-400'}">${report.status}</span></div><p class="mt-1 text-[10px] text-on-surface-variant">Reported by @${escapeHtml(report.reporter || 'unknown')} · ${formatRelativeTime(report.createdAt)}</p><p class="mt-2 text-xs text-on-surface-variant">${escapeHtml(report.postTitle || report.commentContent || 'Content no longer available')}</p>${report.status === 'Open' ? `<div class="mt-3 flex gap-2"><button onclick="resolveReport(${report.id})" class="rounded-lg bg-primary/15 px-3 py-1.5 text-[10px] font-semibold text-primary">Keep content · resolve</button><button onclick="removeReportedContent(${report.id})" class="rounded-lg bg-error-container/50 px-3 py-1.5 text-[10px] font-semibold text-error">Remove content</button></div>` : ''}</article>`).join('') : '<div class="rounded-xl bg-surface-container p-6 text-center text-xs text-on-surface-variant">No reports have been submitted.</div>';
+      } catch (error) { list.innerHTML = `<p class="text-xs text-error">${escapeHtml(error.message)}</p>`; }
+    }
+
+    async function resolveReport(id) {
+      const response = await fetch(`/api/admin/reports/${id}/resolve`, { method: 'PATCH', credentials: 'include' });
+      if (!response.ok) return showToast('Could not resolve report.', 'error');
+      showToast('Report marked as resolved.', 'success');
+      await loadAdminReports();
+    }
+
+    async function removeReportedContent(id) {
+      if (!confirm('Remove this reported content? This cannot be undone.')) return;
+      const response = await fetch(`/api/admin/reports/${id}/content`, { method: 'DELETE', credentials: 'include' });
+      if (!response.ok) return showToast('Could not remove reported content.', 'error');
+      showToast('Reported content removed and report resolved.', 'success');
+      await loadAdminReports();
+      await loadFeed();
+    }
+
+    async function loadAdminInsights() {
+      const panel = document.getElementById('insights-panel');
+      try {
+        const response = await fetch('/api/admin/insights', { credentials: 'include' });
+        if (!response.ok) throw new Error('Could not load insights.');
+        const data = await response.json();
+        const metrics = [['Active users', data.activeUsers], ['New users · 30 days', data.newUsersLast30Days], ['Approved posts', data.totalPosts], ['Pending review', data.pendingPosts], ['Posts · 30 days', data.postsLast30Days], ['Comments', data.totalComments], ['Open reports', data.openReports]];
+        panel.innerHTML = metrics.map(([label, value]) => `<div class="rounded-xl border border-surface-container-high bg-surface-container p-4"><strong class="block text-2xl text-primary">${value}</strong><span class="mt-1 block text-[10px] text-on-surface-variant">${label}</span></div>`).join('') + `<div class="col-span-2 sm:col-span-4 rounded-xl border border-surface-container-high bg-surface-container p-4"><h3 class="text-xs font-bold">Popular topics</h3><div class="mt-2 flex flex-wrap gap-2">${data.popularTopics.map(topic => `<span class="rounded-full bg-primary/10 px-3 py-1 text-[10px] text-primary">${escapeHtml(topic.topic)} · ${topic.posts}</span>`).join('') || '<span class="text-xs text-on-surface-variant">No activity yet.</span>'}</div></div>`;
+      } catch (error) { panel.innerHTML = `<p class="col-span-4 text-xs text-error">${escapeHtml(error.message)}</p>`; }
     }
 
     async function loadPendingPosts() {

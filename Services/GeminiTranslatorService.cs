@@ -9,6 +9,13 @@ public record TranslationResult(string SinhalaTitle, string SinhalaSummary, stri
 public class GeminiTranslatorService
 {
     private static int _preferredApiKeyIndex;
+    private static readonly string[] FallbackModels =
+    [
+        "gemini-3.8-flash",
+        "gemini-3.7-flash",
+        "gemini-3.6-flash",
+        "gemini-3.5-flash-lite"
+    ];
     private readonly HttpClient _httpClient;
     private readonly ILogger<GeminiTranslatorService> _logger;
 
@@ -27,8 +34,6 @@ public class GeminiTranslatorService
 
         try
         {
-            const string endpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent";
-
             var promptText = $@"You are an expert bilingual tech journalist and translator fluent in English and Sinhala.
 Translate and summarize the following English technology/AI news into natural, modern, high-quality Sinhala:
 Original Title: {title}
@@ -60,98 +65,87 @@ Respond ONLY with a valid JSON object matching this structure:
             };
 
             var startIndex = Math.Abs(Volatile.Read(ref _preferredApiKeyIndex)) % apiKeys.Count;
-            for (var offset = 0; offset < apiKeys.Count; offset++)
+            foreach (var model in FallbackModels)
             {
-                var keyIndex = (startIndex + offset) % apiKeys.Count;
-                using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
-                request.Headers.Add("x-goog-api-key", apiKeys[keyIndex]);
-                request.Content = JsonContent.Create(requestBody);
-                using var response = await _httpClient.SendAsync(request, cancellationToken);
-                if (!response.IsSuccessStatusCode)
+                for (var offset = 0; offset < apiKeys.Count; offset++)
                 {
-                    var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
-                    if (IsQuotaExceeded(response.StatusCode, errorBody))
+                    var keyIndex = (startIndex + offset) % apiKeys.Count;
+                    using var request = new HttpRequestMessage(
+                        HttpMethod.Post,
+                        $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent");
+                    request.Headers.Add("x-goog-api-key", apiKeys[keyIndex]);
+                    request.Content = JsonContent.Create(requestBody);
+                    using var response = await _httpClient.SendAsync(request, cancellationToken);
+                    if (!response.IsSuccessStatusCode)
                     {
-                        var nextIndex = (keyIndex + 1) % apiKeys.Count;
-                        Interlocked.Exchange(ref _preferredApiKeyIndex, nextIndex);
-                        _logger.LogWarning("Gemini API key slot {KeySlot} is quota-limited; trying the next configured key.", keyIndex + 1);
+                        var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
+                        if (IsQuotaExceeded(response.StatusCode, errorBody))
+                        {
+                            var nextIndex = (keyIndex + 1) % apiKeys.Count;
+                            Interlocked.Exchange(ref _preferredApiKeyIndex, nextIndex);
+                            _logger.LogWarning("Gemini model {Model} quota-limited key slot {KeySlot}; trying another key or model.", model, keyIndex + 1);
+                            continue;
+                        }
+
+                        _logger.LogWarning(
+                            "Gemini model {Model} returned HTTP {StatusCode} for key slot {KeySlot}; trying another key or model. {ErrorSummary}",
+                            model,
+                            (int)response.StatusCode,
+                            keyIndex + 1,
+                            errorBody.Length > 300 ? errorBody[..300] : errorBody);
+                        if ((int)response.StatusCode >= 500)
+                            await Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken);
                         continue;
                     }
 
-                    _logger.LogWarning("Gemini API call failed with status {StatusCode}: {ErrorBody}", response.StatusCode, errorBody);
-                    return null;
-                }
+                    Interlocked.Exchange(ref _preferredApiKeyIndex, keyIndex);
+                    using var responseDoc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync(cancellationToken), cancellationToken: cancellationToken);
+                    var root = responseDoc.RootElement;
 
-                Interlocked.Exchange(ref _preferredApiKeyIndex, keyIndex);
-                using var responseDoc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync(cancellationToken), cancellationToken: cancellationToken);
-                var root = responseDoc.RootElement;
+                    if (!root.TryGetProperty("candidates", out var candidates) || candidates.GetArrayLength() == 0)
+                    {
+                        _logger.LogWarning("Gemini model {Model} returned no candidates.", model);
+                        break;
+                    }
 
-                if (!root.TryGetProperty("candidates", out var candidates) || candidates.GetArrayLength() == 0)
-                {
-                    _logger.LogWarning("Gemini returned no candidates in response.");
-                    return null;
-                }
+                    var firstCandidate = candidates[0];
+                    if (!firstCandidate.TryGetProperty("content", out var content) ||
+                        !content.TryGetProperty("parts", out var parts) ||
+                        parts.GetArrayLength() == 0)
+                    {
+                        _logger.LogWarning("Gemini model {Model} response missing content parts.", model);
+                        break;
+                    }
 
-                var firstCandidate = candidates[0];
-                if (!firstCandidate.TryGetProperty("content", out var content) ||
-                    !content.TryGetProperty("parts", out var parts) ||
-                    parts.GetArrayLength() == 0)
-                {
-                    _logger.LogWarning("Gemini response missing content parts.");
-                    return null;
-                }
+                    var jsonText = parts[0].GetProperty("text").GetString();
+                    if (string.IsNullOrWhiteSpace(jsonText)) break;
 
-                var jsonText = parts[0].GetProperty("text").GetString();
-                if (string.IsNullOrWhiteSpace(jsonText))
-                {
-                    return null;
-                }
+                    jsonText = jsonText.Trim();
+                    if (jsonText.StartsWith("```json", StringComparison.OrdinalIgnoreCase)) jsonText = jsonText[7..];
+                    if (jsonText.StartsWith("```", StringComparison.OrdinalIgnoreCase)) jsonText = jsonText[3..];
+                    if (jsonText.EndsWith("```", StringComparison.OrdinalIgnoreCase)) jsonText = jsonText[..^3];
+                    jsonText = jsonText.Trim();
 
-                // Clean markdown code blocks if returned
-                jsonText = jsonText.Trim();
-                if (jsonText.StartsWith("```json", StringComparison.OrdinalIgnoreCase))
-                {
-                    jsonText = jsonText.Substring(7);
-                }
-                if (jsonText.StartsWith("```", StringComparison.OrdinalIgnoreCase))
-                {
-                    jsonText = jsonText.Substring(3);
-                }
-                if (jsonText.EndsWith("```", StringComparison.OrdinalIgnoreCase))
-                {
-                    jsonText = jsonText.Substring(0, jsonText.Length - 3);
-                }
-                jsonText = jsonText.Trim();
+                    using var parsedResult = JsonDocument.Parse(jsonText);
+                    var resultRoot = parsedResult.RootElement;
 
-                using var parsedResult = JsonDocument.Parse(jsonText);
-                var resultRoot = parsedResult.RootElement;
+                    string sinhalaTitle = string.Empty;
+                    string sinhalaSummary = string.Empty;
+                    string? sinhalaContent = null;
 
-                string sinhalaTitle = string.Empty;
-                string sinhalaSummary = string.Empty;
-                string? sinhalaContent = null;
+                    if (resultRoot.TryGetProperty("sinhalaTitle", out var titleProp)) sinhalaTitle = titleProp.GetString() ?? string.Empty;
+                    if (resultRoot.TryGetProperty("sinhalaSummary", out var summaryProp)) sinhalaSummary = summaryProp.GetString() ?? string.Empty;
+                    if (resultRoot.TryGetProperty("sinhalaContent", out var contentProp)) sinhalaContent = contentProp.GetString();
 
-                if (resultRoot.TryGetProperty("sinhalaTitle", out var titleProp))
-                {
-                    sinhalaTitle = titleProp.GetString() ?? string.Empty;
-                }
-                if (resultRoot.TryGetProperty("sinhalaSummary", out var summaryProp))
-                {
-                    sinhalaSummary = summaryProp.GetString() ?? string.Empty;
-                }
-                if (resultRoot.TryGetProperty("sinhalaContent", out var contentProp))
-                {
-                    sinhalaContent = contentProp.GetString();
-                }
+                    if (!string.IsNullOrWhiteSpace(sinhalaTitle) && !string.IsNullOrWhiteSpace(sinhalaSummary))
+                        return new TranslationResult(sinhalaTitle.Trim(), sinhalaSummary.Trim(), sinhalaContent?.Trim());
 
-                if (!string.IsNullOrWhiteSpace(sinhalaTitle) && !string.IsNullOrWhiteSpace(sinhalaSummary))
-                {
-                    return new TranslationResult(sinhalaTitle.Trim(), sinhalaSummary.Trim(), sinhalaContent?.Trim());
+                    _logger.LogWarning("Gemini model {Model} result was missing expected fields.", model);
+                    break;
                 }
-
-                _logger.LogWarning("Gemini result was missing expected fields: {JsonText}", jsonText);
-                return null;
             }
 
+            _logger.LogError("Gemini translation failed across all configured models and API key slots for article: {Title}", title);
             return null;
         }
         catch (Exception ex)

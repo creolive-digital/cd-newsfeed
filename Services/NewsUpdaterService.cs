@@ -36,10 +36,17 @@ public class NewsUpdaterService : BackgroundService
     {
         _logger.LogInformation("NewsUpdaterService starting...");
 
-        await RunFeedUpdateAsync(stoppingToken);
+        try
+        {
+            await RunFeedUpdateAsync(stoppingToken);
+        }
+        catch (Exception ex) when (!stoppingToken.IsCancellationRequested)
+        {
+            _logger.LogError(ex, "Error occurred during initial news feed update.");
+        }
 
-        // Hourly loop
-        using var timer = new PeriodicTimer(TimeSpan.FromHours(1));
+        // Retry RSS updates regularly so temporary model outages do not hold news back for an hour.
+        using var timer = new PeriodicTimer(TimeSpan.FromMinutes(15));
         while (!stoppingToken.IsCancellationRequested && await timer.WaitForNextTickAsync(stoppingToken))
         {
             try
@@ -84,7 +91,8 @@ public class NewsUpdaterService : BackgroundService
 
         _logger.LogInformation("News check: Fetching latest RSS items from TechCrunch AI and The Verge...");
         using var scope = _scopeFactory.CreateScope();
-        await FetchAndTranslateLatestFeedsAsync(scope.ServiceProvider, apiKeys, maxItemsToInsert: 6, stoppingToken);
+        var insertedCount = await FetchAndTranslateLatestFeedsAsync(scope.ServiceProvider, apiKeys, maxItemsToInsert: 6, stoppingToken);
+        _logger.LogInformation("News feed update finished. Inserted {InsertedCount} translated stories.", insertedCount);
     }
 
     private async Task<int> FetchAndTranslateLatestFeedsAsync(
@@ -117,6 +125,8 @@ public class NewsUpdaterService : BackgroundService
             .ToList();
 
         int insertedCount = 0;
+        int duplicateCount = 0;
+        int translationFailureCount = 0;
 
         foreach (var candidate in sortedCandidates)
         {
@@ -133,6 +143,7 @@ public class NewsUpdaterService : BackgroundService
 
             if (alreadyExists)
             {
+                duplicateCount++;
                 continue;
             }
 
@@ -155,7 +166,9 @@ public class NewsUpdaterService : BackgroundService
                     IsAutoNews = true,
                     Status = "Approved",
                     AuthorId = null,
-                    CreatedAt = candidate.PublishDate > DateTime.MinValue ? candidate.PublishDate.UtcDateTime : DateTime.UtcNow
+                    CreatedAt = candidate.PublishDate == DateTimeOffset.MinValue
+                        ? DateTime.UtcNow
+                        : candidate.PublishDate.UtcDateTime
                 };
 
                 db.Posts.Add(newPost);
@@ -163,8 +176,14 @@ public class NewsUpdaterService : BackgroundService
                 insertedCount++;
                 _logger.LogInformation("Inserted translated auto-news post: {Id} - {Title}", newPost.Id, newPost.SinhalaTitle);
             }
+            else
+            {
+                translationFailureCount++;
+            }
         }
 
+        _logger.LogInformation("News scan found {CandidateCount} RSS stories; {DuplicateCount} were already in the database and {TranslationFailureCount} could not be translated.",
+            sortedCandidates.Count, duplicateCount, translationFailureCount);
         return insertedCount;
     }
 
@@ -193,7 +212,7 @@ public class NewsUpdaterService : BackgroundService
             return list;
         }
 
-        foreach (var item in feed.Items.Take(6))
+        foreach (var item in feed.Items.Take(20))
         {
             var title = item.Title?.Text ?? string.Empty;
             var rawSummary = item.Summary?.Text ?? string.Empty;

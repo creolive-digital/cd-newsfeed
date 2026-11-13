@@ -67,5 +67,8 @@ jobs:
             sudo sed -i '/^ASPNETCORE_URLS=/d' /etc/sinhala-news/sinhala-news.env
             printf 'ASPNETCORE_URLS=%s\n' "$ASPNETCORE_URLS" | sudo tee -a /etc/sinhala-news/sinhala-news.env >/dev/null
             sudo chmod 600 /etc/sinhala-news/sinhala-news.env
+            sudo install -d -o sinhala-news -g sinhala-news -m 750 /var/www/sinhala-news/wwwroot/uploads/profiles
+            sudo install -d -o sinhala-news -g sinhala-news -m 750 /var/www/sinhala-news/wwwroot/uploads/posts
+            sudo chown -R sinhala-news:sinhala-news /var/www/sinhala-news/wwwroot/uploads
             sudo systemctl restart sinhala-news.service
             sudo systemctl is-active --quiet sinhala-news.service

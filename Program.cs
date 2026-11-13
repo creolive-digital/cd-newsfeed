@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http.Features;
 using cd_newsfeed.Data;
 using cd_newsfeed.Models;
 using cd_newsfeed.Services;
@@ -41,6 +42,7 @@ builder.Services.AddHttpClient<GeminiTranslatorService>(client =>
 {
     client.Timeout = TimeSpan.FromSeconds(60);
 });
+builder.Services.Configure<FormOptions>(options => options.MultipartBodyLengthLimit = 6 * 1024 * 1024);
 builder.Services.AddHostedService<NewsUpdaterService>();
 
 // 3. Password Hasher
@@ -74,6 +76,7 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
 });
+builder.Services.AddSignalR();
 
 // 5. CORS Configuration (supporting frontend with credentials)
 builder.Services.AddCors(options =>
@@ -102,6 +105,78 @@ await using (var scope = app.Services.CreateAsyncScope())
                 ALTER TABLE [Posts] ADD [ImageUrl] nvarchar(1000) NULL;
             IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Posts') AND name = 'SinhalaContent')
                 ALTER TABLE [Posts] ADD [SinhalaContent] nvarchar(max) NULL;
+            IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Users') AND name = 'ProfileImageUrl')
+                ALTER TABLE [Users] ADD [ProfileImageUrl] nvarchar(1000) NULL;
+            IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Users') AND name = 'Bio')
+                ALTER TABLE [Users] ADD [Bio] nvarchar(500) NULL;
+            IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Users') AND name = 'Location')
+                ALTER TABLE [Users] ADD [Location] nvarchar(100) NULL;
+            IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Users') AND name = 'WebsiteUrl')
+                ALTER TABLE [Users] ADD [WebsiteUrl] nvarchar(300) NULL;
+            IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Users') AND name = 'Email')
+                ALTER TABLE [Users] ADD [Email] nvarchar(254) NULL;
+            IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Users') AND name = 'PasswordResetTokenHash')
+                ALTER TABLE [Users] ADD [PasswordResetTokenHash] nvarchar(128) NULL;
+            IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Users') AND name = 'PasswordResetExpiresAt')
+                ALTER TABLE [Users] ADD [PasswordResetExpiresAt] datetime2 NULL;
+            IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Users') AND name = 'EmailVerifiedAt')
+                ALTER TABLE [Users] ADD [EmailVerifiedAt] datetime2 NULL;
+            IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Users') AND name = 'PendingEmail')
+                ALTER TABLE [Users] ADD [PendingEmail] nvarchar(254) NULL;
+            IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Users') AND name = 'EmailVerificationTokenHash')
+                ALTER TABLE [Users] ADD [EmailVerificationTokenHash] nvarchar(128) NULL;
+            IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Users') AND name = 'EmailVerificationExpiresAt')
+                ALTER TABLE [Users] ADD [EmailVerificationExpiresAt] datetime2 NULL;
+            IF OBJECT_ID('Notifications', 'U') IS NULL
+            BEGIN
+                CREATE TABLE [Notifications] (
+                    [Id] int IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                    [RecipientUserId] int NOT NULL,
+                    [ActorUserId] int NOT NULL,
+                    [PostId] int NULL,
+                    [Type] nvarchar(30) NOT NULL,
+                    [Preview] nvarchar(300) NULL,
+                    [IsRead] bit NOT NULL CONSTRAINT [DF_Notifications_IsRead] DEFAULT 0,
+                    [CreatedAt] datetime2 NOT NULL CONSTRAINT [DF_Notifications_CreatedAt] DEFAULT GETUTCDATE()
+                );
+                CREATE INDEX [IX_Notifications_RecipientUserId_IsRead_CreatedAt] ON [Notifications] ([RecipientUserId], [IsRead], [CreatedAt]);
+            END;
+            IF OBJECT_ID('PostLikes', 'U') IS NULL
+            BEGIN
+                CREATE TABLE [PostLikes] (
+                    [Id] int IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                    [PostId] int NOT NULL,
+                    [UserId] int NOT NULL,
+                    [CreatedAt] datetime2 NOT NULL CONSTRAINT [DF_PostLikes_CreatedAt] DEFAULT GETUTCDATE(),
+                    CONSTRAINT [FK_PostLikes_Posts_PostId] FOREIGN KEY ([PostId]) REFERENCES [Posts]([Id]) ON DELETE CASCADE,
+                    CONSTRAINT [FK_PostLikes_Users_UserId] FOREIGN KEY ([UserId]) REFERENCES [Users]([Id])
+                );
+                CREATE UNIQUE INDEX [IX_PostLikes_PostId_UserId] ON [PostLikes] ([PostId], [UserId]);
+            END;
+            IF OBJECT_ID('PostBookmarks', 'U') IS NULL
+            BEGIN
+                CREATE TABLE [PostBookmarks] (
+                    [Id] int IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                    [PostId] int NOT NULL,
+                    [UserId] int NOT NULL,
+                    [CreatedAt] datetime2 NOT NULL CONSTRAINT [DF_PostBookmarks_CreatedAt] DEFAULT GETUTCDATE(),
+                    CONSTRAINT [FK_PostBookmarks_Posts_PostId] FOREIGN KEY ([PostId]) REFERENCES [Posts]([Id]) ON DELETE CASCADE,
+                    CONSTRAINT [FK_PostBookmarks_Users_UserId] FOREIGN KEY ([UserId]) REFERENCES [Users]([Id])
+                );
+                CREATE UNIQUE INDEX [IX_PostBookmarks_UserId_PostId] ON [PostBookmarks] ([UserId], [PostId]);
+            END;
+            IF OBJECT_ID('PostReports', 'U') IS NULL
+            BEGIN
+                CREATE TABLE [PostReports] ([Id] int IDENTITY(1,1) NOT NULL PRIMARY KEY, [ReporterUserId] int NOT NULL, [PostId] int NULL, [CommentId] int NULL, [Reason] nvarchar(500) NOT NULL, [Status] nvarchar(20) NOT NULL CONSTRAINT [DF_PostReports_Status] DEFAULT 'Open', [CreatedAt] datetime2 NOT NULL CONSTRAINT [DF_PostReports_CreatedAt] DEFAULT GETUTCDATE(), [ResolvedAt] datetime2 NULL);
+                CREATE INDEX [IX_PostReports_Status_CreatedAt] ON [PostReports] ([Status], [CreatedAt]);
+            END;
+            IF OBJECT_ID('UserFollows', 'U') IS NULL
+            BEGIN
+                CREATE TABLE [UserFollows] ([Id] int IDENTITY(1,1) NOT NULL PRIMARY KEY, [FollowerUserId] int NOT NULL, [FollowedUserId] int NULL, [Topic] nvarchar(50) NULL, [CreatedAt] datetime2 NOT NULL CONSTRAINT [DF_UserFollows_CreatedAt] DEFAULT GETUTCDATE());
+                CREATE UNIQUE INDEX [IX_UserFollows_FollowerUserId_FollowedUserId_Topic] ON [UserFollows] ([FollowerUserId], [FollowedUserId], [Topic]);
+            END;
+            IF OBJECT_ID('NotificationPreferences', 'U') IS NULL
+                CREATE TABLE [NotificationPreferences] ([UserId] int NOT NULL PRIMARY KEY, [LikesEnabled] bit NOT NULL CONSTRAINT [DF_NotificationPreferences_LikesEnabled] DEFAULT 1, [CommentsEnabled] bit NOT NULL CONSTRAINT [DF_NotificationPreferences_CommentsEnabled] DEFAULT 1, [UpdatedAt] datetime2 NOT NULL CONSTRAINT [DF_NotificationPreferences_UpdatedAt] DEFAULT GETUTCDATE());
         ");
     }
 
@@ -140,6 +215,7 @@ app.UseAuthorization();
 // Keep administrator sign-in off the public homepage; serve it only at /admin.
 app.MapGet("/admin", (IWebHostEnvironment environment) =>
     Results.File(Path.Combine(environment.WebRootPath, "admin", "index.html"), "text/html"));
+app.MapHub<FeedHub>("/hubs/feed").RequireAuthorization();
 
 // ==========================================
 // Authentication & User Endpoints
@@ -159,6 +235,8 @@ app.MapPost("/api/auth/register", async (RegisterRequest req, AppDbContext db, I
     {
         return Results.BadRequest(new { message = "Display name must be 100 characters or fewer, username 50 characters or fewer, and password at least 8 characters." });
     }
+    if (!string.IsNullOrWhiteSpace(req.Email) && !System.Net.Mail.MailAddress.TryCreate(req.Email.Trim(), out _))
+        return Results.BadRequest(new { message = "Enter a valid email address." });
 
     var cleanUsername = req.Username.Trim();
     var usernameLower = cleanUsername.ToLower();
@@ -181,6 +259,7 @@ app.MapPost("/api/auth/register", async (RegisterRequest req, AppDbContext db, I
     {
         DisplayName = req.DisplayName.Trim(),
         Username = cleanUsername,
+        PendingEmail = string.IsNullOrWhiteSpace(req.Email) ? null : req.Email.Trim().ToLowerInvariant(),
         Role = "User",
         IsActive = true,
         CreatedAt = DateTime.UtcNow
@@ -210,6 +289,13 @@ app.MapPost("/api/auth/register", async (RegisterRequest req, AppDbContext db, I
         id = user.Id,
         displayName = user.DisplayName,
         username = user.Username,
+        email = user.Email,
+        pendingEmail = user.PendingEmail,
+        emailVerified = user.EmailVerifiedAt != null,
+        profileImageUrl = user.ProfileImageUrl,
+        bio = user.Bio,
+        location = user.Location,
+        websiteUrl = user.WebsiteUrl,
         role = user.Role
     });
 });
@@ -280,6 +366,10 @@ app.MapPost("/api/admin/auth/login", async (LoginRequest req, AppDbContext db, I
         id = adminUser.Id,
         displayName = adminUser.DisplayName,
         username = adminUser.Username,
+        profileImageUrl = adminUser.ProfileImageUrl,
+        bio = adminUser.Bio,
+        location = adminUser.Location,
+        websiteUrl = adminUser.WebsiteUrl,
         role = adminUser.Role
     });
 });
@@ -346,8 +436,81 @@ app.MapPost("/api/auth/login", async (LoginRequest req, AppDbContext db, IPasswo
         id = user.Id,
         displayName = user.DisplayName,
         username = user.Username,
+        profileImageUrl = user.ProfileImageUrl,
+        bio = user.Bio,
+        location = user.Location,
+        websiteUrl = user.WebsiteUrl,
         role = user.Role
     });
+});
+
+// Password recovery uses short-lived, single-use tokens delivered through configured SMTP.
+app.MapPost("/api/auth/password-reset/request", async (PasswordResetRequest req, AppDbContext db, IConfiguration configuration, HttpContext context) =>
+{
+    var smtpHost = configuration["Smtp:Host"];
+    var sender = configuration["Smtp:From"];
+    if (string.IsNullOrWhiteSpace(smtpHost) || string.IsNullOrWhiteSpace(sender))
+        return Results.Json(new { message = "Password recovery is not configured yet. Please contact the administrator." }, statusCode: StatusCodes.Status503ServiceUnavailable);
+
+    if (!string.IsNullOrWhiteSpace(req.Email))
+    {
+        var normalizedEmail = req.Email.Trim().ToLowerInvariant();
+        var account = await db.Users.FirstOrDefaultAsync(u => u.Email == normalizedEmail && u.EmailVerifiedAt != null && u.Role != "Admin" && u.IsActive);
+        if (account != null)
+        {
+            var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+            account.PasswordResetTokenHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(token)));
+            account.PasswordResetExpiresAt = DateTime.UtcNow.AddMinutes(30);
+            await db.SaveChangesAsync();
+
+            var publicBaseUrl = configuration["PublicBaseUrl"]?.TrimEnd('/') ?? $"{context.Request.Scheme}://{context.Request.Host}";
+            var resetUrl = $"{publicBaseUrl}/?resetToken={Uri.EscapeDataString(token)}";
+            using var message = new System.Net.Mail.MailMessage(sender, account.Email!, "Reset your TechPulse password", $"Use this link within 30 minutes to reset your password:\n\n{resetUrl}\n\nIf you did not request this, ignore this email.");
+            using var client = new System.Net.Mail.SmtpClient(smtpHost, int.TryParse(configuration["Smtp:Port"], out var port) ? port : 587)
+            {
+                EnableSsl = !string.Equals(configuration["Smtp:EnableSsl"], "false", StringComparison.OrdinalIgnoreCase),
+                Credentials = string.IsNullOrWhiteSpace(configuration["Smtp:Username"]) ? null : new System.Net.NetworkCredential(configuration["Smtp:Username"], configuration["Smtp:Password"])
+            };
+            try { await client.SendMailAsync(message, context.RequestAborted); }
+            catch (Exception ex) when (ex is System.Net.Mail.SmtpException or InvalidOperationException)
+            {
+                account.PasswordResetTokenHash = null;
+                account.PasswordResetExpiresAt = null;
+                await db.SaveChangesAsync();
+                return Results.Json(new { message = "We could not send the recovery email right now. Please try again later." }, statusCode: StatusCodes.Status503ServiceUnavailable);
+            }
+        }
+    }
+    return Results.Ok(new { message = "If an active account uses that email, a recovery link will arrive shortly." });
+});
+
+app.MapPost("/api/auth/password-reset/confirm", async (PasswordResetConfirmRequest req, AppDbContext db, IPasswordHasher<User> passwordHasher) =>
+{
+    if (string.IsNullOrWhiteSpace(req.Token) || string.IsNullOrWhiteSpace(req.NewPassword) || req.NewPassword.Length < 8)
+        return Results.BadRequest(new { message = "Enter a valid recovery link and a password of at least 8 characters." });
+    var tokenHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(req.Token)));
+    var account = await db.Users.FirstOrDefaultAsync(u => u.PasswordResetTokenHash == tokenHash && u.PasswordResetExpiresAt > DateTime.UtcNow && u.IsActive && u.Role != "Admin");
+    if (account == null) return Results.BadRequest(new { message = "This recovery link is invalid or expired. Request a new one." });
+    account.PasswordHash = passwordHasher.HashPassword(account, req.NewPassword);
+    account.PasswordResetTokenHash = null;
+    account.PasswordResetExpiresAt = null;
+    await db.SaveChangesAsync();
+    return Results.Ok(new { message = "Your password has been reset. You can now sign in." });
+});
+
+app.MapPost("/api/auth/password/change", async (ChangePasswordRequest request, HttpContext httpContext, AppDbContext db, IPasswordHasher<User> passwordHasher) =>
+{
+    var user = await GetAuthenticatedActiveUserAsync(httpContext, db);
+    if (user == null) return Results.Unauthorized();
+    if (string.IsNullOrWhiteSpace(request.CurrentPassword) || string.IsNullOrWhiteSpace(request.NewPassword) || request.NewPassword.Length < 8)
+        return Results.BadRequest(new { message = "Enter your current password and a new password of at least 8 characters." });
+    if (passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.CurrentPassword) == PasswordVerificationResult.Failed)
+        return Results.BadRequest(new { message = "Your current password is incorrect." });
+    user.PasswordHash = passwordHasher.HashPassword(user, request.NewPassword);
+    user.PasswordResetTokenHash = null;
+    user.PasswordResetExpiresAt = null;
+    await db.SaveChangesAsync();
+    return Results.Ok(new { message = "Your password has been changed." });
 });
 
 // POST /api/auth/logout
@@ -383,12 +546,355 @@ app.MapGet("/api/auth/me", async (HttpContext httpContext, AppDbContext db) =>
         id = user.Id,
         displayName = user.DisplayName,
         username = user.Username,
+        email = user.Email,
+        pendingEmail = user.PendingEmail,
+        emailVerified = user.EmailVerifiedAt != null,
+        profileImageUrl = user.ProfileImageUrl,
+        bio = user.Bio,
+        location = user.Location,
+        websiteUrl = user.WebsiteUrl,
         role = user.Role
     });
 });
 
+// PATCH /api/auth/profile: Update the signed-in user's public profile details.
+app.MapPatch("/api/auth/profile", async (UpdateProfileRequest req, HttpContext httpContext, AppDbContext db) =>
+{
+    var user = await GetAuthenticatedActiveUserAsync(httpContext, db);
+    if (user == null) return Results.Unauthorized();
+
+    var displayName = req.DisplayName?.Trim();
+    var bio = req.Bio?.Trim();
+    var location = req.Location?.Trim();
+    var websiteUrl = req.WebsiteUrl?.Trim();
+    var email = req.Email?.Trim().ToLowerInvariant();
+    if (string.IsNullOrWhiteSpace(displayName) || displayName.Length > 100)
+        return Results.BadRequest(new { message = "Display name is required and must be 100 characters or fewer." });
+    if (bio?.Length > 500 || location?.Length > 100 || websiteUrl?.Length > 300)
+        return Results.BadRequest(new { message = "Bio, location, or website exceeds the allowed length." });
+    if (!string.IsNullOrWhiteSpace(email) && !System.Net.Mail.MailAddress.TryCreate(email, out _))
+        return Results.BadRequest(new { message = "Enter a valid email address." });
+    if (!string.IsNullOrWhiteSpace(email) && await db.Users.AnyAsync(u => u.Id != user.Id && (u.Email == email || u.PendingEmail == email)))
+        return Results.Conflict(new { message = "That email address is already linked to another account." });
+    if (!string.IsNullOrWhiteSpace(websiteUrl) &&
+        (!Uri.TryCreate(websiteUrl, UriKind.Absolute, out var parsedWebsite) ||
+         (parsedWebsite.Scheme != Uri.UriSchemeHttp && parsedWebsite.Scheme != Uri.UriSchemeHttps)))
+        return Results.BadRequest(new { message = "Website must be a valid HTTP or HTTPS URL." });
+
+    user.DisplayName = displayName;
+    user.Bio = string.IsNullOrWhiteSpace(bio) ? null : bio;
+    user.Location = string.IsNullOrWhiteSpace(location) ? null : location;
+    user.WebsiteUrl = string.IsNullOrWhiteSpace(websiteUrl) ? null : websiteUrl;
+    var changedRecoveryEmail = !string.Equals(user.Email, email, StringComparison.OrdinalIgnoreCase) || user.PendingEmail != null;
+    if (changedRecoveryEmail)
+    {
+        user.PendingEmail = string.IsNullOrWhiteSpace(email) ? null : email;
+        user.EmailVerificationTokenHash = null;
+        user.EmailVerificationExpiresAt = null;
+    }
+    await db.SaveChangesAsync();
+
+    return Results.Ok(new
+    {
+        id = user.Id,
+        displayName = user.DisplayName,
+        username = user.Username,
+        email = user.Email,
+        pendingEmail = user.PendingEmail,
+        emailVerified = user.EmailVerifiedAt != null,
+        profileImageUrl = user.ProfileImageUrl,
+        bio = user.Bio,
+        location = user.Location,
+        websiteUrl = user.WebsiteUrl,
+        role = user.Role
+    });
+});
+
+app.MapPost("/api/auth/email/verification/request", async (HttpContext httpContext, AppDbContext db, IConfiguration configuration) =>
+{
+    var user = await GetAuthenticatedActiveUserAsync(httpContext, db);
+    if (user == null) return Results.Unauthorized();
+    if (string.IsNullOrWhiteSpace(user.PendingEmail)) return Results.BadRequest(new { message = "Add a recovery email to your profile first." });
+    var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+    user.EmailVerificationTokenHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(token)));
+    user.EmailVerificationExpiresAt = DateTime.UtcNow.AddHours(24);
+    await db.SaveChangesAsync();
+    var publicBaseUrl = configuration["PublicBaseUrl"]?.TrimEnd('/') ?? $"{httpContext.Request.Scheme}://{httpContext.Request.Host}";
+    var link = $"{publicBaseUrl}/?verifyEmailToken={Uri.EscapeDataString(token)}";
+    var sent = await SendConfiguredEmailAsync(configuration, user.PendingEmail, "Verify your TechPulse recovery email", $"Verify your recovery email within 24 hours:\n\n{link}\n\nIf you did not request this, ignore this email.", httpContext.RequestAborted);
+    if (!sent) return Results.Json(new { message = "Email delivery is not configured. Ask the administrator to configure SMTP." }, statusCode: StatusCodes.Status503ServiceUnavailable);
+    return Results.Ok(new { message = "Verification email sent. Check your inbox." });
+});
+
+app.MapPost("/api/auth/email/verification/confirm", async (PasswordResetConfirmRequest request, AppDbContext db) =>
+{
+    if (string.IsNullOrWhiteSpace(request.Token)) return Results.BadRequest(new { message = "Verification link is invalid." });
+    var tokenHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(request.Token)));
+    var user = await db.Users.FirstOrDefaultAsync(u => u.EmailVerificationTokenHash == tokenHash && u.EmailVerificationExpiresAt > DateTime.UtcNow && u.PendingEmail != null && u.IsActive);
+    if (user == null) return Results.BadRequest(new { message = "This verification link is invalid or expired." });
+    if (await db.Users.AnyAsync(u => u.Id != user.Id && u.Email == user.PendingEmail)) return Results.Conflict(new { message = "That email address is already in use." });
+    user.Email = user.PendingEmail;
+    user.EmailVerifiedAt = DateTime.UtcNow;
+    user.PendingEmail = null;
+    user.EmailVerificationTokenHash = null;
+    user.EmailVerificationExpiresAt = null;
+    await db.SaveChangesAsync();
+    return Results.Ok(new { message = "Recovery email verified. You can use it to reset your password." });
+});
+
+// POST /api/auth/profile/image: Upload a small PNG, JPEG, or WebP avatar.
+app.MapPost("/api/auth/profile/image", async (HttpContext httpContext, AppDbContext db, IWebHostEnvironment environment) =>
+{
+    var user = await GetAuthenticatedActiveUserAsync(httpContext, db);
+    if (user == null) return Results.Unauthorized();
+    if (!httpContext.Request.HasFormContentType)
+        return Results.BadRequest(new { message = "Upload an image using multipart form data." });
+
+    var form = await httpContext.Request.ReadFormAsync();
+    var file = form.Files.GetFile("image");
+    if (file == null || file.Length == 0)
+        return Results.BadRequest(new { message = "Select a profile image to upload." });
+    if (file.Length > 2 * 1024 * 1024)
+        return Results.BadRequest(new { message = "Profile images must be 2 MB or smaller." });
+
+    var imageBytes = new byte[(int)file.Length];
+    await using (var stream = file.OpenReadStream())
+    {
+        await stream.ReadExactlyAsync(imageBytes);
+    }
+
+    var extension = DetectImageExtension(imageBytes);
+    if (extension == null)
+        return Results.BadRequest(new { message = "Use a valid PNG, JPEG, or WebP image." });
+
+    var profileDirectory = Path.Combine(environment.WebRootPath, "uploads", "profiles");
+    Directory.CreateDirectory(profileDirectory);
+    var fileName = $"{user.Id}_{Guid.NewGuid():N}{extension}";
+    await File.WriteAllBytesAsync(Path.Combine(profileDirectory, fileName), imageBytes);
+
+    var oldImageUrl = user.ProfileImageUrl;
+    user.ProfileImageUrl = $"/uploads/profiles/{fileName}";
+    await db.SaveChangesAsync();
+
+    if (oldImageUrl?.StartsWith("/uploads/profiles/", StringComparison.Ordinal) == true)
+    {
+        var oldFileName = Path.GetFileName(oldImageUrl);
+        var oldImagePath = Path.Combine(profileDirectory, oldFileName);
+        if (!string.Equals(oldFileName, fileName, StringComparison.Ordinal) && File.Exists(oldImagePath))
+            File.Delete(oldImagePath);
+    }
+
+    return Results.Ok(new { profileImageUrl = user.ProfileImageUrl });
+});
+
+// GET /api/notifications: Recent activity for the current user.
+app.MapGet("/api/notifications/preferences", async (HttpContext httpContext, AppDbContext db) =>
+{
+    var user = await GetAuthenticatedActiveUserAsync(httpContext, db);
+    if (user == null) return Results.Unauthorized();
+    var preferences = await db.NotificationPreferences.FindAsync(user.Id);
+    return Results.Ok(new { likesEnabled = preferences?.LikesEnabled ?? true, commentsEnabled = preferences?.CommentsEnabled ?? true });
+});
+
+app.MapPatch("/api/notifications/preferences", async (UpdateNotificationPreferencesRequest request, HttpContext httpContext, AppDbContext db) =>
+{
+    var user = await GetAuthenticatedActiveUserAsync(httpContext, db);
+    if (user == null) return Results.Unauthorized();
+    var preferences = await db.NotificationPreferences.FindAsync(user.Id);
+    if (preferences == null)
+    {
+        preferences = new NotificationPreference { UserId = user.Id };
+        db.NotificationPreferences.Add(preferences);
+    }
+    preferences.LikesEnabled = request.LikesEnabled;
+    preferences.CommentsEnabled = request.CommentsEnabled;
+    preferences.UpdatedAt = DateTime.UtcNow;
+    await db.SaveChangesAsync();
+    return Results.Ok(new { likesEnabled = preferences.LikesEnabled, commentsEnabled = preferences.CommentsEnabled });
+});
+
+app.MapGet("/api/notifications", async (HttpContext httpContext, AppDbContext db) =>
+{
+    var user = await GetAuthenticatedActiveUserAsync(httpContext, db);
+    if (user == null) return Results.Unauthorized();
+
+    var items = await (
+        from notification in db.Notifications.AsNoTracking()
+        where notification.RecipientUserId == user.Id
+        join actor in db.Users.AsNoTracking() on notification.ActorUserId equals actor.Id
+        join postItem in db.Posts.AsNoTracking() on notification.PostId equals (int?)postItem.Id into postJoin
+        from post in postJoin.DefaultIfEmpty()
+        orderby notification.CreatedAt descending
+        select new
+        {
+            id = notification.Id,
+            type = notification.Type,
+            preview = notification.Preview,
+            isRead = notification.IsRead,
+            createdAt = notification.CreatedAt,
+            actor = new
+            {
+                id = actor.Id,
+                displayName = actor.DisplayName,
+                username = actor.Username,
+                profileImageUrl = actor.ProfileImageUrl
+            },
+            postId = notification.PostId,
+            postTitle = post == null ? null : post.SinhalaTitle
+        })
+        .Take(30)
+        .ToListAsync();
+    var unreadCount = await db.Notifications.CountAsync(n => n.RecipientUserId == user.Id && !n.IsRead);
+    return Results.Ok(new { unreadCount, items });
+});
+
+app.MapGet("/api/follows", async (HttpContext httpContext, AppDbContext db) =>
+{
+    var user = await GetAuthenticatedActiveUserAsync(httpContext, db);
+    if (user == null) return Results.Unauthorized();
+    var follows = await db.UserFollows.AsNoTracking().Where(f => f.FollowerUserId == user.Id)
+        .Select(f => new { id = f.Id, userId = f.FollowedUserId, topic = f.Topic }).ToListAsync();
+    return Results.Ok(follows);
+});
+
+app.MapPost("/api/follows/users/{id:int}", async (int id, HttpContext httpContext, AppDbContext db) =>
+{
+    var user = await GetAuthenticatedActiveUserAsync(httpContext, db);
+    if (user == null) return Results.Unauthorized();
+    if (id == user.Id) return Results.BadRequest(new { message = "You cannot follow your own account." });
+    if (!await db.Users.AnyAsync(u => u.Id == id && u.IsActive)) return Results.NotFound();
+    var existing = await db.UserFollows.FirstOrDefaultAsync(f => f.FollowerUserId == user.Id && f.FollowedUserId == id);
+    var followed = existing == null;
+    if (existing == null) db.UserFollows.Add(new UserFollow { FollowerUserId = user.Id, FollowedUserId = id, CreatedAt = DateTime.UtcNow });
+    else db.UserFollows.Remove(existing);
+    await db.SaveChangesAsync();
+    return Results.Ok(new { followed });
+});
+
+app.MapPost("/api/follows/topics/{tag}", async (string tag, HttpContext httpContext, AppDbContext db) =>
+{
+    var user = await GetAuthenticatedActiveUserAsync(httpContext, db);
+    if (user == null) return Results.Unauthorized();
+    var topic = NormalizeTag(tag);
+    if (topic == "#Community" && !string.Equals(tag.TrimStart('#'), "Community", StringComparison.OrdinalIgnoreCase))
+        return Results.BadRequest(new { message = "Choose AI, Tech, or Community." });
+    var existing = await db.UserFollows.FirstOrDefaultAsync(f => f.FollowerUserId == user.Id && f.FollowedUserId == null && f.Topic == topic);
+    var followed = existing == null;
+    if (existing == null) db.UserFollows.Add(new UserFollow { FollowerUserId = user.Id, Topic = topic, CreatedAt = DateTime.UtcNow });
+    else db.UserFollows.Remove(existing);
+    await db.SaveChangesAsync();
+    return Results.Ok(new { followed, topic });
+});
+
+// GET /api/auth/activity: The signed-in user's post history and engagement totals.
+app.MapGet("/api/auth/activity", async (HttpContext httpContext, AppDbContext db) =>
+{
+    var user = await GetAuthenticatedActiveUserAsync(httpContext, db);
+    if (user == null) return Results.Unauthorized();
+
+    var posts = await db.Posts.AsNoTracking()
+        .Where(p => p.AuthorId == user.Id)
+        .OrderByDescending(p => p.CreatedAt)
+        .Select(p => new
+        {
+            id = p.Id,
+            title = p.SinhalaTitle,
+            summary = p.SinhalaSummary,
+            content = p.SinhalaContent,
+            imageUrl = p.ImageUrl,
+            link = p.Link,
+            tag = p.Tag,
+            status = p.Status,
+            createdAt = p.CreatedAt,
+            likes = db.PostLikes.Count(l => l.PostId == p.Id),
+            comments = p.Comments.Count
+        })
+        .Take(10)
+        .ToListAsync();
+    var postCount = await db.Posts.CountAsync(p => p.AuthorId == user.Id);
+    var likesReceived = await db.PostLikes.CountAsync(l => l.Post.AuthorId == user.Id);
+    var commentsReceived = await db.Comments.CountAsync(c => c.Post.AuthorId == user.Id);
+
+    return Results.Ok(new { postCount, likesReceived, commentsReceived, posts });
+});
+
+app.MapGet("/api/posts/{id:int}/edit", async (int id, HttpContext httpContext, AppDbContext db) =>
+{
+    var user = await GetAuthenticatedActiveUserAsync(httpContext, db);
+    if (user == null) return Results.Unauthorized();
+    var post = await db.Posts.AsNoTracking().Where(p => p.Id == id && p.AuthorId == user.Id && !p.IsAutoNews)
+        .Select(p => new { id = p.Id, title = p.SinhalaTitle, summary = p.SinhalaSummary, content = p.SinhalaContent, tag = p.Tag, imageUrl = p.ImageUrl, link = p.Link, status = p.Status })
+        .FirstOrDefaultAsync();
+    return post == null ? Results.NotFound() : Results.Ok(post);
+});
+
+// GET /api/users/{id}/profile: Public profile details and recent approved community posts.
+app.MapGet("/api/users/{id:int}/profile", async (int id, HttpContext httpContext, AppDbContext db) =>
+{
+    var viewer = await GetAuthenticatedActiveUserAsync(httpContext, db);
+    if (viewer == null) return Results.Unauthorized();
+
+    var profile = await db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id && u.IsActive);
+    if (profile == null) return Results.NotFound(new { message = "User profile not found." });
+
+    var posts = await db.Posts.AsNoTracking()
+        .Where(p => p.AuthorId == id && p.Status == "Approved")
+        .OrderByDescending(p => p.CreatedAt)
+        .Select(p => new
+        {
+            id = p.Id,
+            title = p.SinhalaTitle,
+            summary = p.SinhalaSummary,
+            imageUrl = p.ImageUrl,
+            tag = p.Tag,
+            createdAt = p.CreatedAt,
+            likes = db.PostLikes.Count(l => l.PostId == p.Id),
+            comments = p.Comments.Count
+        })
+        .Take(12)
+        .ToListAsync();
+
+    return Results.Ok(new
+    {
+        id = profile.Id,
+        displayName = profile.DisplayName,
+        username = profile.Username,
+        profileImageUrl = profile.ProfileImageUrl,
+        bio = profile.Bio,
+        location = profile.Location,
+        websiteUrl = profile.WebsiteUrl,
+        postCount = await db.Posts.CountAsync(p => p.AuthorId == id && p.Status == "Approved"),
+        likesReceived = await db.PostLikes.CountAsync(l => l.Post.AuthorId == id),
+        commentsReceived = await db.Comments.CountAsync(c => c.Post.AuthorId == id),
+        posts
+    });
+});
+
+// PATCH /api/notifications/read-all
+app.MapPatch("/api/notifications/read-all", async (HttpContext httpContext, AppDbContext db) =>
+{
+    var user = await GetAuthenticatedActiveUserAsync(httpContext, db);
+    if (user == null) return Results.Unauthorized();
+    var unread = await db.Notifications.Where(n => n.RecipientUserId == user.Id && !n.IsRead).ToListAsync();
+    foreach (var notification in unread) notification.IsRead = true;
+    if (unread.Count > 0) await db.SaveChangesAsync();
+    return Results.Ok(new { markedRead = unread.Count });
+});
+
+// PATCH /api/notifications/{id}/read
+app.MapPatch("/api/notifications/{id:int}/read", async (int id, HttpContext httpContext, AppDbContext db) =>
+{
+    var user = await GetAuthenticatedActiveUserAsync(httpContext, db);
+    if (user == null) return Results.Unauthorized();
+    var notification = await db.Notifications.FirstOrDefaultAsync(n => n.Id == id && n.RecipientUserId == user.Id);
+    if (notification == null) return Results.NotFound();
+    notification.IsRead = true;
+    await db.SaveChangesAsync();
+    return Results.Ok(new { id = notification.Id, isRead = true });
+});
+
 // GET /api/feed (Requires authenticated & active user)
-app.MapGet("/api/feed", async (HttpContext httpContext, AppDbContext db) =>
+app.MapGet("/api/feed", async (HttpContext httpContext, AppDbContext db, int page = 1, int pageSize = 20, bool followingOnly = false, string? search = null, string? sort = "newest", string? tag = null) =>
 {
     var currentUser = await GetAuthenticatedActiveUserAsync(httpContext, db);
     if (currentUser == null)
@@ -398,10 +904,38 @@ app.MapGet("/api/feed", async (HttpContext httpContext, AppDbContext db) =>
             : Results.Unauthorized();
     }
 
-    var posts = await db.Posts
+    page = Math.Max(1, page);
+    pageSize = Math.Clamp(pageSize, 1, 50);
+    var query = db.Posts
         .AsNoTracking()
         .Where(p => p.Status == "Approved")
-        .OrderByDescending(p => p.CreatedAt)
+        ;
+    if (!string.IsNullOrWhiteSpace(tag) && !string.Equals(tag, "All", StringComparison.OrdinalIgnoreCase))
+    {
+        var normalizedTag = NormalizeTag(tag);
+        query = query.Where(p => p.Tag == normalizedTag);
+    }
+    if (!string.IsNullOrWhiteSpace(search))
+    {
+        var term = search.Trim();
+        if (term.Length > 100) term = term[..100];
+        query = query.Where(p => p.SinhalaTitle.Contains(term) || p.SinhalaSummary.Contains(term) || p.Source.Contains(term) || p.Tag.Contains(term) || (p.Author != null && p.Author.DisplayName.Contains(term)));
+    }
+    if (followingOnly)
+    {
+        query = query.Where(p => db.UserFollows.Any(f => f.FollowerUserId == currentUser.Id &&
+            ((f.FollowedUserId.HasValue && f.FollowedUserId == p.AuthorId) || (f.Topic != null && f.Topic == p.Tag))));
+    }
+    var total = await query.CountAsync();
+    var orderedQuery = sort?.ToLowerInvariant() switch
+    {
+        "oldest" => query.OrderBy(p => p.CreatedAt).ThenBy(p => p.Id),
+        "popular" => query.OrderByDescending(p => db.PostLikes.Count(l => l.PostId == p.Id)).ThenByDescending(p => p.CreatedAt),
+        _ => query.OrderByDescending(p => p.CreatedAt).ThenByDescending(p => p.Id)
+    };
+    var posts = await orderedQuery
+        .Skip((page - 1) * pageSize)
+        .Take(pageSize)
         .Select(p => new
         {
             id = p.Id,
@@ -415,11 +949,17 @@ app.MapGet("/api/feed", async (HttpContext httpContext, AppDbContext db) =>
             isAutoNews = p.IsAutoNews,
             status = p.Status,
             createdAt = p.CreatedAt,
+            likeCount = db.PostLikes.Count(l => l.PostId == p.Id),
+            likedByCurrentUser = db.PostLikes.Any(l => l.PostId == p.Id && l.UserId == currentUser.Id),
+            bookmarkedByCurrentUser = db.PostBookmarks.Any(b => b.PostId == p.Id && b.UserId == currentUser.Id),
+            followedAuthorByCurrentUser = p.AuthorId.HasValue && db.UserFollows.Any(f => f.FollowerUserId == currentUser.Id && f.FollowedUserId == p.AuthorId),
+            followedTopicByCurrentUser = db.UserFollows.Any(f => f.FollowerUserId == currentUser.Id && f.Topic == p.Tag),
             author = p.Author == null ? null : new
             {
                 id = p.Author.Id,
                 displayName = p.Author.DisplayName,
-                username = p.Author.Username
+                username = p.Author.Username,
+                profileImageUrl = p.Author.ProfileImageUrl
             },
             comments = p.Comments
                 .OrderBy(c => c.CreatedAt)
@@ -433,13 +973,36 @@ app.MapGet("/api/feed", async (HttpContext httpContext, AppDbContext db) =>
                     {
                         id = c.User.Id,
                         displayName = c.User.DisplayName,
-                        username = c.User.Username
+                        username = c.User.Username,
+                        profileImageUrl = c.User.ProfileImageUrl
                     }
                 }).ToList()
         })
         .ToListAsync();
 
-    return Results.Ok(posts);
+    return Results.Ok(new { items = posts, page, pageSize, total, hasMore = page * pageSize < total });
+});
+
+// POST /api/posts/{id}/bookmark: Toggle a saved post for the current user.
+app.MapPost("/api/posts/{id:int}/bookmark", async (int id, HttpContext httpContext, AppDbContext db) =>
+{
+    var currentUser = await GetAuthenticatedActiveUserAsync(httpContext, db);
+    if (currentUser == null)
+    {
+        return httpContext.User.Identity?.IsAuthenticated == true
+            ? Results.Json(new { message = "Your account has been deactivated. Please contact an administrator." }, statusCode: StatusCodes.Status403Forbidden)
+            : Results.Unauthorized();
+    }
+
+    var postExists = await db.Posts.AnyAsync(p => p.Id == id && p.Status == "Approved");
+    if (!postExists) return Results.NotFound(new { message = "Post not found." });
+
+    var bookmark = await db.PostBookmarks.FirstOrDefaultAsync(b => b.PostId == id && b.UserId == currentUser.Id);
+    var isBookmarked = bookmark == null;
+    if (bookmark != null) db.PostBookmarks.Remove(bookmark);
+    else db.PostBookmarks.Add(new PostBookmark { PostId = id, UserId = currentUser.Id, CreatedAt = DateTime.UtcNow });
+    await db.SaveChangesAsync();
+    return Results.Ok(new { bookmarked = isBookmarked });
 });
 
 // POST /api/posts (Authenticated users can submit a new post)
@@ -453,9 +1016,10 @@ app.MapPost("/api/posts", async (CreatePostRequest req, HttpContext httpContext,
             : Results.Unauthorized();
     }
 
-    if (string.IsNullOrWhiteSpace(req.SinhalaTitle) || string.IsNullOrWhiteSpace(req.SinhalaSummary))
+    if (string.IsNullOrWhiteSpace(req.SinhalaTitle) || string.IsNullOrWhiteSpace(req.SinhalaSummary) ||
+        req.SinhalaTitle.Length > 500 || req.SinhalaSummary.Length > 10000 || req.SinhalaContent?.Length > 100000)
     {
-        return Results.BadRequest(new { message = "SinhalaTitle and SinhalaSummary are required." });
+        return Results.BadRequest(new { message = "A title (up to 500 characters) and summary (up to 10,000 characters) are required; article content must be 100,000 characters or fewer." });
     }
 
     var tag = NormalizeTag(req.Tag);
@@ -465,9 +1029,9 @@ app.MapPost("/api/posts", async (CreatePostRequest req, HttpContext httpContext,
         SinhalaTitle = req.SinhalaTitle.Trim(),
         SinhalaSummary = req.SinhalaSummary.Trim(),
         SinhalaContent = string.IsNullOrWhiteSpace(req.SinhalaContent) ? null : req.SinhalaContent.Trim(),
-        ImageUrl = string.IsNullOrWhiteSpace(req.ImageUrl) ? null : req.ImageUrl.Trim(),
+        ImageUrl = NormalizeOptionalHttpUrl(req.ImageUrl, allowRelativeUpload: true),
         Tag = tag,
-        Link = string.IsNullOrWhiteSpace(req.Link) ? null : req.Link.Trim(),
+        Link = NormalizeOptionalHttpUrl(req.Link),
         Source = currentUser.DisplayName,
         IsAutoNews = false,
         Status = "Pending", // saved with Status = "Pending" until an Admin approves it
@@ -495,9 +1059,140 @@ app.MapPost("/api/posts", async (CreatePostRequest req, HttpContext httpContext,
         {
             id = currentUser.Id,
             displayName = currentUser.DisplayName,
-            username = currentUser.Username
+            username = currentUser.Username,
+            profileImageUrl = currentUser.ProfileImageUrl
         }
     });
+});
+
+app.MapPost("/api/posts/images", async (HttpContext httpContext, IWebHostEnvironment environment, AppDbContext db) =>
+{
+    if (await GetAuthenticatedActiveUserAsync(httpContext, db) == null) return Results.Unauthorized();
+    var form = await httpContext.Request.ReadFormAsync(httpContext.RequestAborted);
+    var file = form.Files.GetFile("image");
+    if (file == null || file.Length == 0) return Results.BadRequest(new { message = "Choose an image to upload." });
+    if (file.Length > 5 * 1024 * 1024) return Results.BadRequest(new { message = "Post images must be 5 MB or smaller." });
+    await using var input = file.OpenReadStream();
+    using var memory = new MemoryStream();
+    await input.CopyToAsync(memory, httpContext.RequestAborted);
+    var bytes = memory.ToArray();
+    var extension = DetectImageExtension(bytes);
+    if (extension == null) return Results.BadRequest(new { message = "Upload a valid PNG, JPEG, or WebP image." });
+    var uploadDirectory = Path.Combine(environment.WebRootPath, "uploads", "posts");
+    Directory.CreateDirectory(uploadDirectory);
+    var fileName = $"{Guid.NewGuid():N}{extension}";
+    await File.WriteAllBytesAsync(Path.Combine(uploadDirectory, fileName), bytes, httpContext.RequestAborted);
+    return Results.Ok(new { imageUrl = $"/uploads/posts/{fileName}" });
+});
+
+app.MapPatch("/api/posts/{id:int}", async (int id, UpdatePostRequest request, HttpContext httpContext, AppDbContext db) =>
+{
+    var user = await GetAuthenticatedActiveUserAsync(httpContext, db);
+    if (user == null) return Results.Unauthorized();
+    var post = await db.Posts.FirstOrDefaultAsync(p => p.Id == id && p.AuthorId == user.Id && !p.IsAutoNews);
+    if (post == null) return Results.NotFound(new { message = "Your post was not found." });
+    if (string.IsNullOrWhiteSpace(request.SinhalaTitle) || request.SinhalaTitle.Trim().Length > 500 || string.IsNullOrWhiteSpace(request.SinhalaSummary) || request.SinhalaSummary.Length > 10000)
+        return Results.BadRequest(new { message = "A title (up to 500 characters) and summary (up to 10,000 characters) are required." });
+    if (request.SinhalaContent?.Length > 100000) return Results.BadRequest(new { message = "Article content is too long." });
+    post.SinhalaTitle = request.SinhalaTitle.Trim();
+    post.SinhalaSummary = request.SinhalaSummary.Trim();
+    post.SinhalaContent = string.IsNullOrWhiteSpace(request.SinhalaContent) ? null : request.SinhalaContent.Trim();
+    post.Tag = NormalizeTag(request.Tag);
+    post.Link = NormalizeOptionalHttpUrl(request.Link);
+    post.ImageUrl = NormalizeOptionalHttpUrl(request.ImageUrl, allowRelativeUpload: true);
+    post.Status = "Pending";
+    await db.SaveChangesAsync();
+    return Results.Ok(new { id = post.Id, status = post.Status, message = "Your edit was submitted for admin review." });
+});
+
+app.MapDelete("/api/posts/{id:int}", async (int id, HttpContext httpContext, AppDbContext db) =>
+{
+    var user = await GetAuthenticatedActiveUserAsync(httpContext, db);
+    if (user == null) return Results.Unauthorized();
+    var post = await db.Posts.FirstOrDefaultAsync(p => p.Id == id && p.AuthorId == user.Id && !p.IsAutoNews);
+    if (post == null) return Results.NotFound(new { message = "Your post was not found." });
+    db.Posts.Remove(post);
+    await db.SaveChangesAsync();
+    return Results.Ok(new { message = "Post deleted." });
+});
+
+app.MapPatch("/api/comments/{id:int}", async (int id, CreateCommentRequest request, HttpContext httpContext, AppDbContext db) =>
+{
+    var user = await GetAuthenticatedActiveUserAsync(httpContext, db);
+    if (user == null) return Results.Unauthorized();
+    var comment = await db.Comments.FirstOrDefaultAsync(c => c.Id == id && c.UserId == user.Id);
+    if (comment == null) return Results.NotFound(new { message = "Your comment was not found." });
+    var content = request.Content?.Trim();
+    if (string.IsNullOrWhiteSpace(content) || content.Length > 2000) return Results.BadRequest(new { message = "Comment must be between 1 and 2,000 characters." });
+    comment.Content = content;
+    await db.SaveChangesAsync();
+    return Results.Ok(new { id = comment.Id, content = comment.Content, updatedAt = DateTime.UtcNow });
+});
+
+app.MapDelete("/api/comments/{id:int}", async (int id, HttpContext httpContext, AppDbContext db) =>
+{
+    var user = await GetAuthenticatedActiveUserAsync(httpContext, db);
+    if (user == null) return Results.Unauthorized();
+    var comment = await db.Comments.FirstOrDefaultAsync(c => c.Id == id && c.UserId == user.Id);
+    if (comment == null) return Results.NotFound(new { message = "Your comment was not found." });
+    db.Comments.Remove(comment);
+    await db.SaveChangesAsync();
+    return Results.Ok(new { message = "Comment deleted." });
+});
+
+app.MapPost("/api/reports", async (CreateReportRequest request, HttpContext httpContext, AppDbContext db) =>
+{
+    var user = await GetAuthenticatedActiveUserAsync(httpContext, db);
+    if (user == null) return Results.Unauthorized();
+    if (request.PostId.HasValue == request.CommentId.HasValue) return Results.BadRequest(new { message = "Choose one post or comment to report." });
+    var reason = request.Reason?.Trim();
+    if (string.IsNullOrWhiteSpace(reason) || reason.Length > 500) return Results.BadRequest(new { message = "Add a reason (up to 500 characters)." });
+    if (request.PostId.HasValue && !await db.Posts.AnyAsync(p => p.Id == request.PostId && p.Status == "Approved")) return Results.NotFound();
+    if (request.CommentId.HasValue && !await db.Comments.AnyAsync(c => c.Id == request.CommentId)) return Results.NotFound();
+    if (await db.PostReports.AnyAsync(r => r.ReporterUserId == user.Id && r.Status == "Open" && r.PostId == request.PostId && r.CommentId == request.CommentId))
+        return Results.Conflict(new { message = "You have already reported this content. The moderation team will review it." });
+    var report = new PostReport { ReporterUserId = user.Id, PostId = request.PostId, CommentId = request.CommentId, Reason = reason, CreatedAt = DateTime.UtcNow };
+    db.PostReports.Add(report);
+    await db.SaveChangesAsync();
+    return Results.Created($"/api/reports/{report.Id}", new { report.Id, report.Status });
+});
+
+// POST /api/posts/{id}/like: Toggle the current user's like on an approved post.
+app.MapPost("/api/posts/{id:int}/like", async (int id, HttpContext httpContext, AppDbContext db) =>
+{
+    var user = await GetAuthenticatedActiveUserAsync(httpContext, db);
+    if (user == null) return Results.Unauthorized();
+
+    var post = await db.Posts.FirstOrDefaultAsync(p => p.Id == id && p.Status == "Approved");
+    if (post == null) return Results.NotFound(new { message = "Post not found." });
+
+    var existingLike = await db.PostLikes.FirstOrDefaultAsync(l => l.PostId == id && l.UserId == user.Id);
+    var liked = existingLike == null;
+    if (existingLike != null)
+    {
+        db.PostLikes.Remove(existingLike);
+    }
+    else
+    {
+        db.PostLikes.Add(new PostLike { PostId = id, UserId = user.Id, CreatedAt = DateTime.UtcNow });
+        if (post.AuthorId.HasValue && post.AuthorId.Value != user.Id &&
+            (await db.NotificationPreferences.FindAsync(post.AuthorId.Value))?.LikesEnabled != false)
+        {
+            db.Notifications.Add(new Notification
+            {
+                RecipientUserId = post.AuthorId.Value,
+                ActorUserId = user.Id,
+                PostId = post.Id,
+                Type = "Like",
+                Preview = post.SinhalaTitle.Length > 300 ? post.SinhalaTitle[..300] : post.SinhalaTitle,
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+    }
+    await db.SaveChangesAsync();
+
+    var likeCount = await db.PostLikes.CountAsync(l => l.PostId == id);
+    return Results.Ok(new { postId = id, liked, likeCount });
 });
 
 // POST /api/posts/{id}/comments (Authenticated users can comment on any approved post)
@@ -542,6 +1237,19 @@ app.MapPost("/api/posts/{id:int}/comments", async (int id, CreateCommentRequest 
     };
 
     db.Comments.Add(comment);
+    if (post.AuthorId.HasValue && post.AuthorId.Value != currentUser.Id &&
+        (await db.NotificationPreferences.FindAsync(post.AuthorId.Value))?.CommentsEnabled != false)
+    {
+        db.Notifications.Add(new Notification
+        {
+            RecipientUserId = post.AuthorId.Value,
+            ActorUserId = currentUser.Id,
+            PostId = post.Id,
+            Type = "Comment",
+            Preview = content.Length > 300 ? content[..300] : content,
+            CreatedAt = DateTime.UtcNow
+        });
+    }
     await db.SaveChangesAsync();
 
     return Results.Created($"/api/posts/{id}/comments/{comment.Id}", new
@@ -554,7 +1262,8 @@ app.MapPost("/api/posts/{id:int}/comments", async (int id, CreateCommentRequest 
         {
             id = currentUser.Id,
             displayName = currentUser.DisplayName,
-            username = currentUser.Username
+            username = currentUser.Username,
+            profileImageUrl = currentUser.ProfileImageUrl
         }
     });
 });
@@ -563,6 +1272,68 @@ app.MapPost("/api/posts/{id:int}/comments", async (int id, CreateCommentRequest 
 // Admin Endpoints (Require Role == "Admin")
 // ==========================================
 var admin = app.MapGroup("/api/admin").RequireAuthorization("AdminOnly");
+
+admin.MapGet("/insights", async (AppDbContext db) =>
+{
+    var since = DateTime.UtcNow.AddDays(-30);
+    return Results.Ok(new
+    {
+        totalUsers = await db.Users.CountAsync(u => u.Role != "Admin"),
+        activeUsers = await db.Users.CountAsync(u => u.Role != "Admin" && u.IsActive),
+        newUsersLast30Days = await db.Users.CountAsync(u => u.Role != "Admin" && u.CreatedAt >= since),
+        totalPosts = await db.Posts.CountAsync(p => p.Status == "Approved"),
+        pendingPosts = await db.Posts.CountAsync(p => p.Status == "Pending"),
+        postsLast30Days = await db.Posts.CountAsync(p => p.CreatedAt >= since && p.Status == "Approved"),
+        totalComments = await db.Comments.CountAsync(),
+        openReports = await db.PostReports.CountAsync(r => r.Status == "Open"),
+        popularTopics = await db.Posts.Where(p => p.Status == "Approved").GroupBy(p => p.Tag)
+            .Select(group => new { topic = group.Key, posts = group.Count() }).OrderByDescending(group => group.posts).Take(5).ToListAsync()
+    });
+});
+
+admin.MapGet("/reports", async (AppDbContext db) =>
+{
+    var reports = await db.PostReports.AsNoTracking().OrderBy(r => r.Status).ThenByDescending(r => r.CreatedAt)
+        .Select(r => new
+        {
+            id = r.Id, reporterUserId = r.ReporterUserId, postId = r.PostId, commentId = r.CommentId,
+            reason = r.Reason, status = r.Status, createdAt = r.CreatedAt,
+            postTitle = r.PostId.HasValue ? db.Posts.Where(p => p.Id == r.PostId.Value).Select(p => p.SinhalaTitle).FirstOrDefault() : null,
+            commentContent = r.CommentId.HasValue ? db.Comments.Where(c => c.Id == r.CommentId.Value).Select(c => c.Content).FirstOrDefault() : null,
+            reporter = db.Users.Where(u => u.Id == r.ReporterUserId).Select(u => u.Username).FirstOrDefault()
+        }).ToListAsync();
+    return Results.Ok(reports);
+});
+
+admin.MapPatch("/reports/{id:int}/resolve", async (int id, AppDbContext db) =>
+{
+    var report = await db.PostReports.FindAsync(id);
+    if (report == null) return Results.NotFound();
+    report.Status = "Resolved";
+    report.ResolvedAt = DateTime.UtcNow;
+    await db.SaveChangesAsync();
+    return Results.Ok(new { report.Id, report.Status, report.ResolvedAt });
+});
+
+admin.MapDelete("/reports/{id:int}/content", async (int id, AppDbContext db) =>
+{
+    var report = await db.PostReports.FindAsync(id);
+    if (report == null) return Results.NotFound();
+    if (report.PostId.HasValue)
+    {
+        var post = await db.Posts.FindAsync(report.PostId.Value);
+        if (post != null) db.Posts.Remove(post);
+    }
+    else if (report.CommentId.HasValue)
+    {
+        var comment = await db.Comments.FindAsync(report.CommentId.Value);
+        if (comment != null) db.Comments.Remove(comment);
+    }
+    report.Status = "Resolved";
+    report.ResolvedAt = DateTime.UtcNow;
+    await db.SaveChangesAsync();
+    return Results.Ok(new { message = "Reported content removed and report resolved." });
+});
 
 // GET /api/admin/users: List all users
 admin.MapGet("/users", async (AppDbContext db) =>
@@ -575,6 +1346,9 @@ admin.MapGet("/users", async (AppDbContext db) =>
             id = u.Id,
             displayName = u.DisplayName,
             username = u.Username,
+            profileImageUrl = u.ProfileImageUrl,
+            bio = u.Bio,
+            location = u.Location,
             role = u.Role,
             isActive = u.IsActive,
             createdAt = u.CreatedAt
@@ -607,6 +1381,9 @@ admin.MapPatch("/users/{id:int}/toggle-active", async (int id, HttpContext httpC
         id = user.Id,
         displayName = user.DisplayName,
         username = user.Username,
+        profileImageUrl = user.ProfileImageUrl,
+        bio = user.Bio,
+        location = user.Location,
         role = user.Role,
         isActive = user.IsActive,
         createdAt = user.CreatedAt
@@ -637,7 +1414,11 @@ admin.MapGet("/posts/pending", async (AppDbContext db) =>
             {
                 id = p.Author.Id,
                 displayName = p.Author.DisplayName,
-                username = p.Author.Username
+                username = p.Author.Username,
+                profileImageUrl = p.Author.ProfileImageUrl,
+                bio = p.Author.Bio,
+                location = p.Author.Location,
+                websiteUrl = p.Author.WebsiteUrl
             }
         })
         .ToListAsync();
@@ -674,7 +1455,11 @@ admin.MapPatch("/posts/{id:int}/approve", async (int id, AppDbContext db) =>
         {
             id = post.Author.Id,
             displayName = post.Author.DisplayName,
-            username = post.Author.Username
+            username = post.Author.Username,
+            profileImageUrl = post.Author.ProfileImageUrl,
+            bio = post.Author.Bio,
+            location = post.Author.Location,
+            websiteUrl = post.Author.WebsiteUrl
         }
     });
 });
@@ -710,6 +1495,38 @@ admin.MapDelete("/comments/{id:int}", async (int id, AppDbContext db) =>
 });
 
 app.Run();
+
+static async Task<bool> SendConfiguredEmailAsync(IConfiguration configuration, string recipient, string subject, string body, CancellationToken cancellationToken)
+{
+    var host = configuration["Smtp:Host"];
+    var sender = configuration["Smtp:From"];
+    if (string.IsNullOrWhiteSpace(host) || string.IsNullOrWhiteSpace(sender)) return false;
+    try
+    {
+        using var message = new System.Net.Mail.MailMessage(sender, recipient, subject, body);
+        using var client = new System.Net.Mail.SmtpClient(host, int.TryParse(configuration["Smtp:Port"], out var port) ? port : 587)
+        {
+            EnableSsl = !string.Equals(configuration["Smtp:EnableSsl"], "false", StringComparison.OrdinalIgnoreCase),
+            Credentials = string.IsNullOrWhiteSpace(configuration["Smtp:Username"]) ? null : new System.Net.NetworkCredential(configuration["Smtp:Username"], configuration["Smtp:Password"])
+        };
+        await client.SendMailAsync(message, cancellationToken);
+        return true;
+    }
+    catch (Exception ex) when (ex is System.Net.Mail.SmtpException or InvalidOperationException or ArgumentException)
+    {
+        return false;
+    }
+}
+
+static string? DetectImageExtension(byte[] bytes)
+{
+    if (bytes.Length >= 8 && bytes.AsSpan(0, 8).SequenceEqual(new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 })) return ".png";
+    if (bytes.Length >= 3 && bytes[0] == 0xFF && bytes[1] == 0xD8 && bytes[2] == 0xFF) return ".jpg";
+    if (bytes.Length >= 12 &&
+        bytes.AsSpan(0, 4).SequenceEqual("RIFF"u8) &&
+        bytes.AsSpan(8, 4).SequenceEqual("WEBP"u8)) return ".webp";
+    return null;
+}
 
 static bool FixedTimeEquals(string expected, string actual)
 {
@@ -753,6 +1570,16 @@ static string NormalizeTag(string? rawTag)
     if (string.Equals(trimmed, "#Community", StringComparison.OrdinalIgnoreCase)) return "#Community";
 
     return "#Community";
+}
+
+static string? NormalizeOptionalHttpUrl(string? value, bool allowRelativeUpload = false)
+{
+    if (string.IsNullOrWhiteSpace(value)) return null;
+    var trimmed = value.Trim();
+    if (allowRelativeUpload && trimmed.StartsWith("/uploads/posts/", StringComparison.Ordinal) &&
+        !trimmed.Contains("..", StringComparison.Ordinal)) return trimmed;
+    return Uri.TryCreate(trimmed, UriKind.Absolute, out var uri) &&
+        (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps) ? uri.ToString() : null;
 }
 
 public partial class Program { }

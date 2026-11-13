@@ -1,8 +1,17 @@
 namespace cd_newsfeed.Models;
 
-public record RegisterRequest(string? DisplayName, string? Username, string? Password);
+public record RegisterRequest(string? DisplayName, string? Username, string? Password, string? Email = null);
 
 public record LoginRequest(string? Username, string? Password);
+
+public record UpdateProfileRequest(string? DisplayName, string? Bio, string? Location, string? WebsiteUrl, string? Email = null);
+
+public record PasswordResetRequest(string? Email);
+public record PasswordResetConfirmRequest(string? Token, string? NewPassword);
+public record ChangePasswordRequest(string? CurrentPassword, string? NewPassword);
+public record UpdateNotificationPreferencesRequest(bool LikesEnabled, bool CommentsEnabled);
+public record UpdatePostRequest(string? SinhalaTitle, string? SinhalaSummary, string? SinhalaContent, string? Tag, string? Link, string? ImageUrl);
+public record CreateReportRequest(int? PostId, int? CommentId, string? Reason);
 
 public record CreatePostRequest(
     string? SinhalaTitle,
