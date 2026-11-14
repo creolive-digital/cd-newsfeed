@@ -6,7 +6,7 @@ The checked-in source imports Tailwind CSS and web fonts through npm. On a clean
 
 ## HTTPS and reverse proxy
 
-Run the ASP.NET service on `127.0.0.1:4050`; the workflow sets this address so port 4050 is not exposed directly. Install Nginx and copy `deploy/nginx/sinhala-news.conf.template` to `/etc/nginx/sites-available/sinhala-news.conf`. Replace `news.example.com` with the domain whose DNS A record points to the VPS. Obtain a certificate with Certbot, then enable and reload the Nginx site. Keep ports 80 and 443 open and close public port 4050 after confirming Nginx can reach the loopback listener. The app honors one forwarded proxy hop and enables HSTS and HTTPS redirection outside Development and Testing.
+The GitHub deployment workflow currently binds the app to `0.0.0.0:4050` for direct access at `http://<VPS-IP>:4050`. That mode disables HTTPS redirection and secure-only cookies so sign-in works over HTTP. For a domain with TLS, change the workflow to bind to `127.0.0.1:4050`, set `HttpsRedirection__Enabled=true` and `Authentication__RequireSecureCookies=true`, then install Nginx from `deploy/nginx/sinhala-news.conf.template`. Replace `news.example.com` with the DNS name, obtain a certificate with Certbot, and enable the site. Keep ports 80 and 443 open and close public port 4050 after confirming Nginx can reach the loopback listener. The app honors one forwarded proxy hop and enables HSTS outside Development and Testing.
 
 A real domain is required for a publicly trusted TLS certificate; the IP address alone does not provide the domain certificate configured in the template. Do not enable this template until DNS points to the server and Certbot has created the referenced certificate files.
 
@@ -16,7 +16,9 @@ Set values in `/etc/sinhala-news/sinhala-news.env` or the service manager, never
 
 ```ini
 ASPNETCORE_ENVIRONMENT=Production
-ASPNETCORE_URLS=http://127.0.0.1:4050
+ASPNETCORE_URLS=http://0.0.0.0:4050
+HttpsRedirection__Enabled=false
+Authentication__RequireSecureCookies=false
 ConnectionStrings__DefaultConnection=Server=sqlserver;Database=CdNewsfeedDb;User Id=sa;Password=<secret>;TrustServerCertificate=True;MultipleActiveResultSets=true;
 AdminAuth__Username=<administrator-name>
 AdminAuth__Password=<unique-strong-password-at-least-16-characters>

@@ -14,6 +14,11 @@ using cd_newsfeed.Models;
 using cd_newsfeed.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+var isNonProductionEnvironment = builder.Environment.IsDevelopment() || builder.Environment.IsEnvironment("Testing");
+var requireSecureCookies = builder.Configuration.GetValue<bool?>("Authentication:RequireSecureCookies")
+    ?? !isNonProductionEnvironment;
+var enableHttpsRedirection = builder.Configuration.GetValue<bool?>("HttpsRedirection:Enabled")
+    ?? !isNonProductionEnvironment;
 
 // 1. Configure a test-only in-memory database or the normal MSSQL database.
 var useInMemoryDb = bool.TryParse(builder.Configuration["USE_INMEMORY_DB"], out var inMemoryDbEnabled)
@@ -64,9 +69,9 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.Cookie.Name = "CDNewsfeed.Auth";
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Lax;
-        options.Cookie.SecurePolicy = builder.Environment.IsDevelopment() || builder.Environment.IsEnvironment("Testing")
-            ? CookieSecurePolicy.SameAsRequest
-            : CookieSecurePolicy.Always;
+        options.Cookie.SecurePolicy = requireSecureCookies
+            ? CookieSecurePolicy.Always
+            : CookieSecurePolicy.SameAsRequest;
         options.ExpireTimeSpan = TimeSpan.FromDays(7);
         options.SlidingExpiration = true;
 
@@ -342,7 +347,10 @@ app.UseForwardedHeaders();
 if (!app.Environment.IsDevelopment() && !app.Environment.IsEnvironment("Testing"))
 {
     app.UseHsts();
-    app.UseHttpsRedirection();
+    if (enableHttpsRedirection)
+    {
+        app.UseHttpsRedirection();
+    }
 }
 app.UseDefaultFiles();
 app.UseStaticFiles(new StaticFileOptions

@@ -88,15 +88,15 @@ jobs:
       - name: Restart application service
         uses: appleboy/ssh-action@v1.0.3
         env:
-          ASPNETCORE_URLS: http://127.0.0.1:4050
+          ASPNETCORE_URLS: http://0.0.0.0:4050
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
           envs: ASPNETCORE_URLS
           script: |
-            sudo sed -i '/^ASPNETCORE_URLS=/d' /etc/sinhala-news/sinhala-news.env
-            printf 'ASPNETCORE_URLS=%s\n' "$ASPNETCORE_URLS" | sudo tee -a /etc/sinhala-news/sinhala-news.env >/dev/null
+            sudo sed -i '/^ASPNETCORE_URLS=/d; /^HttpsRedirection__Enabled=/d; /^Authentication__RequireSecureCookies=/d' /etc/sinhala-news/sinhala-news.env
+            printf 'ASPNETCORE_URLS=%s\nHttpsRedirection__Enabled=false\nAuthentication__RequireSecureCookies=false\n' "$ASPNETCORE_URLS" | sudo tee -a /etc/sinhala-news/sinhala-news.env >/dev/null
             sudo chmod 600 /etc/sinhala-news/sinhala-news.env
             sudo install -d -o sinhala-news -g sinhala-news -m 750 /var/www/sinhala-news/wwwroot/uploads/profiles
             sudo install -d -o sinhala-news -g sinhala-news -m 750 /var/www/sinhala-news/wwwroot/uploads/posts
