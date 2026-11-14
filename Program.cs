@@ -968,6 +968,35 @@ app.MapGet("/api/follows", async (HttpContext httpContext, AppDbContext db) =>
     return Results.Ok(follows);
 });
 
+app.MapGet("/api/follows/suggestions", async (HttpContext httpContext, AppDbContext db) =>
+{
+    var user = await GetAuthenticatedActiveUserAsync(httpContext, db);
+    if (user == null) return Results.Unauthorized();
+
+    var followedUserIds = await db.UserFollows.AsNoTracking()
+        .Where(follow => follow.FollowerUserId == user.Id && follow.FollowedUserId.HasValue)
+        .Select(follow => follow.FollowedUserId!.Value)
+        .ToListAsync();
+
+    var suggestions = await db.Users.AsNoTracking()
+        .Where(candidate => candidate.IsActive && candidate.Id != user.Id && !followedUserIds.Contains(candidate.Id))
+        .OrderByDescending(candidate => candidate.Posts.Count(post => post.Status == "Approved" && !post.IsAutoNews))
+        .ThenByDescending(candidate => candidate.CreatedAt)
+        .Take(5)
+        .Select(candidate => new
+        {
+            id = candidate.Id,
+            displayName = candidate.DisplayName,
+            username = candidate.Username,
+            profileImageUrl = candidate.ProfileImageUrl,
+            bio = candidate.Bio,
+            postCount = candidate.Posts.Count(post => post.Status == "Approved" && !post.IsAutoNews)
+        })
+        .ToListAsync();
+
+    return Results.Ok(suggestions);
+});
+
 app.MapPost("/api/follows/users/{id:int}", async (int id, HttpContext httpContext, AppDbContext db) =>
 {
     var user = await GetAuthenticatedActiveUserAsync(httpContext, db);

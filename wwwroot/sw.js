@@ -1,4 +1,4 @@
-const CACHE_NAME = 'techpulse-shell-v25';
+const CACHE_NAME = 'techpulse-shell-v28';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

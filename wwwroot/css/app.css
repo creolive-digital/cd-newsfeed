@@ -229,4 +229,621 @@
         scroll-behavior: auto;
       }
     }
+
+    /* TechPulse social timeline redesign */
+    :root {
+      --app-bg: #070b12;
+      --app-panel: #0c121d;
+      --app-line: rgb(148 163 184 / 0.16);
+      --app-accent: #50dcff;
+    }
+    html.dark body {
+      background: var(--app-bg) !important;
+      background-image: radial-gradient(ellipse at 48% -22%, rgb(29 112 150 / 0.15), transparent 44%) !important;
+    }
+    html:not(.dark) body {
+      background: #f4f7fb !important;
+    }
+    #main-header {
+      background: rgb(7 11 18 / 0.88) !important;
+      border-color: var(--app-line) !important;
+      box-shadow: 0 10px 30px rgb(0 0 0 / 0.16) !important;
+    }
+    html:not(.dark) #main-header {
+      background: rgb(255 255 255 / 0.9) !important;
+      border-color: #e2e8f0 !important;
+    }
+    #main-header > div {
+      max-width: 1380px;
+    }
+    #feed-view {
+      padding-top: 4rem;
+      padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+    }
+    #feed-layout {
+      max-width: 1380px;
+      grid-template-columns: 76px minmax(0, 690px);
+      justify-content: center;
+      gap: 20px;
+      padding: 0 18px;
+    }
+    #feed-left-rail {
+      top: 4.5rem;
+      height: calc(100dvh - 4.5rem);
+      border-right: 1px solid var(--app-line);
+      padding-right: 10px;
+    }
+    #feed-column {
+      min-height: calc(100dvh - 4rem);
+      border: 1px solid var(--app-line) !important;
+      border-top: 0 !important;
+      border-bottom: 0 !important;
+      background: rgb(12 18 29 / 0.46);
+    }
+    html:not(.dark) #feed-column {
+      background: rgb(255 255 255 / 0.68);
+      border-color: #e2e8f0 !important;
+    }
+    #feed-column > div:first-child {
+      gap: 0.65rem;
+      padding-top: 0;
+    }
+    #feed-column [role="tablist"] {
+      top: 4rem;
+      margin-top: 0;
+      border-color: var(--app-line);
+      background: rgb(7 11 18 / 0.88) !important;
+      backdrop-filter: blur(18px);
+    }
+    html:not(.dark) #feed-column [role="tablist"] {
+      background: rgb(255 255 255 / 0.9) !important;
+      border-color: #e2e8f0;
+    }
+    #feed-column [role="tablist"] button {
+      min-height: 3.5rem;
+      transition: background-color 160ms ease, color 160ms ease;
+    }
+    #feed-column [role="tablist"] button:hover {
+      background: rgb(80 220 255 / 0.06);
+    }
+    #feed-search,
+    #feed-sort,
+    #saved-posts-toggle {
+      border-radius: 999px;
+      background-color: var(--app-panel) !important;
+      border-color: var(--app-line) !important;
+    }
+    html:not(.dark) #feed-search,
+    html:not(.dark) #feed-sort,
+    html:not(.dark) #saved-posts-toggle {
+      background-color: #fff !important;
+      border-color: #dbe3ee !important;
+    }
+    #create-post-card {
+      padding: 0.8rem 1rem !important;
+      border: 1px solid var(--app-line) !important;
+      border-radius: 1rem !important;
+      background: linear-gradient(135deg, rgb(15 27 42 / 0.98), rgb(10 17 28 / 0.98)) !important;
+      box-shadow: 0 10px 28px rgb(0 0 0 / 0.12) !important;
+    }
+    html:not(.dark) #create-post-card {
+      background: #fff !important;
+      border-color: #dbe3ee !important;
+      box-shadow: 0 8px 24px rgb(15 23 42 / 0.05) !important;
+    }
+    #post-box-collapsed > div:nth-child(2) {
+      border: 1px solid var(--app-line);
+      border-radius: 999px;
+      min-height: 2.8rem;
+    }
+    #posts-container {
+      gap: 0 !important;
+    }
+    .social-post {
+      overflow: visible !important;
+      border: 0 !important;
+      border-bottom: 1px solid var(--app-line) !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      transition: background-color 160ms ease;
+    }
+    .social-post:hover {
+      border-color: var(--app-line) !important;
+      background: rgb(255 255 255 / 0.018) !important;
+    }
+    html:not(.dark) .social-post {
+      border-bottom-color: #e2e8f0 !important;
+    }
+    html:not(.dark) .social-post:hover {
+      background: rgb(15 23 42 / 0.018) !important;
+    }
+    .social-post-header {
+      padding: 1rem 1.15rem 0 !important;
+    }
+    .social-post-header [class*="w-10 h-10"] {
+      width: 2.75rem;
+      height: 2.75rem;
+      box-shadow: 0 0 0 2px rgb(80 220 255 / 0.18);
+    }
+    .social-post-copy {
+      padding: 0.7rem 1.15rem 0.25rem !important;
+    }
+    .social-post-copy h2 {
+      margin-bottom: 0.4rem;
+      font-size: 1.04rem;
+      line-height: 1.48;
+      letter-spacing: -0.015em;
+    }
+    .social-post-copy p {
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 5;
+      overflow: hidden;
+      color: #c5cfdd !important;
+      line-height: 1.68;
+    }
+    html:not(.dark) .social-post-copy p {
+      color: #465468 !important;
+    }
+    .social-post-copy > div {
+      margin-top: 0.1rem;
+    }
+    .social-post-copy > div button {
+      min-height: 2.5rem;
+      padding-right: 0.55rem;
+    }
+    .social-post > .group.relative {
+      width: calc(100% - 2.3rem) !important;
+      margin: 0.45rem 1.15rem 0.15rem;
+      overflow: hidden;
+      border: 1px solid var(--app-line);
+      border-radius: 1rem !important;
+      background: #0a111b;
+      box-shadow: none !important;
+    }
+    .social-post > .group.relative > div.relative {
+      aspect-ratio: 1.65 / 1 !important;
+    }
+    .social-post-meta {
+      margin: 0.55rem 1.25rem 0.2rem !important;
+      color: #7f91a8 !important;
+    }
+    .social-source-row {
+      margin: 0 1.15rem 0.35rem !important;
+    }
+    .social-source-row:empty {
+      display: none;
+    }
+    .social-source-row a {
+      max-width: 100%;
+      padding: 0.35rem 0.55rem !important;
+      border: 1px solid var(--app-line);
+      border-radius: 999px !important;
+      color: #8ea2bb !important;
+      font-size: 0.68rem !important;
+    }
+    .social-post-actions {
+      margin: 0 0.8rem !important;
+      padding: 0.35rem 0 !important;
+      border-top: 1px solid var(--app-line) !important;
+    }
+    .social-post-actions button {
+      min-height: 2.65rem;
+      border-radius: 999px !important;
+      transition: background-color 150ms ease, color 150ms ease, transform 150ms ease;
+    }
+    .social-post-actions button:hover {
+      background: rgb(80 220 255 / 0.08) !important;
+    }
+    .social-post-actions button:active {
+      transform: scale(0.96);
+    }
+    .social-post > [id^="comments-section-"] {
+      margin: 0 1rem 1rem !important;
+      padding: 0.9rem 0.25rem 0 !important;
+      border-color: var(--app-line) !important;
+    }
+    #feed-right-rail {
+      top: 4.5rem;
+      height: calc(100dvh - 4.5rem);
+    }
+    #feed-right-rail > div > section {
+      border-color: var(--app-line) !important;
+      background: rgb(12 18 29 / 0.72) !important;
+      border-radius: 1rem;
+    }
+    #feed-left-rail nav button {
+      min-height: 3rem;
+      transition: color 160ms ease, background-color 160ms ease, transform 160ms ease;
+    }
+    #feed-left-rail nav button:hover {
+      color: var(--app-accent);
+      transform: translateX(2px);
+    }
+    #app-bottom-nav {
+      border-color: var(--app-line) !important;
+      background: rgb(7 11 18 / 0.91) !important;
+      backdrop-filter: blur(22px);
+    }
+    html:not(.dark) #app-bottom-nav {
+      background: rgb(255 255 255 / 0.94) !important;
+      border-color: #dbe3ee !important;
+    }
+    #app-bottom-nav button {
+      transition: color 160ms ease, transform 160ms ease;
+    }
+    #app-bottom-nav button[aria-current="page"] {
+      color: var(--app-accent) !important;
+    }
+    #app-bottom-nav button[aria-current="page"] .material-symbols-outlined {
+      background: rgb(80 220 255 / 0.13);
+      box-shadow: 0 0 20px rgb(80 220 255 / 0.08);
+    }
+    #load-more-posts {
+      margin-top: 0.8rem;
+      border-radius: 999px;
+      border-color: var(--app-line);
+      background: var(--app-panel);
+    }
+    @media (min-width: 1280px) {
+      #feed-layout {
+        grid-template-columns: 235px minmax(0, 650px) 310px;
+        justify-content: space-between;
+        gap: 28px;
+      }
+      #feed-left-rail {
+        border-right: 0;
+        padding-right: 0;
+      }
+      #feed-column {
+        border-top: 1px solid var(--app-line) !important;
+        border-radius: 0 0 1.25rem 1.25rem;
+      }
+    }
+    @media (max-width: 767px) {
+      #feed-view {
+        padding-top: calc(3.6rem + env(safe-area-inset-top));
+        padding-bottom: calc(4.7rem + env(safe-area-inset-bottom));
+      }
+      #feed-layout {
+        padding: 0;
+      }
+      #feed-column {
+        border: 0 !important;
+        background: transparent;
+      }
+      #feed-column [role="tablist"] {
+        top: calc(3.6rem + env(safe-area-inset-top));
+      }
+      #feed-column > div:first-child {
+        padding-left: 0.7rem;
+        padding-right: 0.7rem;
+      }
+      #posts-container {
+        margin-left: 0;
+        margin-right: 0;
+      }
+      .social-post-header {
+        padding: 0.9rem 0.85rem 0 !important;
+      }
+      .social-post-copy {
+        padding: 0.6rem 0.85rem 0.2rem !important;
+      }
+      .social-post-copy h2 {
+        font-size: 1rem;
+      }
+      .social-post > .group.relative {
+        width: calc(100% - 1.7rem) !important;
+        margin-right: 0.85rem;
+        margin-left: 0.85rem;
+        border-radius: 0.85rem !important;
+      }
+      .social-post-meta {
+        margin-right: 0.95rem !important;
+        margin-left: 0.95rem !important;
+      }
+      .social-source-row {
+        margin-right: 0.85rem !important;
+        margin-left: 0.85rem !important;
+      }
+      .social-post-actions {
+        margin-right: 0.5rem !important;
+        margin-left: 0.5rem !important;
+      }
+      .social-post-actions button {
+        min-height: 2.8rem;
+      }
+      #create-post-card {
+        padding: 0.7rem !important;
+      }
+      #feed-sort,
+      #saved-posts-toggle {
+        min-height: 2.65rem;
+      }
+      #feed-result-count {
+        max-width: 50%;
+      }
+      #main-header > div {
+        padding-left: max(0.7rem, env(safe-area-inset-left));
+        padding-right: max(0.7rem, env(safe-area-inset-right));
+      }
+    }
+    .feed-onboarding {
+      box-shadow: inset 0 1px rgb(255 255 255 / 0.04), 0 12px 28px rgb(0 0 0 / 0.12);
+    }
+    .onboarding-topic {
+      display: inline-flex;
+      min-height: 2.5rem;
+      align-items: center;
+      gap: 0.4rem;
+      border: 1px solid var(--app-line);
+      border-radius: 999px;
+      padding: 0.45rem 0.9rem;
+      color: #a9b7c9;
+      font-size: 0.75rem;
+      font-weight: 700;
+      transition: border-color 150ms ease, color 150ms ease, background-color 150ms ease, transform 150ms ease;
+    }
+    .onboarding-topic .material-symbols-outlined {
+      font-size: 1rem;
+    }
+    .onboarding-topic:hover {
+      border-color: rgb(80 220 255 / 0.5);
+      color: var(--app-accent);
+      transform: translateY(-1px);
+    }
+    .onboarding-topic.selected {
+      border-color: rgb(80 220 255 / 0.48);
+      background: rgb(80 220 255 / 0.12);
+      color: var(--app-accent);
+    }
+    html:not(.dark) .onboarding-topic {
+      color: #526176;
+    }
+    html:not(.dark) .onboarding-topic.selected {
+      color: #087da1;
+    }
+    .suggested-person-card {
+      display: flex;
+      min-width: 0;
+      align-items: center;
+      gap: 0.65rem;
+      border: 1px solid var(--app-line);
+      border-radius: 0.9rem;
+      padding: 0.55rem 0.6rem;
+      background: rgb(0 0 0 / 0.08);
+    }
+    .suggested-follow-button {
+      min-width: 4.75rem;
+      border-radius: 999px;
+      background: #50dcff;
+      padding: 0.45rem 0.7rem;
+      color: #04111b;
+      font-size: 0.68rem;
+      font-weight: 800;
+      transition: transform 150ms ease, opacity 150ms ease;
+    }
+    .suggested-follow-button:hover { transform: translateY(-1px); }
+    .suggested-follow-button:disabled { cursor: default; opacity: 0.8; }
+    .suggested-follow-button.is-following {
+      border: 1px solid var(--app-line);
+      background: transparent;
+      color: var(--app-accent);
+    }
+    .new-posts-notice {
+      position: sticky;
+      top: 7.5rem;
+      z-index: 25;
+      display: flex;
+      width: fit-content;
+      max-width: calc(100% - 2rem);
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin: 0.65rem auto -0.15rem;
+      border: 1px solid rgb(80 220 255 / 0.35);
+      border-radius: 999px;
+      background: rgb(13 35 48 / 0.96);
+      padding: 0.6rem 1rem;
+      color: #7ae4ff;
+      font-size: 0.72rem;
+      font-weight: 800;
+      box-shadow: 0 8px 28px rgb(0 0 0 / 0.25), 0 0 24px rgb(80 220 255 / 0.08);
+      backdrop-filter: blur(16px);
+    }
+    .new-posts-notice .material-symbols-outlined { font-size: 1rem; }
+    .new-posts-notice:not(.hidden) { animation: notice-enter 180ms ease-out; }
+    @keyframes notice-enter {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    html:not(.dark) .new-posts-notice {
+      background: rgb(232 249 255 / 0.97);
+      color: #087da1;
+    }
+    .post-image-preview-card {
+      width: 100%;
+      max-width: 32rem;
+      border: 1px solid var(--app-line);
+      border-radius: 1rem;
+      background: rgb(255 255 255 / 0.025);
+      padding: 0.6rem;
+    }
+    #post-image-preview {
+      min-height: 8rem;
+      max-height: 20rem;
+    }
+    #remove-post-image:disabled { cursor: wait; opacity: 0.55; }
+    #live-connection-status[title] { cursor: help; }
+    #live-connection-status .animate-pulse { box-shadow: 0 0 10px currentColor; }
+    @media (max-width: 767px) {
+      .new-posts-notice { top: 7.1rem; }
+      #live-connection-label { max-width: 4.5rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .suggested-person-card { gap: 0.5rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .new-posts-notice:not(.hidden) { animation: none; }
+      .onboarding-topic, .suggested-follow-button { transition: none; }
+    }
+
+    /* Full palette support for user-selected dark and light appearances */
+    html.dark {
+      color-scheme: dark;
+      --app-bg: #070b12;
+      --app-panel: #0c121d;
+      --app-line: rgb(148 163 184 / 0.16);
+      --app-accent: #50dcff;
+      --app-muted: #8798ad;
+      --app-header: rgb(7 11 18 / 0.9);
+      --app-card: rgb(12 18 29 / 0.78);
+    }
+    html:not(.dark) {
+      color-scheme: light;
+      --app-bg: #f3f6fb;
+      --app-panel: #ffffff;
+      --app-line: rgb(100 116 139 / 0.2);
+      --app-accent: #087da1;
+      --app-muted: #58677a;
+      --app-header: rgb(255 255 255 / 0.94);
+      --app-card: rgb(255 255 255 / 0.9);
+    }
+    html:not(.dark) body {
+      background: var(--app-bg) !important;
+      background-image: radial-gradient(ellipse at 48% -22%, rgb(14 165 233 / 0.07), transparent 44%) !important;
+      color: #152235 !important;
+    }
+    html:not(.dark) .text-primary,
+    html:not(.dark) .hover\:text-primary:hover {
+      color: var(--app-accent) !important;
+    }
+    html:not(.dark) #main-header {
+      background: var(--app-header) !important;
+      border-color: #dce4ee !important;
+      box-shadow: 0 8px 24px rgb(15 23 42 / 0.06) !important;
+    }
+    html:not(.dark) #feed-left-rail {
+      border-color: #dce4ee;
+    }
+    html:not(.dark) #feed-column {
+      background: rgb(255 255 255 / 0.72);
+      border-color: #e0e7ef !important;
+    }
+    html:not(.dark) #feed-column [role="tablist"] {
+      background: rgb(255 255 255 / 0.94) !important;
+      border-color: #dce4ee;
+    }
+    html:not(.dark) #feed-column [role="tablist"] button:hover {
+      background: rgb(8 125 161 / 0.06);
+    }
+    html:not(.dark) #feed-search,
+    html:not(.dark) #feed-sort,
+    html:not(.dark) #saved-posts-toggle {
+      background-color: #fff !important;
+      border-color: #d6e0eb !important;
+      color: #26364b !important;
+    }
+    html:not(.dark) #create-post-card {
+      border-color: #dce4ee !important;
+      background: linear-gradient(135deg, #fff, #f9fbfe) !important;
+      box-shadow: 0 8px 24px rgb(15 23 42 / 0.05) !important;
+    }
+    html:not(.dark) #post-box-collapsed > div:nth-child(2) {
+      border-color: #dce4ee;
+      background: #f5f8fc;
+      color: #66758a;
+    }
+    html:not(.dark) .social-post {
+      border-bottom-color: #e0e7ef !important;
+    }
+    html:not(.dark) .social-post:hover {
+      background: rgb(15 23 42 / 0.018) !important;
+    }
+    html:not(.dark) .social-post-copy p {
+      color: #465468 !important;
+    }
+    html:not(.dark) .social-post-meta {
+      color: #66758a !important;
+    }
+    html:not(.dark) .social-source-row a {
+      border-color: #d6e0eb;
+      background: #f8fafc;
+      color: #465468 !important;
+    }
+    html:not(.dark) .social-post-actions {
+      border-color: #e0e7ef !important;
+    }
+    html:not(.dark) .social-post-actions button:hover {
+      background: rgb(8 125 161 / 0.07) !important;
+    }
+    html:not(.dark) #feed-right-rail > div > section {
+      border-color: #dce4ee !important;
+      background: rgb(255 255 255 / 0.9) !important;
+    }
+    html:not(.dark) #app-bottom-nav {
+      background: rgb(255 255 255 / 0.96) !important;
+      border-color: #dce4ee !important;
+      box-shadow: 0 -8px 24px rgb(15 23 42 / 0.08);
+    }
+    html:not(.dark) #app-bottom-nav button[aria-current="page"] .material-symbols-outlined {
+      background: rgb(8 125 161 / 0.1);
+      box-shadow: none;
+    }
+    html:not(.dark) .feed-onboarding {
+      border-color: rgb(8 125 161 / 0.2);
+      background: linear-gradient(135deg, #e9f8fc, #ffffff 58%, #eff6ff);
+      box-shadow: 0 10px 26px rgb(15 23 42 / 0.05);
+    }
+    html:not(.dark) .onboarding-topic {
+      border-color: #d6e0eb;
+      background: #fff;
+      color: #465468;
+    }
+    html:not(.dark) .onboarding-topic:hover,
+    html:not(.dark) .onboarding-topic.selected {
+      border-color: rgb(8 125 161 / 0.4);
+      background: rgb(8 125 161 / 0.09);
+      color: #087da1;
+    }
+    html:not(.dark) .suggested-person-card,
+    html:not(.dark) .post-image-preview-card {
+      border-color: #dce4ee;
+      background: #f8fafc;
+    }
+    html:not(.dark) .suggested-follow-button {
+      background: #087da1;
+      color: #fff;
+    }
+    html:not(.dark) .suggested-follow-button.is-following {
+      border-color: #cbd5e1;
+      background: #fff;
+      color: #087da1;
+    }
+    html:not(.dark) #compose-page {
+      background: #f3f6fb;
+    }
+    html:not(.dark) .compose-page-shell {
+      background: #fff;
+      box-shadow: 0 0 48px rgb(15 23 42 / 0.12);
+    }
+    html:not(.dark) .compose-page-header {
+      border-color: #dce4ee;
+    }
+    html:not(.dark) #compose-page-body .compose-form > div:last-child {
+      border-color: #dce4ee;
+      background: rgb(255 255 255 / 0.96);
+    }
+    html:not(.dark) #profile-theme-toggle {
+      color: #087da1;
+    }
+    html:not(.dark) .new-posts-notice {
+      border-color: rgb(8 125 161 / 0.28);
+      background: rgb(232 248 253 / 0.97);
+      color: #087da1;
+      box-shadow: 0 8px 24px rgb(15 23 42 / 0.1);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #main-header, #feed-column [role="tablist"] button, #feed-left-rail nav button,
+      #app-bottom-nav button, .social-post-actions button { transition: none; }
+    }
   

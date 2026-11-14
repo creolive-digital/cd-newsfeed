@@ -4,14 +4,21 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>TechPulse AI - Bilingual Tech & AI News Feed</title>
-  <link rel="stylesheet" href="/css/app.min.css?v=25" />
+  <script>
+    try {
+      const savedTheme = localStorage.getItem('techpulse-theme');
+      const useDarkTheme = savedTheme ? savedTheme === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.classList.toggle('dark', useDarkTheme);
+    } catch (_) {}
+  </script>
+  <link rel="stylesheet" href="/css/app.min.css?v=28" />
   
   <!-- Invalidate legacy PWA caches -->
   <script>
     if ('caches' in window) {
       caches.keys().then(function(keys) {
         keys.forEach(function(key) {
-          if (key !== 'techpulse-shell-v25') {
+          if (key !== 'techpulse-shell-v28') {
             caches.delete(key);
           }
         });
@@ -74,7 +81,7 @@
         </button>
 
         <!-- Theme Toggle -->
-        <button id="theme-toggle-btn" class="hidden sm:flex w-9 h-9 rounded-full items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container transition-all" title="Toggle Theme" onclick="toggleTheme()">
+        <button id="theme-toggle-btn" aria-label="Switch to light mode" aria-pressed="true" class="hidden sm:flex w-9 h-9 rounded-full items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container transition-all" title="Switch to light mode" onclick="toggleTheme()">
           <span class="material-symbols-outlined text-[20px]" id="theme-icon">light_mode</span>
         </button>
 
@@ -274,6 +281,22 @@
             <button id="feed-for-you-tab" type="button" role="tab" aria-selected="true" onclick="setFollowingFeed(false)" class="relative px-3 py-4 text-sm font-bold text-on-surface after:absolute after:inset-x-8 after:bottom-0 after:h-1 after:rounded-full after:bg-primary">For you</button>
             <button id="feed-following-tab" type="button" role="tab" aria-selected="false" onclick="setFollowingFeed(true)" class="relative px-3 py-4 text-sm text-on-surface-variant hover:bg-surface-container-high/60">Following</button>
           </div>
+
+          <section id="feed-onboarding" class="hidden feed-onboarding rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-surface-container-low to-secondary-container/10 p-4 sm:p-5" aria-labelledby="feed-onboarding-title">
+            <div class="flex items-start justify-between gap-3">
+              <div><span class="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">Make it yours</span><h2 id="feed-onboarding-title" class="mt-1 text-base font-extrabold">Build a feed around your interests</h2><p class="mt-1 text-xs leading-relaxed text-on-surface-variant">Pick a few topics and people. Your Following feed will start feeling like your community.</p></div>
+              <button type="button" class="rounded-full p-1 text-on-surface-variant hover:bg-surface-container-high" aria-label="Dismiss suggestions" onclick="dismissFeedOnboarding()"><span class="material-symbols-outlined text-[19px]">close</span></button>
+            </div>
+            <div class="mt-4 flex flex-wrap gap-2" aria-label="Choose topics to follow">
+              <button id="onboarding-topic-ai" type="button" data-topic="#AI" aria-pressed="false" onclick="toggleSuggestedTopic('#AI')" class="onboarding-topic"><span class="material-symbols-outlined">auto_awesome</span>AI</button>
+              <button id="onboarding-topic-tech" type="button" data-topic="#Tech" aria-pressed="false" onclick="toggleSuggestedTopic('#Tech')" class="onboarding-topic"><span class="material-symbols-outlined">memory</span>Tech</button>
+              <button id="onboarding-topic-community" type="button" data-topic="#Community" aria-pressed="false" onclick="toggleSuggestedTopic('#Community')" class="onboarding-topic"><span class="material-symbols-outlined">groups</span>Community</button>
+            </div>
+            <div id="suggested-people-section" class="hidden mt-4 border-t border-surface-container-high/70 pt-4">
+              <h3 class="text-xs font-bold">People to follow</h3>
+              <div id="suggested-people-list" class="mt-2 grid gap-2 sm:grid-cols-2"></div>
+            </div>
+          </section>
     
     <!-- Feed discovery controls -->
     <div class="flex flex-col sm:flex-row gap-2">
@@ -295,7 +318,7 @@
     </div>
     <div class="flex items-center justify-between px-1 text-[11px] text-on-surface-variant">
       <span id="feed-result-count" aria-live="polite">Loading stories...</span>
-      <div class="flex items-center gap-3"><span id="feed-refresh-status" role="status" aria-live="polite" class="text-[10px] text-on-surface-variant/80">Loading…</span><button type="button" onclick="loadFeed()" class="inline-flex items-center gap-1 hover:text-primary"><span class="material-symbols-outlined text-[15px]">refresh</span>Refresh</button></div>
+      <div class="flex items-center gap-3"><span id="live-connection-status" class="inline-flex items-center gap-1.5 text-[10px] text-on-surface-variant/80" role="status" aria-live="polite"><span id="live-connection-dot" class="h-1.5 w-1.5 rounded-full bg-amber-400"></span><span id="live-connection-label">Connecting</span></span><span id="feed-refresh-status" role="status" aria-live="polite" class="text-[10px] text-on-surface-variant/80">Loading…</span><button type="button" onclick="loadFeed()" class="inline-flex items-center gap-1 hover:text-primary"><span class="material-symbols-outlined text-[15px]">refresh</span>Refresh</button></div>
     </div>
 
     <!-- Category Filter Carousel -->
@@ -371,7 +394,12 @@
           <div class="flex flex-col gap-1">
             <label class="text-xs font-medium text-on-surface-variant" for="post-image-file">Upload an image (Optional · up to 5 MB)</label>
             <input id="post-image-file" type="file" accept="image/png,image/jpeg,image/webp" onchange="uploadPostImage(event)" class="w-full text-xs text-on-surface-variant file:mr-2 file:rounded-lg file:border-0 file:bg-primary/15 file:px-2 file:py-1.5 file:text-xs file:font-semibold file:text-primary" />
-            <input id="post-image-url" type="url" placeholder="https://.../photo.jpg" class="w-full bg-surface-container-lowest py-2 px-3 text-sm rounded-xl text-on-surface border border-surface-container-high focus:outline-none focus:ring-2 focus:ring-primary/50" />
+            <input id="post-image-url" type="url" oninput="updateComposerImagePreviewFromUrl()" placeholder="Or paste an image URL" class="w-full bg-surface-container-lowest py-2 px-3 text-sm rounded-xl text-on-surface border border-surface-container-high focus:outline-none focus:ring-2 focus:ring-primary/50" />
+            <div id="post-image-preview-card" class="hidden post-image-preview-card">
+              <div class="relative overflow-hidden rounded-xl bg-surface-container-high"><img id="post-image-preview" alt="Post image preview" class="hidden h-48 w-full object-cover" /><div id="post-image-preview-error" class="hidden flex h-32 items-center justify-center gap-2 text-xs text-on-surface-variant"><span class="material-symbols-outlined">broken_image</span>Preview unavailable</div><button id="remove-post-image" type="button" onclick="clearPostImage()" class="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/70 text-white hover:bg-black" aria-label="Remove attached image"><span class="material-symbols-outlined text-[18px]">close</span></button></div>
+              <div class="mt-2 flex items-center justify-between gap-3 text-[11px]"><span id="post-image-upload-status" class="truncate text-on-surface-variant">Image attached</span><span id="post-image-upload-percent" class="hidden font-semibold text-primary">0%</span></div>
+              <div id="post-image-progress-track" class="hidden mt-1 h-1 overflow-hidden rounded-full bg-surface-container-high"><div id="post-image-progress-bar" class="h-full w-0 rounded-full bg-primary transition-[width] duration-150"></div></div>
+            </div>
           </div>
           <div class="flex flex-col gap-1">
             <label class="text-xs font-medium text-on-surface-variant">Source Link (Optional)</label>
@@ -395,6 +423,8 @@
         </div>
       </form>
     </div>
+
+    <button id="new-posts-notice" type="button" class="hidden new-posts-notice" onclick="loadFeed(); window.scrollTo({top:0,behavior:'smooth'})"><span class="material-symbols-outlined">arrow_upward</span><span id="new-posts-notice-label">New posts are available</span><span class="material-symbols-outlined">east</span></button>
 
     <!-- Feed Stream Container -->
     <div id="posts-container" class="flex flex-col gap-4">
@@ -650,6 +680,10 @@
         <div class="mt-4 flex flex-wrap gap-2">
           <button type="button" onclick="changePassword()" class="rounded-lg border border-surface-container-high px-3 py-2 text-[11px] font-semibold hover:text-primary">Change password</button>
         </div>
+        <div class="mt-5 flex items-center justify-between gap-4 rounded-xl border border-surface-container-high bg-surface-container-high/40 p-3">
+          <div class="flex min-w-0 items-center gap-3"><span id="profile-theme-icon" class="material-symbols-outlined text-primary">light_mode</span><div><h4 class="text-xs font-bold">Appearance</h4><p id="profile-theme-status" class="mt-0.5 text-[10px] text-on-surface-variant">Dark mode is on</p></div></div>
+          <button id="profile-theme-toggle" type="button" aria-pressed="true" aria-label="Switch to light mode" onclick="toggleTheme()" class="shrink-0 rounded-full border border-surface-container-high px-3 py-2 text-[11px] font-bold text-primary hover:bg-primary/10">Switch to light</button>
+        </div>
         <h4 class="mt-4 mb-1 text-xs font-semibold">Your feed topics</h4>
         <p class="mb-2 text-[10px] text-on-surface-variant">Choose topics to prioritize in “For you” and include in your Following feed.</p>
         <div class="flex flex-wrap gap-3 text-xs text-on-surface-variant"><label><input id="follow-topic-ai" type="checkbox" onchange="toggleTopicFollow('#AI',this.checked)" class="accent-cyan-400" /> AI</label><label><input id="follow-topic-tech" type="checkbox" onchange="toggleTopicFollow('#Tech',this.checked)" class="accent-cyan-400" /> Tech</label><label><input id="follow-topic-community" type="checkbox" onchange="toggleTopicFollow('#Community',this.checked)" class="accent-cyan-400" /> Community</label></div>
@@ -812,6 +846,8 @@
     let feedSearchTimer = null;
     let currentProfileUserId = null;
     let postImageUploading = false;
+    let postImagePreviewObjectUrl = null;
+    let pendingLivePostCount = 0;
     let currentReadingPostId = null;
     let deferredPrompt = null;
     let notificationRefreshTimer = null;
@@ -850,20 +886,43 @@
     });
 
     function initTheme() {
-      const savedTheme = localStorage.getItem('techpulse-theme') || 'dark';
-      if (savedTheme === 'light') {
-        document.documentElement.classList.remove('dark');
-        document.getElementById('theme-icon').textContent = 'dark_mode';
-      } else {
-        document.documentElement.classList.add('dark');
-        document.getElementById('theme-icon').textContent = 'light_mode';
-      }
+      let savedTheme = null;
+      try { savedTheme = localStorage.getItem('techpulse-theme'); } catch (_) {}
+      const systemTheme = window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      applyTheme(savedTheme || systemTheme, false);
     }
 
     function toggleTheme() {
-      const isDark = document.documentElement.classList.toggle('dark');
-      localStorage.setItem('techpulse-theme', isDark ? 'dark' : 'light');
-      document.getElementById('theme-icon').textContent = isDark ? 'light_mode' : 'dark_mode';
+      applyTheme(document.documentElement.classList.contains('dark') ? 'light' : 'dark', true);
+    }
+
+    function applyTheme(theme, persist) {
+      const isDark = theme === 'dark';
+      document.documentElement.classList.toggle('dark', isDark);
+      if (persist) {
+        try { localStorage.setItem('techpulse-theme', isDark ? 'dark' : 'light'); } catch (_) {}
+      }
+      const nextLabel = isDark ? 'Switch to light mode' : 'Switch to dark mode';
+      const headerButton = document.getElementById('theme-toggle-btn');
+      if (headerButton) {
+        headerButton.setAttribute('aria-label', nextLabel);
+        headerButton.setAttribute('aria-pressed', String(isDark));
+        headerButton.title = nextLabel;
+      }
+      const headerIcon = document.getElementById('theme-icon');
+      if (headerIcon) headerIcon.textContent = isDark ? 'light_mode' : 'dark_mode';
+      const profileButton = document.getElementById('profile-theme-toggle');
+      if (profileButton) {
+        profileButton.setAttribute('aria-label', nextLabel);
+        profileButton.setAttribute('aria-pressed', String(isDark));
+        profileButton.textContent = isDark ? 'Switch to light' : 'Switch to dark';
+      }
+      const profileIcon = document.getElementById('profile-theme-icon');
+      if (profileIcon) profileIcon.textContent = isDark ? 'light_mode' : 'dark_mode';
+      const profileStatus = document.getElementById('profile-theme-status');
+      if (profileStatus) profileStatus.textContent = `${isDark ? 'Dark' : 'Light'} mode is on`;
+      const themeColor = document.querySelector('meta[name="theme-color"]');
+      if (themeColor) themeColor.content = isDark ? '#070b12' : '#f4f7fb';
     }
 
     function updatePwaInstallOption() {
@@ -905,7 +964,7 @@
     function initServiceWorker() {
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js?v=25').then((reg) => {
+          navigator.serviceWorker.register('/sw.js?v=28').then((reg) => {
             reg.update();
             reg.onupdatefound = () => {
               const newWorker = reg.installing;
@@ -968,6 +1027,7 @@
       setAvatar(document.getElementById('rail-user-avatar'), currentUser);
       setAvatar(document.getElementById('create-post-avatar'), currentUser);
       document.getElementById('app-bottom-nav').classList.remove('hidden');
+      loadFeedOnboarding();
       loadNotifications();
       if (!notificationRefreshTimer) notificationRefreshTimer = setInterval(loadNotifications, 60000);
       connectRealtime();
@@ -1009,13 +1069,43 @@
       if (realtimeFallbackTimer) { clearInterval(realtimeFallbackTimer); realtimeFallbackTimer = null; }
     }
 
+    function setLiveConnectionState(state) {
+      const label = document.getElementById('live-connection-label');
+      const dot = document.getElementById('live-connection-dot');
+      const status = document.getElementById('live-connection-status');
+      if (!label || !dot || !status) return;
+      const states = {
+        live: ['Live', 'bg-emerald-400', 'text-emerald-400'],
+        connecting: ['Connecting', 'bg-amber-400', 'text-on-surface-variant'],
+        reconnecting: ['Reconnecting', 'bg-amber-400', 'text-amber-300'],
+        polling: ['Checking every 30s', 'bg-amber-400', 'text-amber-300'],
+        offline: ['Offline', 'bg-error', 'text-error']
+      };
+      const [text, dotClass, textClass] = states[state] || states.connecting;
+      label.textContent = text;
+      dot.className = `h-1.5 w-1.5 rounded-full ${dotClass}${state === 'live' ? ' animate-pulse' : ''}`;
+      status.className = `inline-flex items-center gap-1.5 text-[10px] ${textClass}`;
+      status.title = state === 'live' ? 'Live updates are connected' : state === 'polling' ? 'Live updates unavailable; checking for changes every 30 seconds' : text;
+    }
+
+    function showNewPostsNotice(count) {
+      pendingLivePostCount += count;
+      const notice = document.getElementById('new-posts-notice');
+      const label = document.getElementById('new-posts-notice-label');
+      if (!notice || !label) return;
+      label.textContent = `${pendingLivePostCount} new ${pendingLivePostCount === 1 ? 'post' : 'posts'} · Show latest`;
+      notice.classList.remove('hidden');
+    }
+
     async function connectRealtime() {
       if (!currentUser || realtimeConnection) return;
       if (!window.signalR) {
+        setLiveConnectionState(navigator.onLine ? 'polling' : 'offline');
         if (!realtimeRetryTimer) realtimeRetryTimer = setTimeout(() => { realtimeRetryTimer = null; connectRealtime(); }, 5000);
         if (!realtimeFallbackTimer) realtimeFallbackTimer = setInterval(() => { if (currentUser && !realtimeConnection) refreshFeedLive(); }, 30000);
         return;
       }
+      setLiveConnectionState('connecting');
       const connection = new signalR.HubConnectionBuilder().withUrl('/hubs/feed').withAutomaticReconnect().build();
       connection.on('FeedChanged', () => refreshFeedLive());
       connection.on('NotificationsChanged', () => loadNotifications());
@@ -1026,16 +1116,24 @@
           loadAdminInsights();
         }
       });
-      connection.onreconnected(() => { refreshFeedLive(); loadNotifications(); });
+      connection.onreconnecting(() => setLiveConnectionState('reconnecting'));
+      connection.onreconnected(() => { setLiveConnectionState('live'); refreshFeedLive(); loadNotifications(); });
       connection.onclose(() => {
         realtimeConnection = null;
+        setLiveConnectionState(navigator.onLine ? 'polling' : 'offline');
         if (currentUser && !realtimeRetryTimer) realtimeRetryTimer = setTimeout(() => { realtimeRetryTimer = null; connectRealtime(); }, 5000);
+        if (currentUser && !realtimeFallbackTimer) realtimeFallbackTimer = setInterval(() => { if (currentUser && !realtimeConnection) refreshFeedLive(); }, 30000);
       });
       realtimeConnection = connection;
-      try { await connection.start(); }
+      try {
+        await connection.start();
+        setLiveConnectionState('live');
+        if (realtimeFallbackTimer) { clearInterval(realtimeFallbackTimer); realtimeFallbackTimer = null; }
+      }
       catch (error) {
         console.warn('Live updates are temporarily unavailable; retrying shortly.', error);
         realtimeConnection = null;
+        setLiveConnectionState(navigator.onLine ? 'polling' : 'offline');
         connection.stop().catch(() => {});
         if (!realtimeRetryTimer) realtimeRetryTimer = setTimeout(() => { realtimeRetryTimer = null; connectRealtime(); }, 5000);
         if (!realtimeFallbackTimer) realtimeFallbackTimer = setInterval(() => { if (currentUser && !realtimeConnection) refreshFeedLive(); }, 30000);
@@ -1053,12 +1151,21 @@
           if (!response.ok) throw new Error('Feed refresh failed.');
           return response.json();
         }));
-        allPosts = pages.flatMap(page => page.items || page);
+        const refreshedPosts = pages.flatMap(page => page.items || page);
+        const previousIds = new Set(allPosts.map(post => post.id));
+        const newPosts = allPosts.length ? refreshedPosts.filter(post => !previousIds.has(post.id)) : [];
+        if (newPosts.length) {
+          const refreshedById = new Map(refreshedPosts.map(post => [post.id, post]));
+          allPosts = allPosts.map(post => refreshedById.get(post.id) || post);
+          showNewPostsNotice(newPosts.length);
+        } else {
+          allPosts = refreshedPosts;
+        }
         const lastPage = pages[pages.length - 1];
         feedTotal = lastPage.total ?? allPosts.length;
         feedHasMore = !!lastPage.hasMore;
         document.getElementById('load-more-posts').classList.toggle('hidden', !feedHasMore);
-        renderPosts();
+        if (!newPosts.length) renderPosts();
         if (currentReadingPostId && !document.getElementById('article-reader-modal').classList.contains('hidden')) {
           const readerScroll = document.getElementById('reader-scroll-container').scrollTop;
           openArticleReader(currentReadingPostId);
@@ -1163,12 +1270,89 @@
       } catch (_) {}
     }
 
+    async function loadFeedOnboarding() {
+      const panel = document.getElementById('feed-onboarding');
+      if (!panel || !currentUser) return;
+      const dismissedKey = `techpulse-onboarding-dismissed-${currentUser.id}`;
+      try { if (localStorage.getItem(dismissedKey) === 'true') return; } catch (_) {}
+
+      try {
+        const [followsResponse, suggestionsResponse] = await Promise.all([
+          fetch('/api/follows', { credentials: 'include' }),
+          fetch('/api/follows/suggestions', { credentials: 'include' })
+        ]);
+        if (!followsResponse.ok) return;
+        const follows = await followsResponse.json();
+        if (follows.length) {
+          panel.classList.add('hidden');
+          return;
+        }
+        const followedTopics = new Set(follows.map(follow => follow.topic).filter(Boolean));
+        for (const [topic, id] of [['#AI', 'onboarding-topic-ai'], ['#Tech', 'onboarding-topic-tech'], ['#Community', 'onboarding-topic-community']]) {
+          const button = document.getElementById(id);
+          const selected = followedTopics.has(topic);
+          button.setAttribute('aria-pressed', String(selected));
+          button.classList.toggle('selected', selected);
+        }
+        if (suggestionsResponse.ok) {
+          const people = await suggestionsResponse.json();
+          const section = document.getElementById('suggested-people-section');
+          const list = document.getElementById('suggested-people-list');
+          if (people.length) {
+            list.innerHTML = people.map(person => `
+              <article class="suggested-person-card">
+                ${avatarMarkup(person, 'w-9 h-9')}
+                <div class="min-w-0 flex-1"><button type="button" onclick="openUserProfile(${person.id})" class="block max-w-full truncate text-left text-xs font-bold hover:text-primary">${escapeHtml(person.displayName)}</button><span class="block truncate text-[10px] text-on-surface-variant">@${escapeHtml(person.username)} · ${person.postCount} ${person.postCount === 1 ? 'post' : 'posts'}</span></div>
+                <button type="button" class="suggested-follow-button" onclick="followSuggestedUser(${person.id}, this)">Follow</button>
+              </article>`).join('');
+            section.classList.remove('hidden');
+          }
+        }
+        panel.classList.remove('hidden');
+      } catch (error) {
+        console.warn('Could not load feed suggestions.', error);
+      }
+    }
+
+    function dismissFeedOnboarding() {
+      document.getElementById('feed-onboarding').classList.add('hidden');
+      try { localStorage.setItem(`techpulse-onboarding-dismissed-${currentUser?.id}`, 'true'); } catch (_) {}
+    }
+
+    async function toggleSuggestedTopic(topic) {
+      const id = { '#AI': 'onboarding-topic-ai', '#Tech': 'onboarding-topic-tech', '#Community': 'onboarding-topic-community' }[topic];
+      const button = document.getElementById(id);
+      const selected = button.getAttribute('aria-pressed') === 'true';
+      await toggleTopicFollow(topic, !selected);
+    }
+
+    async function followSuggestedUser(userId, button) {
+      button.disabled = true;
+      try {
+        const response = await fetch(`/api/follows/users/${userId}`, { method: 'POST', credentials: 'include' });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Could not follow this person.');
+        button.textContent = data.followed ? 'Following' : 'Follow';
+        button.classList.toggle('is-following', data.followed);
+        showToast(data.followed ? 'You are now following this person.' : 'Person unfollowed.', 'success');
+        if (followingOnly) await loadFeed();
+      } catch (error) {
+        showToast(error.message || 'Could not follow this person.', 'error');
+        button.disabled = false;
+      }
+    }
+
     async function toggleTopicFollow(topic, shouldFollow) {
       try {
         const response = await fetch(`/api/follows/topics/${encodeURIComponent(topic)}`, { method: 'POST', credentials: 'include' });
         const data = await response.json();
         if (!response.ok) throw new Error(data.message || 'Could not update topic preferences.');
         if (data.followed !== shouldFollow) return;
+        const onboardingButton = document.querySelector(`[data-topic="${topic}"]`);
+        if (onboardingButton) {
+          onboardingButton.setAttribute('aria-pressed', String(data.followed));
+          onboardingButton.classList.toggle('selected', data.followed);
+        }
         if (followingOnly) await loadFeed();
         showToast(shouldFollow ? `${topic} added to your Following feed.` : `${topic} removed from your Following feed.`, 'success');
       } catch (error) {
@@ -1601,8 +1785,13 @@
 
     // 3. Feed & Posts Handling
     async function loadFeed(append = false) {
+      if (append && pendingLivePostCount) return loadFeed(false);
       const container = document.getElementById('posts-container');
       const refreshStatus = document.getElementById('feed-refresh-status');
+      if (!append) {
+        pendingLivePostCount = 0;
+        document.getElementById('new-posts-notice').classList.add('hidden');
+      }
       const previousPostIds = new Set(allPosts.map(post => post.id));
       if (!append) {
         feedPage = 1;
@@ -1844,10 +2033,10 @@
       if (tag === '#Community') tagColor = 'bg-tertiary/20 text-tertiary border-tertiary/30';
 
       return `
-        <article class="overflow-hidden bg-surface-container-low rounded-2xl p-0 shadow-lg border border-surface-container-high/60 transition-colors hover:border-primary/30 relative" id="post-card-${post.id}">
+        <article class="social-post ${isAuto ? 'social-news-post' : 'social-member-post'} relative" id="post-card-${post.id}">
           
           <!-- Post Header -->
-          <div class="flex items-center justify-between gap-2 px-4 pt-4 sm:px-5 sm:pt-5">
+          <div class="social-post-header flex items-center justify-between gap-2 px-4 pt-4 sm:px-5 sm:pt-5">
             <div class="flex items-center gap-2.5 min-w-0">
               ${isAuto ? '<div class="w-10 h-10 rounded-full bg-primary/15 overflow-hidden ring-1 ring-white/10 flex-shrink-0"><img src="/logos/mini-logo.png" alt="" class="w-full h-full object-cover" /></div>' : `<button type="button" class="p-0 border-0 bg-transparent rounded-full" aria-label="View ${escapeHtml(authorName)} profile" onclick="openUserProfile(${post.author?.id || 0})">${avatarMarkup(post.author || { displayName: authorName }, 'w-10 h-10')}</button>`}
               <div class="flex flex-col min-w-0">
@@ -1869,7 +2058,7 @@
           </div>
 
           <!-- Headline & Summary (Sinhala Content) -->
-          <div class="px-4 pt-3 pb-3 sm:px-5">
+          <div class="social-post-copy px-4 pt-3 pb-3 sm:px-5">
             <h2 class="font-bold text-base sm:text-lg text-on-surface mb-1.5 leading-snug cursor-pointer hover:text-primary transition-colors" onclick="openArticleReader(${post.id})">
               ${escapeHtml(post.sinhalaTitle)}
             </h2>
@@ -1885,13 +2074,13 @@
 
           ${articleCardMediaMarkup(post, tag)}
 
-          <div class="mx-4 mt-3 mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] text-on-surface-variant sm:mx-5 sm:text-xs">
+          <div class="social-post-meta mx-4 mt-3 mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] text-on-surface-variant sm:mx-5 sm:text-xs">
             <span class="inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">schedule</span>${getArticleReadingMinutes(post)} min read</span>
             <span class="inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">chat_bubble_outline</span>${comments.length} ${comments.length === 1 ? 'comment' : 'comments'}</span>
           </div>
 
           <!-- Read More & Source Actions Row -->
-          <div class="mx-4 mb-3 flex items-center gap-2 flex-wrap sm:mx-5">
+          <div class="social-source-row mx-4 mb-3 flex items-center gap-2 flex-wrap sm:mx-5">
             ${post.link ? `
               <a href="${escapeHtml(post.link)}" target="_blank" rel="noopener noreferrer" class="inline-flex min-w-0 items-center gap-1.5 rounded-lg px-2 py-2 text-xs text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface" title="Open original article">
                 <span class="truncate">${escapeHtml(post.isAutoNews ? `Original source · ${post.source}` : 'Open link')}</span>
@@ -1901,7 +2090,7 @@
           </div>
 
           <!-- Action & Engagement Bar -->
-          <div class="mx-4 border-t border-surface-container-high/70 py-1 sm:mx-5 grid grid-cols-4 text-[10px] text-on-surface-variant sm:text-xs">
+          <div class="social-post-actions mx-4 border-t border-surface-container-high/70 py-1 sm:mx-5 grid grid-cols-4 text-[10px] text-on-surface-variant sm:text-xs">
               <button id="like-button-${post.id}" aria-label="Like this post" class="flex items-center justify-center gap-1 py-2 rounded-lg transition-colors ${post.likedByCurrentUser ? 'text-rose-400 bg-rose-500/10' : 'hover:bg-surface-container hover:text-rose-400'}" onclick="togglePostLike(${post.id})">
                 <span class="material-symbols-outlined text-[18px]">thumb_up</span>
                 <span class="hidden sm:inline">Like</span><span id="like-count-${post.id}" class="font-semibold">${post.likeCount || 0}</span>
@@ -2233,9 +2422,8 @@
           document.getElementById('post-title').value = '';
           document.getElementById('post-summary').value = '';
           document.getElementById('post-content').value = '';
-          document.getElementById('post-image-url').value = '';
+          clearPostImage();
           document.getElementById('post-link').value = '';
-          document.getElementById('post-image-file').value = '';
           expandPostBox(false);
         } else {
           const err = await res.json();
@@ -2253,23 +2441,93 @@
       if (!file) return;
       if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024) {
         showToast('Choose a PNG, JPG, or WebP image no larger than 5 MB.', 'error');
-        event.target.value = '';
+        clearPostImage();
         return;
       }
+      if (postImagePreviewObjectUrl) URL.revokeObjectURL(postImagePreviewObjectUrl);
+      postImagePreviewObjectUrl = URL.createObjectURL(file);
+      setComposerImagePreview(postImagePreviewObjectUrl, `Preparing ${file.name}…`);
+      document.getElementById('post-image-url').value = '';
       const formData = new FormData();
       formData.append('image', file);
       postImageUploading = true;
-      showToast('Uploading image...', 'info', 2000);
+      const removeButton = document.getElementById('remove-post-image');
+      removeButton.disabled = true;
+      document.getElementById('post-image-progress-track').classList.remove('hidden');
+      document.getElementById('post-image-upload-percent').classList.remove('hidden');
+      document.getElementById('post-image-upload-status').textContent = 'Uploading image…';
       try {
-        const response = await fetch('/api/posts/images', { method: 'POST', body: formData, credentials: 'include' });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.message || 'Image upload failed.');
+        const data = await new Promise((resolve, reject) => {
+          const request = new XMLHttpRequest();
+          request.open('POST', '/api/posts/images');
+          request.withCredentials = true;
+          request.upload.onprogress = progress => {
+            if (!progress.lengthComputable) return;
+            const percent = Math.round((progress.loaded / progress.total) * 100);
+            document.getElementById('post-image-progress-bar').style.width = `${percent}%`;
+            document.getElementById('post-image-upload-percent').textContent = `${percent}%`;
+          };
+          request.onload = () => {
+            let result;
+            try { result = JSON.parse(request.responseText); } catch (_) { result = {}; }
+            if (request.status >= 200 && request.status < 300) resolve(result);
+            else reject(new Error(result.message || 'Image upload failed.'));
+          };
+          request.onerror = () => reject(new Error('Network error while uploading the image.'));
+          request.send(formData);
+        });
         document.getElementById('post-image-url').value = data.imageUrl;
+        document.getElementById('post-image-upload-status').textContent = 'Image uploaded and ready to post';
+        document.getElementById('post-image-upload-percent').classList.add('hidden');
+        document.getElementById('post-image-progress-track').classList.add('hidden');
         showToast('Image uploaded and attached to your post.', 'success');
       } catch (error) {
         showToast(error.message || 'Image upload failed.', 'error');
-        event.target.value = '';
-      } finally { postImageUploading = false; }
+        postImageUploading = false;
+        clearPostImage();
+      } finally {
+        postImageUploading = false;
+        removeButton.disabled = false;
+      }
+    }
+
+    function setComposerImagePreview(source, statusText = 'Image attached') {
+      const card = document.getElementById('post-image-preview-card');
+      const image = document.getElementById('post-image-preview');
+      const error = document.getElementById('post-image-preview-error');
+      image.onload = () => { image.classList.remove('hidden'); error.classList.add('hidden'); };
+      image.onerror = () => { image.classList.add('hidden'); error.classList.remove('hidden'); };
+      error.classList.add('hidden');
+      image.classList.remove('hidden');
+      image.src = source;
+      card.classList.remove('hidden');
+      document.getElementById('post-image-upload-status').textContent = statusText;
+    }
+
+    function updateComposerImagePreviewFromUrl() {
+      const url = document.getElementById('post-image-url').value.trim();
+      if (!url) {
+        if (!postImageUploading) document.getElementById('post-image-preview-card').classList.add('hidden');
+        return;
+      }
+      const fileInput = document.getElementById('post-image-file');
+      if (fileInput.files?.length) fileInput.value = '';
+      if (postImagePreviewObjectUrl) { URL.revokeObjectURL(postImagePreviewObjectUrl); postImagePreviewObjectUrl = null; }
+      setComposerImagePreview(url, 'Checking image…');
+    }
+
+    function clearPostImage() {
+      if (postImageUploading) return;
+      if (postImagePreviewObjectUrl) { URL.revokeObjectURL(postImagePreviewObjectUrl); postImagePreviewObjectUrl = null; }
+      document.getElementById('post-image-file').value = '';
+      document.getElementById('post-image-url').value = '';
+      document.getElementById('post-image-preview').removeAttribute('src');
+      document.getElementById('post-image-preview').classList.add('hidden');
+      document.getElementById('post-image-preview-error').classList.add('hidden');
+      document.getElementById('post-image-preview-card').classList.add('hidden');
+      document.getElementById('post-image-progress-track').classList.add('hidden');
+      document.getElementById('post-image-upload-percent').classList.add('hidden');
+      document.getElementById('post-image-progress-bar').style.width = '0%';
     }
 
     async function openPostEditor(postId) {
@@ -2910,7 +3168,11 @@
         status.textContent = 'Back online · refreshing';
         status.classList.remove('text-error');
       }
-      if (currentUser) loadFeed();
+      if (currentUser) {
+        setLiveConnectionState('connecting');
+        connectRealtime();
+        loadFeed();
+      }
     });
     window.addEventListener('offline', () => {
       const status = document.getElementById('feed-refresh-status');
@@ -2918,6 +3180,7 @@
         status.textContent = 'Offline · showing loaded stories';
         status.classList.add('text-error');
       }
+      setLiveConnectionState('offline');
     });
   </script>
 </body>
