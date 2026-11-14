@@ -17,6 +17,7 @@ public class NewsUpdaterService : BackgroundService
     private readonly IConfiguration _configuration;
     private readonly IHostEnvironment _environment;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly GeminiImageGenerator _imageGenerator;
     private readonly ILogger<NewsUpdaterService> _logger;
     private readonly SemaphoreSlim _runLock = new(1, 1);
     private readonly object _stateLock = new();
@@ -72,12 +73,14 @@ public class NewsUpdaterService : BackgroundService
         IConfiguration configuration,
         IHostEnvironment environment,
         IHttpClientFactory httpClientFactory,
+        GeminiImageGenerator imageGenerator,
         ILogger<NewsUpdaterService> logger)
     {
         _scopeFactory = scopeFactory;
         _configuration = configuration;
         _environment = environment;
         _httpClientFactory = httpClientFactory;
+        _imageGenerator = imageGenerator;
         _logger = logger;
     }
 
@@ -254,6 +257,8 @@ public class NewsUpdaterService : BackgroundService
         int insertedCount = 0;
         int duplicateCount = 0;
         int translationFailureCount = 0;
+        int generatedImageCount = 0;
+        const int maxGeneratedImagesPerRun = 3;
 
         foreach (var candidate in sortedCandidates)
         {
@@ -270,6 +275,18 @@ public class NewsUpdaterService : BackgroundService
                 {
                     existingPost.ImageUrl = candidate.ImageUrl;
                     await db.SaveChangesAsync(stoppingToken);
+                }
+                else if (string.IsNullOrWhiteSpace(existingPost.ImageUrl) &&
+                         generatedImageCount < maxGeneratedImagesPerRun)
+                {
+                    var generatedImage = await _imageGenerator.GenerateAndSaveAsync(
+                        candidate.Title, candidate.Summary, apiKeys, stoppingToken);
+                    if (!string.IsNullOrWhiteSpace(generatedImage))
+                    {
+                        existingPost.ImageUrl = generatedImage;
+                        await db.SaveChangesAsync(stoppingToken);
+                        generatedImageCount++;
+                    }
                 }
                 continue;
             }
@@ -307,8 +324,20 @@ public class NewsUpdaterService : BackgroundService
 
                 db.Posts.Add(newPost);
                 await db.SaveChangesAsync(stoppingToken);
+                if (string.IsNullOrWhiteSpace(newPost.ImageUrl) &&
+                    generatedImageCount < maxGeneratedImagesPerRun)
+                {
+                    newPost.ImageUrl = await _imageGenerator.GenerateAndSaveAsync(
+                        candidate.Title, candidate.Summary, apiKeys, stoppingToken);
+                    if (!string.IsNullOrWhiteSpace(newPost.ImageUrl))
+                    {
+                        await db.SaveChangesAsync(stoppingToken);
+                        generatedImageCount++;
+                    }
+                }
                 insertedCount++;
-                _logger.LogInformation("Inserted translated auto-news post: {Id} - {Title}", newPost.Id, newPost.SinhalaTitle);
+                _logger.LogInformation("Inserted translated auto-news post: {Id} - {Title}; generated image: {HasGeneratedImage}",
+                    newPost.Id, newPost.SinhalaTitle, !string.IsNullOrWhiteSpace(newPost.ImageUrl) && newPost.ImageUrl.StartsWith("/uploads/articles/generated/", StringComparison.Ordinal));
             }
             else
             {
@@ -318,6 +347,8 @@ public class NewsUpdaterService : BackgroundService
 
         _logger.LogInformation("News scan found {CandidateCount} RSS stories; {DuplicateCount} were already in the database and {TranslationFailureCount} could not be translated.",
             sortedCandidates.Count, duplicateCount, translationFailureCount);
+        _logger.LogInformation("Generated {GeneratedImageCount} missing article images (limit {MaxGeneratedImages}).",
+            generatedImageCount, maxGeneratedImagesPerRun);
         return insertedCount;
     }
 

@@ -55,6 +55,10 @@ builder.Services.AddHttpClient<GeminiTranslatorService>(client =>
 {
     client.Timeout = TimeSpan.FromSeconds(60);
 });
+builder.Services.AddHttpClient<GeminiImageGenerator>(client =>
+{
+    client.Timeout = TimeSpan.FromMinutes(2);
+});
 builder.Services.Configure<FormOptions>(options => options.MultipartBodyLengthLimit = 6 * 1024 * 1024);
 builder.Services.AddSingleton<NewsUpdaterService>();
 builder.Services.AddHostedService<NewsUpdaterService>(provider => provider.GetRequiredService<NewsUpdaterService>());
