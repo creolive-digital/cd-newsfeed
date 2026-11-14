@@ -10,3 +10,8 @@ appsettings.*.json
 !appsettings.example.json
 TestResults/
 /wwwroot/uploads/**
+node_modules/
+wwwroot/css/app.min.css
+wwwroot/js/signalr.min.js
+wwwroot/css/files/
+wwwroot/css/material-symbols-outlined.woff2

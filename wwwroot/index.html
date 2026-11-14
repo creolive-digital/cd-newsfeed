@@ -4,13 +4,14 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>TechPulse AI - Bilingual Tech & AI News Feed</title>
+  <link rel="stylesheet" href="/css/app.min.css?v=19" />
   
   <!-- Invalidate legacy PWA caches -->
   <script>
     if ('caches' in window) {
       caches.keys().then(function(keys) {
         keys.forEach(function(key) {
-          if (key !== 'techpulse-shell-v12') {
+          if (key !== 'techpulse-shell-v19') {
             caches.delete(key);
           }
         });
@@ -26,129 +27,7 @@
   <link rel="apple-touch-icon" href="/logos/mini-logo.png" />
   <link rel="icon" type="image/png" href="/logos/mini-logo.png" />
 
-  <!-- Fonts & Material Symbols -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Sinhala:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js" crossorigin="anonymous"></script>
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: "class",
-      theme: {
-        extend: {
-          colors: {
-            "surface-variant": "#2d3449",
-            "background": "#0b1326",
-            "on-surface": "#dae2fd",
-            "on-tertiary-fixed-variant": "#003ea8",
-            "on-tertiary": "#002a78",
-            "outline": "#869397",
-            "on-error": "#690005",
-            "on-tertiary-container": "#003490",
-            "surface-container-low": "#131b2e",
-            "surface-tint": "#4cd7f6",
-            "primary": "#4cd7f6",
-            "on-primary-fixed": "#001f26",
-            "outline-variant": "#3d494c",
-            "surface": "#0b1326",
-            "inverse-surface": "#dae2fd",
-            "error-container": "#93000a",
-            "on-tertiary-fixed": "#00174b",
-            "tertiary": "#b4c5ff",
-            "tertiary-container": "#85a3ff",
-            "secondary": "#d0bcff",
-            "surface-bright": "#31394d",
-            "on-background": "#dae2fd",
-            "surface-dim": "#0b1326",
-            "on-primary-container": "#00424f",
-            "on-error-container": "#ffdad6",
-            "inverse-primary": "#00687a",
-            "on-secondary": "#3c0091",
-            "inverse-on-surface": "#283044",
-            "secondary-container": "#571bc1",
-            "on-primary-fixed-variant": "#004e5c",
-            "primary-fixed": "#acedff",
-            "on-secondary-fixed": "#23005c",
-            "primary-container": "#06b6d4",
-            "on-primary": "#003640",
-            "surface-container-highest": "#2d3449",
-            "surface-container-lowest": "#060e20",
-            "tertiary-fixed-dim": "#b4c5ff",
-            "on-secondary-container": "#c4abff",
-            "secondary-fixed-dim": "#d0bcff",
-            "primary-fixed-dim": "#4cd7f6",
-            "surface-container-high": "#222a3d",
-            "surface-container": "#171f33",
-            "on-secondary-fixed-variant": "#5516be",
-            "secondary-fixed": "#e9ddff",
-            "error": "#ffb4ab",
-            "on-surface-variant": "#bcc9cd",
-            "tertiary-fixed": "#dbe1ff"
-          },
-          fontFamily: {
-            sans: ["Inter", "Noto Sans Sinhala", "sans-serif"]
-          }
-        }
-      }
-    };
-  </script>
-
-  <style>
-    @layer base {
-      html, body {
-        width: 100%;
-        margin: 0;
-        padding: 0;
-        min-height: 100%;
-        font-family: 'Inter', 'Noto Sans Sinhala', sans-serif;
-      }
-      body {
-        overscroll-behavior-y: none;
-        -webkit-tap-highlight-color: transparent;
-      }
-    }
-    .no-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
-    .no-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-    /* Light mode overrides */
-    html:not(.dark) body {
-      background-color: #f8fafc;
-      color: #0f172a;
-    }
-    html:not(.dark) .bg-background {
-      background-color: #f8fafc !important;
-    }
-    html:not(.dark) .bg-surface-container-low {
-      background-color: #ffffff !important;
-      border: 1px solid #e2e8f0;
-    }
-    html:not(.dark) .bg-surface-container {
-      background-color: #f1f5f9 !important;
-    }
-    html:not(.dark) .bg-surface-container-high {
-      background-color: #e2e8f0 !important;
-    }
-    html:not(.dark) .bg-surface-container-highest {
-      background-color: #cbd5e1 !important;
-    }
-    html:not(.dark) .bg-surface {
-      background-color: rgba(255, 255, 255, 0.9) !important;
-    }
-    html:not(.dark) .text-on-surface {
-      color: #0f172a !important;
-    }
-    html:not(.dark) .text-on-surface-variant {
-      color: #475569 !important;
-    }
-  </style>
+  <script src="/js/signalr.min.js"></script>
 </head>
 <body class="bg-background text-on-surface min-h-screen flex flex-col relative selection:bg-primary selection:text-on-primary">
 
@@ -160,33 +39,9 @@
   <!-- Toast Notification Container -->
   <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm pointer-events-none"></div>
 
-  <!-- PWA Install Prompt Banner / Modal -->
-  <div id="pwa-install-banner" class="fixed bottom-4 inset-x-4 max-w-lg mx-auto z-50 hidden">
-    <div class="bg-surface-container-high/95 backdrop-blur-xl border border-primary/30 p-4 rounded-2xl shadow-2xl flex items-center justify-between gap-3">
-      <div class="flex items-center gap-3">
-        <img src="/logos/mini-logo.png" alt="TechPulse AI" class="w-11 h-11 rounded-xl object-contain shadow-md flex-shrink-0" />
-        <div class="flex flex-col min-w-0">
-          <span class="font-bold text-sm text-on-surface flex items-center gap-1.5">
-            Install TechPulse AI
-            <span class="w-2 h-2 rounded-full bg-primary animate-ping"></span>
-          </span>
-          <span id="pwa-desc" class="text-xs text-on-surface-variant truncate">Add to your Home Screen for instant access to real-time AI feeds.</span>
-        </div>
-      </div>
-      <div class="flex items-center gap-1.5 flex-shrink-0">
-        <button id="pwa-install-btn" class="px-3.5 py-1.5 rounded-xl bg-primary text-on-primary font-semibold text-xs shadow-md shadow-primary/20 hover:scale-105 active:scale-95 transition-all">
-          Install
-        </button>
-        <button id="pwa-close-btn" class="w-8 h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:text-on-surface" title="Dismiss">
-          <span class="material-symbols-outlined text-[18px]">close</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
   <!-- Top Navigation Header (Shown when authenticated) -->
   <header id="main-header" class="fixed top-0 inset-x-0 z-40 bg-surface/85 backdrop-blur-xl border-b border-surface-container-high/60 shadow-sm hidden">
-    <div class="max-w-4xl mx-auto h-16 px-4 flex items-center justify-between gap-2">
+    <div class="max-w-[1260px] mx-auto h-16 px-4 flex items-center justify-between gap-2">
       
       <!-- Brand Logo & Name -->
       <div class="flex items-center gap-2.5 min-w-0 cursor-pointer" onclick="filterByTag('All')">
@@ -377,7 +232,36 @@
   <!-- ==================================================== -->
   <!-- 2. MAIN FEED VIEW (Authenticated Users Only)         -->
   <!-- ==================================================== -->
-  <main id="feed-view" class="flex-1 w-full max-w-3xl mx-auto px-4 pt-20 pb-16 flex flex-col gap-4 relative z-10 hidden">
+  <main id="feed-view" class="hidden relative z-10 w-full flex-1 pt-16 pb-20 md:pb-8">
+    <div id="feed-layout" class="mx-auto grid w-full max-w-[1260px] grid-cols-1 items-start md:grid-cols-[64px_minmax(0,680px)] md:justify-center md:gap-3 xl:grid-cols-[250px_minmax(0,600px)_300px] xl:justify-between xl:gap-6">
+      <aside id="feed-left-rail" class="sticky top-16 hidden h-[calc(100dvh-4rem)] flex-col py-2 md:flex">
+        <button type="button" onclick="setFollowingFeed(false); window.scrollTo({top:0,behavior:'smooth'})" aria-label="TechPulse home" class="mb-4 flex h-12 items-center justify-center rounded-full hover:bg-surface-container-high xl:justify-start xl:px-3">
+          <img src="/logos/mini-logo.png" alt="" class="h-8 w-8 object-contain" />
+          <span class="ml-3 hidden text-xl font-extrabold tracking-tight xl:inline">TechPulse</span>
+        </button>
+        <nav aria-label="Main navigation" class="flex flex-1 flex-col gap-1">
+          <button type="button" onclick="setFollowingFeed(false); window.scrollTo({top:0,behavior:'smooth'})" class="flex h-12 items-center justify-center gap-4 rounded-full px-3 hover:bg-surface-container-high xl:justify-start" aria-label="Home" title="Home"><span class="material-symbols-outlined text-[25px]">home</span><span class="hidden text-base xl:inline">Home</span></button>
+          <button type="button" onclick="focusFeedSearch()" class="flex h-12 items-center justify-center gap-4 rounded-full px-3 hover:bg-surface-container-high xl:justify-start" aria-label="Explore" title="Explore"><span class="material-symbols-outlined text-[25px]">search</span><span class="hidden text-base xl:inline">Explore</span></button>
+          <button type="button" onclick="toggleNotifications(true)" class="relative flex h-12 items-center justify-center gap-4 rounded-full px-3 hover:bg-surface-container-high xl:justify-start" aria-label="Notifications" title="Notifications"><span class="material-symbols-outlined text-[25px]">notifications</span><span class="hidden text-base xl:inline">Notifications</span><span id="rail-notification-badge" class="hidden absolute left-1/2 top-1 min-w-4 -translate-x-1/2 rounded-full bg-error px-1 text-center text-[9px] font-bold text-white xl:left-8 xl:translate-x-0">0</span></button>
+          <button type="button" onclick="toggleSavedPosts()" class="flex h-12 items-center justify-center gap-4 rounded-full px-3 hover:bg-surface-container-high xl:justify-start" aria-label="Bookmarks" title="Bookmarks"><span class="material-symbols-outlined text-[25px]">bookmark</span><span class="hidden text-base xl:inline">Bookmarks</span></button>
+          <button type="button" onclick="setFollowingFeed(true)" class="flex h-12 items-center justify-center gap-4 rounded-full px-3 hover:bg-surface-container-high xl:justify-start" aria-label="Following" title="Following"><span class="material-symbols-outlined text-[25px]">group</span><span class="hidden text-base xl:inline">Following</span></button>
+          <button type="button" onclick="openProfileModal()" class="flex h-12 items-center justify-center gap-4 rounded-full px-3 hover:bg-surface-container-high xl:justify-start" aria-label="Profile" title="Profile"><span class="material-symbols-outlined text-[25px]">person</span><span class="hidden text-base xl:inline">Profile</span></button>
+          <button type="button" onclick="toggleTheme()" class="flex h-12 items-center justify-center gap-4 rounded-full px-3 hover:bg-surface-container-high xl:justify-start" aria-label="Toggle theme" title="Toggle theme"><span class="material-symbols-outlined text-[25px]">contrast</span><span class="hidden text-base xl:inline">Display</span></button>
+          <button type="button" onclick="expandPostBox(true); window.scrollTo({top:0,behavior:'smooth'})" class="mt-3 flex h-12 items-center justify-center rounded-full bg-primary text-on-primary shadow-lg hover:brightness-110 xl:justify-start xl:px-6" aria-label="Post" title="Post"><span class="material-symbols-outlined text-[23px] xl:hidden">edit</span><span class="hidden font-bold xl:inline">Post</span></button>
+        </nav>
+        <button type="button" onclick="openProfileModal()" class="mt-auto flex items-center justify-center gap-3 rounded-full p-2 hover:bg-surface-container-high xl:justify-start xl:p-3" aria-label="Open your profile">
+          <span id="rail-user-avatar" class="h-10 w-10 flex-shrink-0 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-sm uppercase">U</span>
+          <span class="hidden min-w-0 flex-1 text-left xl:block"><span id="rail-user-name" class="block truncate text-sm font-bold">User</span><span id="rail-user-handle" class="block truncate text-xs text-on-surface-variant">@user</span></span>
+          <span class="material-symbols-outlined hidden xl:block">more_horiz</span>
+        </button>
+      </aside>
+
+      <section id="feed-column" class="min-w-0 border-x border-surface-container-high/70">
+        <div class="flex flex-col gap-3 px-3 pt-3 sm:px-4">
+          <div class="sticky top-16 z-30 -mx-3 grid grid-cols-2 border-b border-surface-container-high bg-surface/95 backdrop-blur sm:-mx-4" role="tablist" aria-label="Feed timeline">
+            <button id="feed-for-you-tab" type="button" role="tab" aria-selected="true" onclick="setFollowingFeed(false)" class="relative px-3 py-4 text-sm font-bold text-on-surface after:absolute after:inset-x-8 after:bottom-0 after:h-1 after:rounded-full after:bg-primary">For you</button>
+            <button id="feed-following-tab" type="button" role="tab" aria-selected="false" onclick="setFollowingFeed(true)" class="relative px-3 py-4 text-sm text-on-surface-variant hover:bg-surface-container-high/60">Following</button>
+          </div>
     
     <!-- Feed discovery controls -->
     <div class="flex flex-col sm:flex-row gap-2">
@@ -393,9 +277,6 @@
         </select>
         <button id="saved-posts-toggle" type="button" onclick="toggleSavedPosts()" aria-pressed="false" class="inline-flex items-center justify-center gap-1.5 rounded-xl border border-surface-container-high bg-surface-container-low px-3 py-2 text-xs font-semibold text-on-surface-variant hover:text-primary transition-colors">
           <span class="material-symbols-outlined text-[17px]">bookmark</span><span>Saved</span>
-        </button>
-        <button id="following-feed-toggle" type="button" onclick="toggleFollowingFeed()" aria-pressed="false" class="inline-flex items-center justify-center gap-1.5 rounded-xl border border-surface-container-high bg-surface-container-low px-3 py-2 text-xs font-semibold text-on-surface-variant hover:text-primary transition-colors">
-          <span class="material-symbols-outlined text-[17px]">group</span><span>Following</span>
         </button>
       </div>
     </div>
@@ -520,6 +401,26 @@
       </div>
     </div>
     <button id="load-more-posts" class="hidden w-full rounded-xl border border-surface-container-high bg-surface-container-low py-3 text-xs font-semibold text-primary hover:bg-surface-container transition-colors" onclick="loadMorePosts()">Load more stories</button>
+        </div>
+      </section>
+
+      <aside id="feed-right-rail" class="sticky top-16 hidden h-[calc(100dvh-4rem)] overflow-y-auto py-4 xl:block">
+        <div class="flex flex-col gap-4">
+          <button type="button" onclick="focusFeedSearch()" class="flex w-full items-center gap-3 rounded-full border border-surface-container-high bg-surface-container-low px-4 py-3 text-left text-sm text-on-surface-variant hover:border-primary/50"><span class="material-symbols-outlined">search</span>Search TechPulse</button>
+          <section class="overflow-hidden rounded-2xl border border-surface-container-high bg-surface-container-low">
+            <h2 class="px-4 py-3 text-lg font-extrabold">Latest stories</h2>
+            <div id="explore-stories" class="divide-y divide-surface-container-high"><p class="px-4 py-3 text-xs text-on-surface-variant">Fresh stories from your feed will appear here.</p></div>
+          </section>
+          <section class="overflow-hidden rounded-2xl border border-surface-container-high bg-surface-container-low">
+            <h2 class="px-4 py-3 text-lg font-extrabold">Explore topics</h2>
+            <button type="button" onclick="filterByTag('#AI')" class="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-surface-container-high"><span><span class="block text-xs text-on-surface-variant">Technology · Topic</span><span class="font-bold">Artificial Intelligence</span></span><span class="text-primary">#AI</span></button>
+            <button type="button" onclick="filterByTag('#Tech')" class="flex w-full items-center justify-between border-t border-surface-container-high px-4 py-3 text-left hover:bg-surface-container-high"><span><span class="block text-xs text-on-surface-variant">Technology · Topic</span><span class="font-bold">Tech & Science</span></span><span class="text-primary">#Tech</span></button>
+            <button type="button" onclick="filterByTag('#Community')" class="flex w-full items-center justify-between border-t border-surface-container-high px-4 py-3 text-left hover:bg-surface-container-high"><span><span class="block text-xs text-on-surface-variant">Community · Topic</span><span class="font-bold">Community stories</span></span><span class="text-primary">#Community</span></button>
+          </section>
+          <p class="px-2 text-xs leading-relaxed text-on-surface-variant">TechPulse · Sinhala technology and AI news with a community timeline.</p>
+        </div>
+      </aside>
+    </div>
   </main>
 
   <div id="edit-post-modal" class="hidden fixed inset-0 z-[65] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
@@ -536,8 +437,8 @@
   <!-- ==================================================== -->
   <!-- 3. FULL ARTICLE READER MODAL (Read without leaving)  -->
   <!-- ==================================================== -->
-  <div id="article-reader-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex justify-center overflow-y-auto p-2 sm:p-4 hidden">
-    <div class="w-full max-w-2xl bg-surface-container-low/95 border border-primary/30 rounded-2xl shadow-2xl flex flex-col my-auto max-h-[96vh] overflow-hidden">
+  <div id="article-reader-modal" role="dialog" aria-modal="true" aria-labelledby="reader-title" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-start sm:items-center justify-center overflow-y-auto p-0 sm:p-4 hidden">
+    <div class="w-full max-w-4xl bg-surface-container-low/95 border-0 sm:border sm:border-primary/30 rounded-none sm:rounded-2xl shadow-2xl flex flex-col my-auto min-h-dvh sm:min-h-0 max-h-dvh sm:max-h-[96vh] overflow-hidden">
       
       <!-- Reader Header Bar -->
       <header class="p-3.5 border-b border-surface-container-high flex items-center justify-between bg-surface/90 sticky top-0 z-20 backdrop-blur-md">
@@ -560,35 +461,37 @@
       <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 text-on-surface" id="reader-scroll-container">
         
         <!-- Metadata Row -->
-        <div class="flex items-center justify-between text-xs text-on-surface-variant border-b border-surface-container-high/60 pb-3">
+        <div class="flex items-center justify-between gap-3 text-xs text-on-surface-variant border-b border-surface-container-high/60 pb-3">
           <div class="flex items-center gap-2.5">
             <div id="reader-author-avatar" class="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-xs">A</div>
-            <div>
+            <div class="min-w-0">
               <span id="reader-author-name" class="font-bold text-on-surface text-xs block">Source Name</span>
-              <span id="reader-post-date" class="text-[10px] text-on-surface-variant block">Date</span>
+              <span id="reader-post-date" class="text-[10px] text-on-surface-variant block truncate">Date</span>
             </div>
           </div>
           <span class="px-2.5 py-1 rounded-full bg-surface-container text-primary font-semibold text-[11px] flex items-center gap-1">
             <span class="material-symbols-outlined text-[14px]">timer</span>
-            <span>3 min read</span>
+            <span id="reader-reading-time">1 min read</span>
           </span>
         </div>
 
         <!-- Headline (Sinhala) -->
-        <h1 id="reader-title" class="font-extrabold text-xl sm:text-2xl text-on-surface leading-snug">
+        <h1 id="reader-title" class="font-extrabold text-2xl sm:text-3xl lg:text-4xl text-on-surface leading-tight tracking-tight">
           Article Headline
         </h1>
 
         <!-- Hero Image Canvas -->
-        <div id="reader-image-container" class="relative w-full h-56 sm:h-72 rounded-2xl overflow-hidden shadow-xl bg-surface-container-lowest">
-          <img id="reader-image" src="" alt="Article Visual" class="w-full h-full object-cover" onerror="document.getElementById('reader-image-container').classList.add('hidden')" />
-          <div class="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent"></div>
-          <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-            <span id="reader-image-caption" class="bg-surface/85 backdrop-blur-md px-3 py-1 rounded-lg text-primary text-xs font-semibold">
-              TechPulse AI Brief
-            </span>
+        <figure id="reader-image-container" class="relative w-full aspect-[16/10] sm:aspect-[16/8] rounded-2xl overflow-hidden shadow-xl bg-gradient-to-br from-surface-container-high via-surface-container to-surface-container-lowest">
+          <img id="reader-image" alt="" class="hidden absolute inset-0 w-full h-full object-cover" decoding="async" referrerpolicy="no-referrer" onerror="this.classList.add('hidden'); document.getElementById('reader-image-placeholder').classList.remove('hidden')" />
+          <div id="reader-image-placeholder" class="absolute inset-0 flex flex-col items-center justify-center gap-3 text-primary/80">
+            <img src="/icon.svg" alt="" class="w-16 h-16 opacity-70 drop-shadow-lg" />
+            <span class="text-xs font-semibold tracking-[0.2em] uppercase">TechPulse story</span>
           </div>
-        </div>
+          <div class="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent pointer-events-none"></div>
+          <figcaption class="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-2">
+            <span id="reader-image-caption" class="max-w-full truncate rounded-lg bg-surface/85 backdrop-blur-md px-3 py-1.5 text-xs font-semibold text-on-surface">Article image</span>
+          </figcaption>
+        </figure>
 
         <!-- AI Quick Summary Callout Box -->
         <div class="relative p-4 rounded-2xl bg-surface-container/90 border border-primary/20 shadow-xl overflow-hidden">
@@ -608,8 +511,9 @@
         </div>
 
         <!-- Full Article Body (Sinhala) -->
-        <div class="space-y-3 pt-2 text-sm sm:text-base leading-relaxed text-on-surface font-normal">
-          <div id="reader-content" class="space-y-3 whitespace-pre-line leading-relaxed">
+        <div class="space-y-3 pt-2 text-base sm:text-lg leading-8 text-on-surface font-normal">
+          <h2 class="text-xs font-bold uppercase tracking-[0.16em] text-primary">Full story</h2>
+          <div id="reader-content" class="max-w-3xl whitespace-pre-line leading-8">
             Full Sinhala article content...
           </div>
         </div>
@@ -701,6 +605,19 @@
           <button id="profile-save-button" type="submit" class="px-5 py-2 rounded-xl bg-primary text-on-primary text-xs font-bold hover:opacity-90">Save profile</button>
         </div>
       </form>
+      <section class="px-5 pb-5" aria-label="Install app">
+        <div class="rounded-xl border border-surface-container-high bg-surface-container-high/40 p-4">
+          <div class="flex items-start gap-3">
+            <span class="material-symbols-outlined text-primary" aria-hidden="true">install_mobile</span>
+            <div class="min-w-0 flex-1">
+              <h3 class="text-sm font-bold">Install TechPulse</h3>
+              <p class="mt-1 text-xs text-on-surface-variant">Add the app to your device for quick access from your Home Screen or app list.</p>
+              <button id="profile-install-btn" type="button" onclick="installPwa()" class="mt-3 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-on-primary hover:opacity-90">Install app</button>
+              <p id="profile-install-help" class="hidden mt-3 text-xs text-on-surface-variant" role="status"></p>
+            </div>
+          </div>
+        </div>
+      </section>
       <section class="px-5 pb-5" aria-label="Your community activity">
         <h3 class="text-sm font-bold mb-3">Your activity</h3>
         <div class="grid grid-cols-3 gap-2 mb-4">
@@ -753,7 +670,7 @@
     </section>
   </div>
 
-  <nav id="app-bottom-nav" class="hidden fixed bottom-0 inset-x-0 z-40 border-t border-surface-container-high bg-surface/95 backdrop-blur-xl pb-[env(safe-area-inset-bottom)]">
+  <nav id="app-bottom-nav" class="hidden fixed bottom-0 inset-x-0 z-40 border-t border-surface-container-high bg-surface/95 backdrop-blur-xl pb-[env(safe-area-inset-bottom)] md:hidden">
     <div class="max-w-xl mx-auto h-14 flex items-center justify-around">
       <button class="flex flex-col items-center justify-center gap-0.5 text-primary min-w-[64px]" onclick="window.scrollTo({top:0,behavior:'smooth'})"><span class="material-symbols-outlined text-[21px]">home</span><span class="text-[9px] font-semibold">Feed</span></button>
       <button class="flex flex-col items-center justify-center gap-0.5 text-on-surface-variant min-w-[64px]" onclick="toggleNotifications(true)"><span class="material-symbols-outlined text-[21px]">notifications</span><span class="text-[9px] font-semibold">Activity</span></button>
@@ -785,7 +702,7 @@
       </div>
 
       <!-- Admin Tabs -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 p-2 bg-surface-container-lowest/80 border-b border-surface-container-high gap-2">
+      <div class="grid grid-cols-2 sm:grid-cols-5 p-2 bg-surface-container-lowest/80 border-b border-surface-container-high gap-2">
         <button id="admin-tab-pending" class="py-2 px-3 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 bg-primary text-on-primary transition-all" onclick="switchAdminTab('pending')">
           <span class="material-symbols-outlined text-[18px]">pending_actions</span>
           <span>Pending Posts Queue</span>
@@ -798,6 +715,7 @@
         </button>
         <button id="admin-tab-reports" class="py-2 px-3 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 text-on-surface-variant hover:text-on-surface transition-all" onclick="switchAdminTab('reports')"><span class="material-symbols-outlined text-[18px]">flag</span><span>Reports</span><span id="reports-badge" class="px-1.5 py-0.2 rounded-full bg-surface-container-high text-on-surface font-bold text-[10px]">0</span></button>
         <button id="admin-tab-insights" class="py-2 px-3 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 text-on-surface-variant hover:text-on-surface transition-all" onclick="switchAdminTab('insights')"><span class="material-symbols-outlined text-[18px]">query_stats</span><span>Insights</span></button>
+        <button id="admin-tab-news-sync" class="py-2 px-3 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 text-on-surface-variant hover:text-on-surface transition-all" onclick="switchAdminTab('news-sync')"><span class="material-symbols-outlined text-[18px]">rss_feed</span><span>News Fetching</span></button>
       </div>
 
       <!-- Modal Body (Scrollable) -->
@@ -818,6 +736,40 @@
         </div>
         <div id="admin-reports-section" class="hidden flex flex-col gap-3"><div id="reports-list" class="flex flex-col gap-2"></div></div>
         <div id="admin-insights-section" class="hidden"><div id="insights-panel" class="grid grid-cols-2 sm:grid-cols-4 gap-3"></div></div>
+        <section id="admin-news-sync-section" class="hidden flex flex-col gap-4" aria-live="polite">
+          <div class="rounded-2xl border border-surface-container-high bg-surface-container p-4 sm:p-5">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <div><h3 class="text-sm font-bold text-on-surface">Internet News Fetching</h3><p class="mt-1 text-xs text-on-surface-variant">Control automatic RSS fetching and Sinhala translation from TechCrunch AI, The Verge, Ars Technica, MIT Technology Review, WIRED, and Google News.</p></div>
+              <span id="news-sync-state" class="rounded-full bg-surface-container-highest px-3 py-1 text-[10px] font-bold text-on-surface-variant">Loading status…</span>
+            </div>
+            <p id="news-sync-detail" class="mt-4 text-xs text-on-surface-variant">Checking the news fetch service.</p>
+            <p id="news-sync-error" class="mt-2 hidden text-xs text-error"></p>
+            <div class="mt-5 flex flex-wrap gap-2">
+              <button id="news-sync-start" onclick="runNewsSyncAction('start')" class="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-on-primary">Start automatic fetching</button>
+              <button id="news-sync-stop" onclick="runNewsSyncAction('stop')" class="rounded-xl bg-surface-container-high px-4 py-2 text-xs font-bold text-on-surface">Pause automatic fetching</button>
+              <button id="news-sync-refresh" onclick="runNewsSyncAction('refresh')" class="rounded-xl border border-primary/40 px-4 py-2 text-xs font-bold text-primary">Fetch news now</button>
+            </div>
+            <p class="mt-3 text-[10px] text-on-surface-variant">Pausing stops scheduled fetches; an in-progress fetch is allowed to finish. “Fetch news now” runs once even while scheduled fetching is paused.</p>
+          </div>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div class="rounded-2xl border border-surface-container-high bg-surface-container p-4">
+              <h3 class="text-sm font-bold">Manage news sources</h3>
+              <p class="mt-1 text-[10px] text-on-surface-variant">Add public HTTPS RSS or Atom feeds. Test each feed before saving it.</p>
+              <form id="admin-news-source-form" class="mt-3 grid grid-cols-1 gap-2" onsubmit="saveAdminNewsSource(event)">
+                <input id="news-source-id" type="hidden">
+                <input id="news-source-name" required maxlength="120" placeholder="Source name (e.g. BBC Technology)" class="w-full rounded-lg border border-surface-container-high bg-surface-container-lowest px-3 py-2 text-xs text-on-surface">
+                <input id="news-source-url" type="url" required maxlength="1000" placeholder="https://example.com/feed.xml" class="w-full rounded-lg border border-surface-container-high bg-surface-container-lowest px-3 py-2 text-xs text-on-surface">
+                <div class="flex flex-wrap items-center gap-2"><select id="news-source-tag" class="rounded-lg border border-surface-container-high bg-surface-container-lowest px-3 py-2 text-xs text-on-surface"><option>#AI</option><option>#Tech</option><option>#Science</option></select><label class="flex items-center gap-2 text-[10px] text-on-surface-variant"><input id="news-source-enabled" type="checkbox" checked> Enabled</label><button type="button" onclick="testAdminNewsSource()" class="ml-auto rounded-lg bg-surface-container-high px-3 py-2 text-[10px] font-semibold">Test feed</button><button type="submit" class="rounded-lg bg-primary px-3 py-2 text-[10px] font-bold text-on-primary">Save source</button><button id="news-source-cancel" type="button" onclick="resetAdminNewsSourceForm()" class="hidden rounded-lg px-3 py-2 text-[10px] font-semibold text-on-surface-variant">Cancel edit</button></div>
+              </form>
+              <div id="news-sources-list" class="mt-4 flex flex-col gap-2"><p class="text-xs text-on-surface-variant">Loading sources…</p></div>
+            </div>
+            <div class="rounded-2xl border border-surface-container-high bg-surface-container p-4">
+              <div class="flex items-center justify-between gap-2"><div><h3 class="text-sm font-bold">Imported news</h3><p id="admin-news-count" class="mt-1 text-[10px] text-on-surface-variant">Recent stories fetched from configured feeds.</p></div><button onclick="loadAdminImportedNews(false)" class="rounded-lg bg-surface-container-high px-3 py-2 text-[10px] font-semibold">Reload</button></div>
+              <div id="admin-imported-news-list" class="mt-3 flex flex-col gap-2"><p class="text-xs text-on-surface-variant">Loading imported stories…</p></div>
+              <button id="admin-news-load-more" onclick="loadAdminImportedNews(true)" class="mt-3 hidden w-full rounded-lg bg-surface-container-high px-3 py-2 text-[10px] font-semibold">Load more stories</button>
+            </div>
+          </div>
+        </section>
 
       </div>
 
@@ -852,6 +804,11 @@
     let realtimeFeedQueued = false;
     let realtimeRetryTimer = null;
     let realtimeFallbackTimer = null;
+    let newsSyncStatusTimer = null;
+    let lastNewsSyncRunAt = null;
+    let adminNewsSources = [];
+    let adminNewsPage = 1;
+    let adminNewsTotal = 0;
 
     // 1. Initialize PWA & Theme
     document.addEventListener('DOMContentLoaded', () => {
@@ -893,10 +850,46 @@
       document.getElementById('theme-icon').textContent = isDark ? 'light_mode' : 'dark_mode';
     }
 
+    function updatePwaInstallOption() {
+      const button = document.getElementById('profile-install-btn');
+      const help = document.getElementById('profile-install-help');
+      if (!button || !help) return;
+
+      const isInstalled = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+      const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase()) ||
+        (window.navigator.platform === 'MacIntel' && window.navigator.maxTouchPoints > 1);
+      button.classList.toggle('hidden', isInstalled || isIos || !deferredPrompt);
+      help.classList.remove('hidden');
+
+      if (isInstalled) {
+        help.textContent = 'TechPulse is already installed on this device.';
+      } else if (deferredPrompt) {
+        help.textContent = 'Install when you are ready. Your browser will ask you to confirm.';
+      } else if (isIos) {
+        help.textContent = 'To install on iPhone or iPad, tap Share in Safari, then choose “Add to Home Screen”.';
+      } else {
+        help.textContent = 'Install is not available in this browser yet. Try a supported browser such as Chrome or Edge.';
+      }
+    }
+
+    async function installPwa() {
+      if (!deferredPrompt) {
+        updatePwaInstallOption();
+        return;
+      }
+
+      const promptEvent = deferredPrompt;
+      deferredPrompt = null;
+      await promptEvent.prompt();
+      const { outcome } = await promptEvent.userChoice;
+      updatePwaInstallOption();
+      if (outcome === 'accepted') showToast('TechPulse is being installed.', 'success');
+    }
+
     function initServiceWorker() {
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js?v=12').then((reg) => {
+          navigator.serviceWorker.register('/sw.js?v=19').then((reg) => {
             reg.update();
             reg.onupdatefound = () => {
               const newWorker = reg.installing;
@@ -918,49 +911,16 @@
         });
       }
 
-      // PWA Install prompt listener
-      window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        const banner = document.getElementById('pwa-install-banner');
-        if (banner && !sessionStorage.getItem('pwa-dismissed')) {
-          banner.classList.remove('hidden');
-        }
+      // Keep the install offer available in the user's profile, never as an automatic banner.
+      window.addEventListener('beforeinstallprompt', (event) => {
+        event.preventDefault();
+        deferredPrompt = event;
+        updatePwaInstallOption();
       });
-
-      // iOS Safari Add to Home Screen detection
-      const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
-      const isInStandaloneMode = ('standalone' in window.navigator) && (window.navigator.standalone);
-      if (isIos && !isInStandaloneMode && !sessionStorage.getItem('pwa-dismissed')) {
-        const banner = document.getElementById('pwa-install-banner');
-        const desc = document.getElementById('pwa-desc');
-        const btn = document.getElementById('pwa-install-btn');
-        if (banner && desc && btn) {
-          desc.textContent = "For iOS: Tap Share (⎋) then select 'Add to Home Screen'.";
-          btn.classList.add('hidden');
-          banner.classList.remove('hidden');
-        }
-      }
-
-      const installBtn = document.getElementById('pwa-install-btn');
-      if (installBtn) {
-        installBtn.addEventListener('click', async () => {
-          if (deferredPrompt) {
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            deferredPrompt = null;
-            document.getElementById('pwa-install-banner').classList.add('hidden');
-          }
-        });
-      }
-
-      const closeBtn = document.getElementById('pwa-close-btn');
-      if (closeBtn) {
-        closeBtn.addEventListener('click', () => {
-          document.getElementById('pwa-install-banner').classList.add('hidden');
-          sessionStorage.setItem('pwa-dismissed', 'true');
-        });
-      }
+      window.addEventListener('appinstalled', () => {
+        deferredPrompt = null;
+        updatePwaInstallOption();
+      });
     }
 
     // 2. Authentication Flow
@@ -986,7 +946,10 @@
 
       // Update Nav User Info
       document.getElementById('nav-user-name').textContent = currentUser.displayName;
+      document.getElementById('rail-user-name').textContent = currentUser.displayName;
+      document.getElementById('rail-user-handle').textContent = `@${currentUser.username}`;
       setAvatar(document.getElementById('nav-user-avatar'), currentUser);
+      setAvatar(document.getElementById('rail-user-avatar'), currentUser);
       setAvatar(document.getElementById('create-post-avatar'), currentUser);
       document.getElementById('app-bottom-nav').classList.remove('hidden');
       loadNotifications();
@@ -1249,6 +1212,7 @@
       setAvatar(document.getElementById('profile-image-preview'), currentUser);
       document.getElementById('profile-error').classList.add('hidden');
       document.getElementById('profile-modal').classList.remove('hidden');
+      updatePwaInstallOption();
       await loadNotificationPreferences();
       await loadFollowPreferences();
       await loadMyActivity();
@@ -1426,6 +1390,7 @@
         currentUser.profileImageUrl = data.profileImageUrl;
         setAvatar(document.getElementById('profile-image-preview'), currentUser);
         setAvatar(document.getElementById('nav-user-avatar'), currentUser);
+        setAvatar(document.getElementById('rail-user-avatar'), currentUser);
         setAvatar(document.getElementById('create-post-avatar'), currentUser);
         await loadFeed();
         showToast('Profile photo updated.', 'success');
@@ -1444,6 +1409,9 @@
       badge.textContent = count > 99 ? '99+' : String(count);
       badge.classList.toggle('hidden', count === 0);
       badge.classList.toggle('flex', count > 0);
+      const railBadge = document.getElementById('rail-notification-badge');
+      railBadge.textContent = count > 99 ? '99+' : String(count);
+      railBadge.classList.toggle('hidden', count === 0);
     }
 
     async function loadNotifications() {
@@ -1635,12 +1603,45 @@
       button.textContent = 'Load more stories';
     }
 
+    function syncFollowingFeedTabs() {
+      const forYouTab = document.getElementById('feed-for-you-tab');
+      const followingTab = document.getElementById('feed-following-tab');
+      forYouTab.setAttribute('aria-selected', String(!followingOnly));
+      followingTab.setAttribute('aria-selected', String(followingOnly));
+      forYouTab.className = `relative px-3 py-4 text-sm ${followingOnly ? 'text-on-surface-variant hover:bg-surface-container-high/60' : 'font-bold text-on-surface after:absolute after:inset-x-8 after:bottom-0 after:h-1 after:rounded-full after:bg-primary'}`;
+      followingTab.className = `relative px-3 py-4 text-sm ${followingOnly ? 'font-bold text-on-surface after:absolute after:inset-x-8 after:bottom-0 after:h-1 after:rounded-full after:bg-primary' : 'text-on-surface-variant hover:bg-surface-container-high/60'}`;
+    }
+
+    async function setFollowingFeed(enabled) {
+      const changed = followingOnly !== !!enabled;
+      followingOnly = !!enabled;
+      syncFollowingFeedTabs();
+      if (changed) await loadFeed();
+    }
+
     async function toggleFollowingFeed() {
-      followingOnly = !followingOnly;
-      const button = document.getElementById('following-feed-toggle');
-      button.setAttribute('aria-pressed', String(followingOnly));
-      button.className = `inline-flex items-center justify-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition-colors ${followingOnly ? 'border-primary/40 bg-primary/15 text-primary' : 'border-surface-container-high bg-surface-container-low text-on-surface-variant hover:text-primary'}`;
-      await loadFeed();
+      await setFollowingFeed(!followingOnly);
+    }
+
+    function focusFeedSearch() {
+      const search = document.getElementById('feed-search');
+      if (!search) return;
+      search.focus();
+      search.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function renderExploreSidebar() {
+      const container = document.getElementById('explore-stories');
+      if (!container) return;
+      const stories = [...allPosts]
+        .sort((left, right) => new Date(right.createdAt) - new Date(left.createdAt))
+        .slice(0, 4);
+      container.innerHTML = stories.length ? stories.map(post => `
+        <button type="button" onclick="openArticleReader(${post.id})" class="block w-full px-4 py-3 text-left hover:bg-surface-container-high">
+          <span class="flex items-center justify-between gap-2 text-[10px] text-on-surface-variant"><span class="truncate">${escapeHtml(post.source || post.author?.displayName || 'TechPulse')}</span><span class="shrink-0">${formatRelativeTime(post.createdAt)}</span></span>
+          <span class="mt-1 block line-clamp-2 text-sm font-bold leading-snug">${escapeHtml(post.sinhalaTitle)}</span>
+          <span class="mt-1 block text-[10px] font-semibold text-primary">${escapeHtml(post.tag || '#Tech')}</span>
+        </button>`).join('') : '<p class="px-4 py-3 text-xs text-on-surface-variant">New stories will appear here as they arrive.</p>';
     }
 
     async function togglePostBookmark(postId) {
@@ -1711,6 +1712,7 @@
 
     function renderPosts() {
       const container = document.getElementById('posts-container');
+      renderExploreSidebar();
       const query = document.getElementById('feed-search').value.trim().toLocaleLowerCase();
       let filtered = currentFilter === 'All'
         ? allPosts
@@ -1743,6 +1745,19 @@
       container.innerHTML = filtered.map(post => createPostCardHtml(post)).join('');
     }
 
+    function getArticleReadingMinutes(post) {
+      const words = `${post.sinhalaContent || ''} ${post.sinhalaSummary || ''}`.trim().split(/\s+/).filter(Boolean).length;
+      return Math.max(1, Math.ceil(words / 180));
+    }
+
+    function articleCardMediaMarkup(post, tag) {
+      const title = escapeHtml(post.sinhalaTitle || 'Tech news story');
+      const image = post.imageUrl
+        ? `<img src="${escapeHtml(post.imageUrl)}" alt="${title}" loading="lazy" decoding="async" referrerpolicy="no-referrer" class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden')" /><div class="hidden absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-surface-container-high via-surface-container to-surface-container-lowest text-primary/80"><img src="/icon.svg" alt="" class="h-12 w-12 opacity-70" /><span class="text-[10px] font-semibold uppercase tracking-[0.2em]">TechPulse story</span></div>`
+        : `<div class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-surface-container-high via-surface-container to-surface-container-lowest text-primary/80"><img src="/icon.svg" alt="" class="h-12 w-12 opacity-70" /><span class="text-[10px] font-semibold uppercase tracking-[0.2em]">${escapeHtml(tag)} · TechPulse story</span></div>`;
+      return `<button type="button" class="group relative block w-full overflow-hidden rounded-2xl bg-surface-container-lowest text-left shadow-lg ring-1 ring-white/5 focus:outline-none focus:ring-2 focus:ring-primary" aria-label="Read ${title}" onclick="openArticleReader(${post.id})"><div class="relative aspect-[16/9] sm:aspect-[16/8]">${image}<div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/85 via-background/5 to-transparent"></div><div class="pointer-events-none absolute inset-x-3 bottom-3 flex items-end justify-between gap-2 sm:inset-x-4 sm:bottom-4"><span class="rounded-full border border-white/15 bg-black/45 px-3 py-1.5 text-[10px] font-bold text-white backdrop-blur-md">${escapeHtml(tag)}</span><span class="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1.5 text-[10px] font-bold text-on-primary shadow-lg"><span class="material-symbols-outlined text-[14px]">menu_book</span>Read story</span></div></div></button>`;
+    }
+
     function createPostCardHtml(post) {
       const isAuto = post.isAutoNews;
       const authorName = isAuto ? post.source : (post.author ? post.author.displayName : post.source);
@@ -1757,11 +1772,11 @@
       if (tag === '#Community') tagColor = 'bg-tertiary/20 text-tertiary border-tertiary/30';
 
       return `
-        <article class="bg-surface-container-low rounded-2xl p-4 sm:p-5 shadow-xl border border-surface-container-high/60 transition-all hover:border-primary/30 relative" id="post-card-${post.id}">
+        <article class="overflow-hidden bg-surface-container-low rounded-2xl p-0 shadow-lg border border-surface-container-high/60 transition-colors hover:border-primary/30 relative" id="post-card-${post.id}">
           
           <!-- Post Header -->
-          <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center gap-3 min-w-0">
+          <div class="flex items-center justify-between gap-2 px-4 pt-4 sm:px-5 sm:pt-5">
+            <div class="flex items-center gap-2.5 min-w-0">
               ${isAuto ? '<div class="w-10 h-10 rounded-full bg-primary/15 overflow-hidden ring-1 ring-white/10 flex-shrink-0"><img src="/logos/mini-logo.png" alt="" class="w-full h-full object-cover" /></div>' : `<button type="button" class="p-0 border-0 bg-transparent rounded-full" aria-label="View ${escapeHtml(authorName)} profile" onclick="openUserProfile(${post.author?.id || 0})">${avatarMarkup(post.author || { displayName: authorName }, 'w-10 h-10')}</button>`}
               <div class="flex flex-col min-w-0">
                 <div class="flex items-center gap-1.5">
@@ -1784,64 +1799,54 @@
             </div>
           </div>
 
-          <!-- Hero Image Banner in Feed Card -->
-          ${post.imageUrl ? `
-            <div class="relative w-full h-48 sm:h-60 rounded-xl overflow-hidden shadow-lg bg-surface-container-lowest my-2 group cursor-pointer" onclick="openArticleReader(${post.id})">
-              <img src="${escapeHtml(post.imageUrl)}" alt="${escapeHtml(post.sinhalaTitle)}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.parentElement.style.display='none'" />
-              <div class="absolute inset-0 bg-gradient-to-t from-surface-container-low via-transparent to-transparent"></div>
-              <div class="absolute bottom-2.5 left-2.5 flex items-center gap-2">
-                <span class="bg-surface-container-lowest/80 backdrop-blur-md px-2.5 py-1 rounded-full text-primary text-[11px] font-semibold flex items-center gap-1 shadow-sm border border-primary/20">
-                  <span class="material-symbols-outlined text-[13px]">auto_awesome</span>
-                  <span>${escapeHtml(tag)}</span>
-                </span>
-                <span class="bg-primary/90 text-on-primary text-[10px] font-bold px-2 py-0.5 rounded shadow-sm">
-                  Full Article
-                </span>
-              </div>
-            </div>
-          ` : ''}
-
           <!-- Headline & Summary (Sinhala Content) -->
-          <div class="mb-2">
-            <h2 class="font-bold text-base sm:text-lg text-on-surface mb-2 leading-snug cursor-pointer hover:text-primary transition-colors" onclick="openArticleReader(${post.id})">
+          <div class="px-4 pt-3 pb-3 sm:px-5">
+            <h2 class="font-bold text-base sm:text-lg text-on-surface mb-1.5 leading-snug cursor-pointer hover:text-primary transition-colors" onclick="openArticleReader(${post.id})">
               ${escapeHtml(post.sinhalaTitle)}
             </h2>
-            <p class="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
+            <p class="line-clamp-3 text-sm text-on-surface-variant leading-relaxed sm:text-[15px]">
               ${escapeHtml(post.sinhalaSummary)}
             </p>
           </div>
 
+          ${articleCardMediaMarkup(post, tag)}
+
+          <div class="mx-4 mt-3 mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] text-on-surface-variant sm:mx-5 sm:text-xs">
+            <span class="inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">schedule</span>${getArticleReadingMinutes(post)} min read</span>
+            <span class="inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">chat_bubble_outline</span>${comments.length} ${comments.length === 1 ? 'comment' : 'comments'}</span>
+          </div>
+
           <!-- Read More & Source Actions Row -->
-          <div class="my-3 flex items-center gap-2 flex-wrap">
-            <button class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-primary-container/20 to-primary/20 hover:from-primary hover:to-primary-container text-primary hover:text-on-primary font-semibold text-xs border border-primary/30 transition-all active:scale-95 shadow-sm group" onclick="openArticleReader(${post.id})">
-              <span class="material-symbols-outlined text-[16px] group-hover:scale-110 transition-transform">menu_book</span>
-              <span>Read More (In-App)</span>
+          <div class="mx-4 mb-3 flex items-center gap-2 flex-wrap sm:mx-5">
+            <button class="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-2 text-primary hover:bg-primary hover:text-on-primary font-semibold text-xs transition-colors" onclick="openArticleReader(${post.id})">
+              <span class="material-symbols-outlined text-[16px]">menu_book</span>
+              <span>Read article</span>
             </button>
             ${post.link ? `
-              <a href="${escapeHtml(post.link)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface text-xs font-medium border border-surface-container-highest transition-all" title="Open external link">
-                <span>Source</span>
+              <a href="${escapeHtml(post.link)}" target="_blank" rel="noopener noreferrer" class="inline-flex min-w-0 items-center gap-1.5 rounded-lg px-2 py-2 text-xs text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface" title="Open original article">
+                <span class="truncate">${escapeHtml(post.isAutoNews ? post.source : 'Open link')}</span>
                 <span class="material-symbols-outlined text-[13px]">open_in_new</span>
               </a>
             ` : ''}
           </div>
 
           <!-- Action & Engagement Bar -->
-          <div class="pt-2 border-t border-surface-container-high/60 grid grid-cols-5 text-xs text-on-surface-variant">
-              <button id="like-button-${post.id}" class="flex items-center justify-center gap-1.5 py-2 rounded-lg transition-colors ${post.likedByCurrentUser ? 'text-rose-400 bg-rose-500/10' : 'hover:bg-surface-container hover:text-rose-400'}" onclick="togglePostLike(${post.id})">
-                <span class="material-symbols-outlined text-[18px]">favorite</span>
-                <span>Like</span><span id="like-count-${post.id}" class="font-semibold">${post.likeCount || 0}</span>
+          <div class="mx-4 border-t border-surface-container-high/70 py-1 sm:mx-5 ${!isAuto && !isOwner ? 'grid grid-cols-5' : 'grid grid-cols-4'} text-[10px] text-on-surface-variant sm:text-xs">
+              <button id="like-button-${post.id}" aria-label="Like this post" class="flex items-center justify-center gap-1 py-2 rounded-lg transition-colors ${post.likedByCurrentUser ? 'text-rose-400 bg-rose-500/10' : 'hover:bg-surface-container hover:text-rose-400'}" onclick="togglePostLike(${post.id})">
+                <span class="material-symbols-outlined text-[18px]">thumb_up</span>
+                <span class="hidden sm:inline">Like</span><span id="like-count-${post.id}" class="font-semibold">${post.likeCount || 0}</span>
               </button>
-              <button class="flex items-center justify-center gap-1.5 py-2 rounded-lg hover:bg-surface-container hover:text-primary transition-colors" onclick="toggleCommentsSection(${post.id})">
+              <button class="flex items-center justify-center gap-1 py-2 rounded-lg hover:bg-surface-container hover:text-primary transition-colors" aria-label="Open comments" onclick="toggleCommentsSection(${post.id})">
                 <span class="material-symbols-outlined text-[18px]">chat_bubble</span>
-                <span id="comment-count-${post.id}" class="font-semibold">${comments.length}</span>
+                <span class="hidden sm:inline">Comment</span><span id="comment-count-${post.id}" class="font-semibold">${comments.length}</span>
               </button>
-            <button class="flex items-center justify-center gap-1.5 py-2 rounded-lg hover:bg-surface-container hover:text-primary transition-colors" onclick="sharePost(${post.id}, '${escapeHtml(post.sinhalaTitle)}')">
+            <button class="flex items-center justify-center gap-1 py-2 rounded-lg hover:bg-surface-container hover:text-primary transition-colors" onclick="sharePost(${post.id}, '${escapeHtml(post.sinhalaTitle)}')">
               <span class="material-symbols-outlined text-[18px]">share</span>
-              <span>Share</span>
+              <span class="hidden sm:inline">Share</span>
             </button>
-            <button id="bookmark-button-${post.id}" aria-label="${post.bookmarkedByCurrentUser ? 'Remove saved story' : 'Save story'}" aria-pressed="${!!post.bookmarkedByCurrentUser}" class="flex items-center justify-center gap-1.5 py-2 rounded-lg transition-colors ${post.bookmarkedByCurrentUser ? 'text-primary bg-primary/10' : 'hover:bg-surface-container hover:text-primary'}" onclick="togglePostBookmark(${post.id})">
+            <button id="bookmark-button-${post.id}" aria-label="${post.bookmarkedByCurrentUser ? 'Remove saved story' : 'Save story'}" aria-pressed="${!!post.bookmarkedByCurrentUser}" class="flex items-center justify-center gap-1 py-2 rounded-lg transition-colors ${post.bookmarkedByCurrentUser ? 'text-primary bg-primary/10' : 'hover:bg-surface-container hover:text-primary'}" onclick="togglePostBookmark(${post.id})">
               <span class="material-symbols-outlined text-[18px]">${post.bookmarkedByCurrentUser ? 'bookmark' : 'bookmark_add'}</span>
-              <span>Save</span>
+              <span class="hidden sm:inline">Save</span>
             </button>
             ${!isAuto && !isOwner ? `<button class="flex items-center justify-center gap-1.5 py-2 rounded-lg hover:bg-surface-container hover:text-error transition-colors" aria-label="Report this post" onclick="reportContent(${post.id}, null)"><span class="material-symbols-outlined text-[18px]">flag</span><span>Report</span></button>` : ''}
           </div>
@@ -1922,27 +1927,41 @@
       const linkContainer = document.getElementById('reader-link-container');
       const commentsList = document.getElementById('reader-comments-list');
       const commentCount = document.getElementById('reader-comment-count');
+      const readingTime = document.getElementById('reader-reading-time');
+      const imageCaption = document.getElementById('reader-image-caption');
+      const imagePlaceholder = document.getElementById('reader-image-placeholder');
 
       // Populate Article Details (Sinhala text preserved)
       titleEl.textContent = post.sinhalaTitle;
       const authorName = post.isAutoNews ? post.source : (post.author ? post.author.displayName : post.source);
       authorNameEl.textContent = authorName;
       setAvatar(authorAvatarEl, post.isAutoNews ? { displayName: authorName, profileImageUrl: '/logos/mini-logo.png' } : (post.author || { displayName: authorName }));
-      dateEl.textContent = formatRelativeTime(post.createdAt) + ' • ' + new Date(post.createdAt).toLocaleDateString();
+      const publishedDate = new Date(post.createdAt);
+      dateEl.textContent = `${formatRelativeTime(post.createdAt)} · ${publishedDate.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}`;
+      dateEl.title = publishedDate.toLocaleString();
       tagBadge.textContent = post.tag || '#AI';
       summaryEl.textContent = post.sinhalaSummary;
+      readingTime.textContent = `${getArticleReadingMinutes(post)} min read`;
+      imageCaption.textContent = post.isAutoNews ? `Image · ${post.source}` : 'Community story';
 
       // Full content or summary
       const fullText = post.sinhalaContent || post.sinhalaSummary;
       contentEl.textContent = fullText;
 
       // Image
-      if (post.imageUrl) {
-        imgEl.src = post.imageUrl;
-        imgContainer.classList.remove('hidden');
-      } else {
-        imgContainer.classList.add('hidden');
-      }
+      imgEl.classList.add('hidden');
+      imgEl.removeAttribute('src');
+      imagePlaceholder.classList.remove('hidden');
+      imgEl.alt = post.sinhalaTitle || 'Article image';
+      imgEl.onload = () => {
+        imgEl.classList.remove('hidden');
+        imagePlaceholder.classList.add('hidden');
+      };
+      imgEl.onerror = () => {
+        imgEl.classList.add('hidden');
+        imagePlaceholder.classList.remove('hidden');
+      };
+      if (post.imageUrl) imgEl.src = post.imageUrl;
 
       // External link (optional)
       if (post.link) {
@@ -2318,10 +2337,11 @@
 
     function closeAdminModal() {
       document.getElementById('admin-modal').classList.add('hidden');
+      if (newsSyncStatusTimer) { clearInterval(newsSyncStatusTimer); newsSyncStatusTimer = null; }
     }
 
     function switchAdminTab(tab) {
-      const tabs = ['pending', 'users', 'reports', 'insights'];
+      const tabs = ['pending', 'users', 'reports', 'insights', 'news-sync'];
       for (const name of tabs) {
         document.getElementById(`admin-tab-${name}`).className = `py-2 px-3 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 transition-all ${name === tab ? 'bg-primary text-on-primary' : 'text-on-surface-variant hover:text-on-surface'}`;
         document.getElementById(`admin-${name}-section`).classList.toggle('hidden', name !== tab);
@@ -2330,6 +2350,171 @@
       if (tab === 'users') loadAllUsers();
       if (tab === 'reports') loadAdminReports();
       if (tab === 'insights') loadAdminInsights();
+      if (newsSyncStatusTimer) { clearInterval(newsSyncStatusTimer); newsSyncStatusTimer = null; }
+      if (tab === 'news-sync') {
+        loadAdminNewsSyncStatus();
+        loadAdminNewsSources();
+        loadAdminImportedNews(false);
+        newsSyncStatusTimer = setInterval(() => {
+          if (!document.getElementById('admin-modal').classList.contains('hidden')) loadAdminNewsSyncStatus();
+        }, 4000);
+      }
+    }
+
+    async function loadAdminNewsSyncStatus() {
+      try {
+        const response = await fetch('/api/admin/news-sync/status', { credentials: 'include' });
+        if (!response.ok) throw new Error(response.status === 401 || response.status === 403 ? 'Admin access is required.' : 'Could not load news fetch status.');
+        const status = await response.json();
+        if (lastNewsSyncRunAt && status.lastRunAt && status.lastRunAt !== lastNewsSyncRunAt) loadAdminImportedNews(false);
+        lastNewsSyncRunAt = status.lastRunAt;
+        renderAdminNewsSyncStatus(status);
+      } catch (error) {
+        document.getElementById('news-sync-state').textContent = 'Status unavailable';
+        document.getElementById('news-sync-detail').textContent = error.message;
+      }
+    }
+
+    function renderAdminNewsSyncStatus(status) {
+      const state = document.getElementById('news-sync-state');
+      const detail = document.getElementById('news-sync-detail');
+      const error = document.getElementById('news-sync-error');
+      state.textContent = status.isRunning ? 'Fetching news now' : status.enabled ? 'Automatic fetching is on' : 'Automatic fetching is paused';
+      state.className = `rounded-full px-3 py-1 text-[10px] font-bold ${status.isRunning ? 'bg-primary/15 text-primary' : status.enabled ? 'bg-emerald-500/15 text-emerald-400' : 'bg-amber-500/15 text-amber-300'}`;
+      const lastRun = status.lastRunAt ? new Date(status.lastRunAt).toLocaleString() : 'No completed fetch yet';
+      const inserted = status.lastInsertedCount == null ? '' : ` Last run added ${status.lastInsertedCount} new article${status.lastInsertedCount === 1 ? '' : 's'}.`;
+      detail.textContent = `${status.isRunning ? 'A fetch and translation is in progress.' : 'Last completed run: ' + lastRun + '.'}${inserted}`;
+      error.textContent = status.lastError || '';
+      error.classList.toggle('hidden', !status.lastError);
+      document.getElementById('news-sync-start').disabled = status.enabled;
+      document.getElementById('news-sync-stop').disabled = !status.enabled;
+      document.getElementById('news-sync-refresh').disabled = status.isRunning;
+      for (const id of ['news-sync-start', 'news-sync-stop', 'news-sync-refresh']) {
+        document.getElementById(id).classList.toggle('opacity-50', document.getElementById(id).disabled);
+        document.getElementById(id).classList.toggle('cursor-not-allowed', document.getElementById(id).disabled);
+      }
+    }
+
+    async function runNewsSyncAction(action) {
+      const button = document.getElementById(`news-sync-${action}`);
+      button.disabled = true;
+      try {
+        const response = await fetch(`/api/admin/news-sync/${action}`, { method: 'POST', credentials: 'include' });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || 'Could not update the news fetch service.');
+        showToast(action === 'stop' ? 'Automatic news fetching paused.' : action === 'start' ? 'Automatic news fetching started.' : 'News fetch queued.', 'success');
+        await loadAdminNewsSyncStatus();
+      } catch (error) {
+        showToast(error.message, 'error');
+        await loadAdminNewsSyncStatus();
+      }
+    }
+
+    async function loadAdminNewsSources() {
+      const list = document.getElementById('news-sources-list');
+      try {
+        const response = await fetch('/api/admin/news-sources', { credentials: 'include' });
+        if (!response.ok) throw new Error('Could not load news sources.');
+        adminNewsSources = await response.json();
+        list.innerHTML = adminNewsSources.length ? adminNewsSources.map(source => `<article class="rounded-xl border border-surface-container-high bg-surface-container-lowest p-3"><div class="flex items-start justify-between gap-2"><div class="min-w-0"><strong class="block truncate text-xs">${escapeHtml(source.name)} <span class="font-normal text-primary">${escapeHtml(source.tag)}</span></strong><a href="${escapeHtml(source.feedUrl)}" target="_blank" rel="noopener noreferrer" class="mt-1 block truncate text-[10px] text-on-surface-variant">${escapeHtml(source.feedUrl)}</a><p class="mt-1 text-[10px] ${source.lastError ? 'text-error' : 'text-on-surface-variant'}">${source.lastError ? escapeHtml(source.lastError) : source.lastCheckedAt ? `Checked ${formatRelativeTime(source.lastCheckedAt)} · ${source.lastItemCount ?? 0} stories` : 'Not fetched yet'}</p></div><span class="shrink-0 rounded-full px-2 py-1 text-[9px] font-bold ${source.isEnabled ? 'bg-emerald-500/15 text-emerald-400' : 'bg-surface-container-high text-on-surface-variant'}">${source.isEnabled ? 'On' : 'Off'}</span></div><div class="mt-2 flex flex-wrap gap-2"><button onclick="editAdminNewsSource(${source.id})" class="text-[10px] font-semibold text-primary">Edit</button><button onclick="setAdminNewsSourceEnabled(${source.id},${!source.isEnabled})" class="text-[10px] font-semibold text-on-surface-variant">${source.isEnabled ? 'Disable' : 'Enable'}</button><button onclick="deleteAdminNewsSource(${source.id})" class="text-[10px] font-semibold text-error">Remove</button></div></article>`).join('') : '<p class="rounded-xl bg-surface-container-lowest p-4 text-center text-xs text-on-surface-variant">No sources configured. Add an RSS or Atom URL above.</p>';
+      } catch (error) { list.innerHTML = `<p class="text-xs text-error">${escapeHtml(error.message)}</p>`; }
+    }
+
+    async function testAdminNewsSource() {
+      const feedUrl = document.getElementById('news-source-url').value.trim();
+      if (!feedUrl) return showToast('Enter a feed URL first.', 'error');
+      try {
+        const response = await fetch('/api/admin/news-sources/test', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ feedUrl }) });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || result.message || 'Feed test failed.');
+        showToast(`Feed is valid · ${result.itemCount} stories found. Latest: ${result.latestTitle || 'Untitled'}`, 'success', 7000);
+      } catch (error) { showToast(error.message, 'error', 7000); }
+    }
+
+    async function saveAdminNewsSource(event) {
+      event.preventDefault();
+      const id = document.getElementById('news-source-id').value;
+      const payload = { name: document.getElementById('news-source-name').value.trim(), feedUrl: document.getElementById('news-source-url').value.trim(), tag: document.getElementById('news-source-tag').value, isEnabled: document.getElementById('news-source-enabled').checked };
+      const button = event.submitter;
+      if (button) button.disabled = true;
+      try {
+        const response = await fetch(id ? `/api/admin/news-sources/${id}` : '/api/admin/news-sources', { method: id ? 'PUT' : 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || 'Could not save this feed.');
+        showToast(id ? 'News source updated.' : 'News source added.', 'success');
+        resetAdminNewsSourceForm();
+        await loadAdminNewsSources();
+      } catch (error) { showToast(error.message, 'error'); }
+      finally { if (button) button.disabled = false; }
+    }
+
+    function editAdminNewsSource(id) {
+      const source = adminNewsSources.find(item => item.id === id);
+      if (!source) return;
+      document.getElementById('news-source-id').value = source.id;
+      document.getElementById('news-source-name').value = source.name;
+      document.getElementById('news-source-url').value = source.feedUrl;
+      document.getElementById('news-source-tag').value = source.tag;
+      document.getElementById('news-source-enabled').checked = source.isEnabled;
+      document.getElementById('news-source-cancel').classList.remove('hidden');
+      document.getElementById('admin-news-source-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function resetAdminNewsSourceForm() {
+      document.getElementById('admin-news-source-form').reset();
+      document.getElementById('news-source-id').value = '';
+      document.getElementById('news-source-enabled').checked = true;
+      document.getElementById('news-source-tag').value = '#AI';
+      document.getElementById('news-source-cancel').classList.add('hidden');
+    }
+
+    async function setAdminNewsSourceEnabled(id, isEnabled) {
+      const response = await fetch(`/api/admin/news-sources/${id}/enabled`, { method: 'PATCH', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isEnabled }) });
+      if (!response.ok) return showToast('Could not update this source.', 'error');
+      await loadAdminNewsSources();
+    }
+
+    async function deleteAdminNewsSource(id) {
+      if (!confirm('Remove this news source? Previously imported news will stay in the feed.')) return;
+      const response = await fetch(`/api/admin/news-sources/${id}`, { method: 'DELETE', credentials: 'include' });
+      if (!response.ok) return showToast('Could not remove this source.', 'error');
+      showToast('News source removed.', 'success');
+      await loadAdminNewsSources();
+    }
+
+    async function loadAdminImportedNews(append = false) {
+      const list = document.getElementById('admin-imported-news-list');
+      if (!append) adminNewsPage = 1;
+      const page = append ? adminNewsPage + 1 : 1;
+      try {
+        const response = await fetch(`/api/admin/news?page=${page}&pageSize=25`, { credentials: 'include' });
+        if (!response.ok) throw new Error('Could not load imported news.');
+        const data = await response.json();
+        adminNewsPage = data.page;
+        adminNewsTotal = data.total;
+        document.getElementById('admin-news-count').textContent = `${data.total} imported ${data.total === 1 ? 'story' : 'stories'} · newest first`;
+        const cards = data.items.map(item => `<article class="rounded-xl border border-surface-container-high bg-surface-container-lowest p-3"><div class="flex items-start justify-between gap-2"><div class="min-w-0"><strong class="text-xs">${escapeHtml(item.title)}</strong><p class="mt-1 text-[10px] text-on-surface-variant">${escapeHtml(item.source)} · ${escapeHtml(item.tag)} · ${formatRelativeTime(item.createdAt)}</p></div><span class="shrink-0 rounded-full px-2 py-1 text-[9px] font-bold ${item.status === 'Approved' ? 'bg-emerald-500/15 text-emerald-400' : 'bg-amber-500/15 text-amber-300'}">${escapeHtml(item.status)}</span></div><p class="mt-2 line-clamp-3 text-[10px] text-on-surface-variant">${escapeHtml(item.summary)}</p><div class="mt-2 flex gap-3">${item.link ? `<a href="${escapeHtml(item.link)}" target="_blank" rel="noopener noreferrer" class="text-[10px] font-semibold text-primary">Open source article</a>` : ''}<button onclick="setImportedNewsVisibility(${item.id},${item.status !== 'Approved'})" class="text-[10px] font-semibold text-on-surface-variant">${item.status === 'Approved' ? 'Hide from feed' : 'Show in feed'}</button><button onclick="deleteImportedNews(${item.id})" class="text-[10px] font-semibold text-error">Delete</button></div></article>`).join('');
+        if (append) list.insertAdjacentHTML('beforeend', cards);
+        else list.innerHTML = cards || '<p class="rounded-xl bg-surface-container-lowest p-4 text-center text-xs text-on-surface-variant">No imported news yet. Check the configured feeds or fetch now.</p>';
+        document.getElementById('admin-news-load-more').classList.toggle('hidden', adminNewsPage * 25 >= adminNewsTotal);
+      } catch (error) { if (!append) list.innerHTML = `<p class="text-xs text-error">${escapeHtml(error.message)}</p>`; }
+    }
+
+    async function setImportedNewsVisibility(id, visible) {
+      const response = await fetch(`/api/admin/news/${id}/visibility`, { method: 'PATCH', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ visible }) });
+      if (!response.ok) return showToast('Could not update news visibility.', 'error');
+      showToast(visible ? 'Story is visible in the feed.' : 'Story hidden from the feed.', 'success');
+      await loadAdminImportedNews(false);
+      await loadFeed();
+    }
+
+    async function deleteImportedNews(id) {
+      if (!confirm('Permanently delete this imported news story and its discussion?')) return;
+      const response = await fetch(`/api/admin/news/${id}`, { method: 'DELETE', credentials: 'include' });
+      if (!response.ok) return showToast('Could not delete this story.', 'error');
+      showToast('Imported story deleted.', 'success');
+      await loadAdminImportedNews(false);
+      await loadFeed();
     }
 
     async function loadAdminReports() {

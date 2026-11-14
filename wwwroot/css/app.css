@@ -1,0 +1,59 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/noto-sans-sinhala";
+@import "material-symbols/outlined.css";
+
+
+    @layer base {
+      html, body {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        min-height: 100%;
+        font-family: 'Inter', 'Noto Sans Sinhala', sans-serif;
+      }
+      body {
+        overscroll-behavior-y: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    /* Light mode overrides */
+    html:not(.dark) body {
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+    html:not(.dark) .bg-background {
+      background-color: #f8fafc !important;
+    }
+    html:not(.dark) .bg-surface-container-low {
+      background-color: #ffffff !important;
+      border: 1px solid #e2e8f0;
+    }
+    html:not(.dark) .bg-surface-container {
+      background-color: #f1f5f9 !important;
+    }
+    html:not(.dark) .bg-surface-container-high {
+      background-color: #e2e8f0 !important;
+    }
+    html:not(.dark) .bg-surface-container-highest {
+      background-color: #cbd5e1 !important;
+    }
+    html:not(.dark) .bg-surface {
+      background-color: rgba(255, 255, 255, 0.9) !important;
+    }
+    html:not(.dark) .text-on-surface {
+      color: #0f172a !important;
+    }
+    html:not(.dark) .text-on-surface-variant {
+      color: #475569 !important;
+    }
+  

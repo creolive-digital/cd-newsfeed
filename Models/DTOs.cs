@@ -12,6 +12,10 @@ public record ChangePasswordRequest(string? CurrentPassword, string? NewPassword
 public record UpdateNotificationPreferencesRequest(bool LikesEnabled, bool CommentsEnabled);
 public record UpdatePostRequest(string? SinhalaTitle, string? SinhalaSummary, string? SinhalaContent, string? Tag, string? Link, string? ImageUrl);
 public record CreateReportRequest(int? PostId, int? CommentId, string? Reason);
+public record NewsSourceRequest(string? Name, string? FeedUrl, string? Tag, bool? IsEnabled = null);
+public record TestNewsSourceRequest(string? FeedUrl);
+public record SetNewsSourceEnabledRequest(bool IsEnabled);
+public record SetNewsVisibilityRequest(bool Visible);
 
 public record CreatePostRequest(
     string? SinhalaTitle,

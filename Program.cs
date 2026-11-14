@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 using cd_newsfeed.Data;
 using cd_newsfeed.Models;
 using cd_newsfeed.Services;
@@ -15,7 +18,12 @@ var builder = WebApplication.CreateBuilder(args);
 // 1. Configure a test-only in-memory database or the normal MSSQL database.
 var useInMemoryDb = bool.TryParse(builder.Configuration["USE_INMEMORY_DB"], out var inMemoryDbEnabled)
     && inMemoryDbEnabled;
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+var configuredConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (!useInMemoryDb && builder.Environment.IsProduction() && string.IsNullOrWhiteSpace(configuredConnectionString))
+{
+    throw new InvalidOperationException("ConnectionStrings:DefaultConnection must be configured in production.");
+}
+var connectionString = configuredConnectionString
     ?? "Server=(localdb)\\MSSQLLocalDB;Database=CdNewsfeedDb;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true;";
 var inMemoryDatabaseName = builder.Configuration["INMEMORY_DB_NAME"] ?? "CdNewsfeed";
 
@@ -37,13 +45,14 @@ builder.Services.AddHttpClient("RssClient", client =>
 {
     client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 (compatible; CDNewsfeed/1.0)");
     client.Timeout = TimeSpan.FromSeconds(30);
-});
+}).ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
 builder.Services.AddHttpClient<GeminiTranslatorService>(client =>
 {
     client.Timeout = TimeSpan.FromSeconds(60);
 });
 builder.Services.Configure<FormOptions>(options => options.MultipartBodyLengthLimit = 6 * 1024 * 1024);
-builder.Services.AddHostedService<NewsUpdaterService>();
+builder.Services.AddSingleton<NewsUpdaterService>();
+builder.Services.AddHostedService<NewsUpdaterService>(provider => provider.GetRequiredService<NewsUpdaterService>());
 
 // 3. Password Hasher
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
@@ -55,7 +64,9 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.Cookie.Name = "CDNewsfeed.Auth";
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Lax;
-        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        options.Cookie.SecurePolicy = builder.Environment.IsDevelopment() || builder.Environment.IsEnvironment("Testing")
+            ? CookieSecurePolicy.SameAsRequest
+            : CookieSecurePolicy.Always;
         options.ExpireTimeSpan = TimeSpan.FromDays(7);
         options.SlidingExpiration = true;
 
@@ -70,6 +81,17 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
             context.Response.StatusCode = StatusCodes.Status403Forbidden;
             return Task.CompletedTask;
         };
+        options.Events.OnValidatePrincipal = async context =>
+        {
+            if (context.Principal?.IsInRole("Admin") != true) return;
+            var configuredVersion = builder.Configuration["AdminAuth:SessionVersion"] ?? "1";
+            var cookieVersion = context.Principal?.FindFirst("AdminSessionVersion")?.Value;
+            if (!string.Equals(configuredVersion, cookieVersion, StringComparison.Ordinal))
+            {
+                context.RejectPrincipal();
+                await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            }
+        };
     });
 
 builder.Services.AddAuthorization(options =>
@@ -78,18 +100,63 @@ builder.Services.AddAuthorization(options =>
 });
 builder.Services.AddSignalR();
 
-// 5. CORS Configuration (supporting frontend with credentials)
-builder.Services.AddCors(options =>
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
-    options.AddDefaultPolicy(policy =>
-    {
-        policy.SetIsOriginAllowed(_ => true)
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
-    });
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.ForwardLimit = 1;
+});
+builder.Services.AddHttpsRedirection(options => options.HttpsPort = 443);
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("auth-login", context => RateLimitPartition.GetFixedWindowLimiter(
+        GetClientRateLimitKey(context), _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 10,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0,
+            AutoReplenishment = true
+        }));
+    options.AddPolicy("auth-register", context => RateLimitPartition.GetFixedWindowLimiter(
+        GetClientRateLimitKey(context), _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 5,
+            Window = TimeSpan.FromHours(1),
+            QueueLimit = 0,
+            AutoReplenishment = true
+        }));
+    options.AddPolicy("admin-login", context => RateLimitPartition.GetFixedWindowLimiter(
+        GetClientRateLimitKey(context), _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 5,
+            Window = TimeSpan.FromMinutes(15),
+            QueueLimit = 0,
+            AutoReplenishment = true
+        }));
+    options.AddPolicy("password-recovery", context => RateLimitPartition.GetFixedWindowLimiter(
+        GetClientRateLimitKey(context), _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 3,
+            Window = TimeSpan.FromHours(1),
+            QueueLimit = 0,
+            AutoReplenishment = true
+        }));
 });
 
+// Same-origin browser traffic needs no CORS. Enable cross-origin clients only through an explicit HTTPS allowlist.
+var corsOrigins = Enumerable.Range(0, 32)
+    .Select(index => builder.Configuration[$"Cors:AllowedOrigins:{index}"])
+    .Where(origin => !string.IsNullOrWhiteSpace(origin))
+    .Select(origin => origin!)
+    .ToArray();
+if (corsOrigins.Any(origin => !Uri.TryCreate(origin, UriKind.Absolute, out var parsedOrigin) ||
+                              parsedOrigin.Scheme != Uri.UriSchemeHttps ||
+                              parsedOrigin.GetLeftPart(UriPartial.Authority) != origin.TrimEnd('/')) &&
+    !builder.Environment.IsDevelopment())
+{
+    throw new InvalidOperationException("Cors:AllowedOrigins must contain HTTPS origins without paths or trailing slashes.");
+}
 var app = builder.Build();
 
 // Initialize the configured database. Fail startup if persistence is unavailable so
@@ -97,8 +164,30 @@ var app = builder.Build();
 await using (var scope = app.Services.CreateAsyncScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await db.Database.EnsureCreatedAsync();
-    if (!useInMemoryDb)
+    var hasInitialMigration = false;
+    if (useInMemoryDb)
+    {
+        await db.Database.EnsureCreatedAsync();
+    }
+    else
+    {
+        if (!await db.Database.CanConnectAsync())
+        {
+            await db.Database.MigrateAsync();
+        }
+        var hasUsersTable = await db.Database.CanConnectAsync() && await db.Database.SqlQueryRaw<int>(
+            "SELECT CASE WHEN OBJECT_ID(N'dbo.Users', N'U') IS NULL THEN 0 ELSE 1 END AS [Value]").SingleAsync() == 1;
+        var hasMigrationHistoryTable = await db.Database.SqlQueryRaw<int>(
+            "SELECT CASE WHEN OBJECT_ID(N'dbo.__EFMigrationsHistory', N'U') IS NULL THEN 0 ELSE 1 END AS [Value]").SingleAsync() == 1;
+        hasInitialMigration = hasMigrationHistoryTable && await db.Database.SqlQueryRaw<int>(
+            "SELECT CASE WHEN EXISTS (SELECT 1 FROM dbo.__EFMigrationsHistory WHERE MigrationId = N'20261114100200_InitialCreate') THEN 1 ELSE 0 END AS [Value]").SingleAsync() == 1;
+        if (!hasUsersTable || hasInitialMigration)
+        {
+            await db.Database.MigrateAsync();
+            hasInitialMigration = true;
+        }
+    }
+    if (!useInMemoryDb && !hasInitialMigration)
     {
         await db.Database.ExecuteSqlRawAsync(@"
             IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Posts') AND name = 'ImageUrl')
@@ -177,7 +266,62 @@ await using (var scope = app.Services.CreateAsyncScope())
             END;
             IF OBJECT_ID('NotificationPreferences', 'U') IS NULL
                 CREATE TABLE [NotificationPreferences] ([UserId] int NOT NULL PRIMARY KEY, [LikesEnabled] bit NOT NULL CONSTRAINT [DF_NotificationPreferences_LikesEnabled] DEFAULT 1, [CommentsEnabled] bit NOT NULL CONSTRAINT [DF_NotificationPreferences_CommentsEnabled] DEFAULT 1, [UpdatedAt] datetime2 NOT NULL CONSTRAINT [DF_NotificationPreferences_UpdatedAt] DEFAULT GETUTCDATE());
+            IF OBJECT_ID('NewsSources', 'U') IS NULL
+            BEGIN
+                CREATE TABLE [NewsSources] (
+                    [Id] int IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                    [Name] nvarchar(120) NOT NULL,
+                    [FeedUrl] nvarchar(1000) NOT NULL,
+                    [Tag] nvarchar(50) NOT NULL CONSTRAINT [DF_NewsSources_Tag] DEFAULT '#Tech',
+                    [IsEnabled] bit NOT NULL CONSTRAINT [DF_NewsSources_IsEnabled] DEFAULT 1,
+                    [CreatedAt] datetime2 NOT NULL CONSTRAINT [DF_NewsSources_CreatedAt] DEFAULT GETUTCDATE(),
+                    [LastCheckedAt] datetime2 NULL,
+                    [LastItemCount] int NULL,
+                    [LastError] nvarchar(500) NULL
+                );
+                CREATE UNIQUE INDEX [IX_NewsSources_FeedUrl] ON [NewsSources] ([FeedUrl]);
+            END;
+            IF OBJECT_ID('NewsFetcherStates', 'U') IS NULL
+                CREATE TABLE [NewsFetcherStates] (
+                    [Id] int NOT NULL PRIMARY KEY,
+                    [IsEnabled] bit NOT NULL CONSTRAINT [DF_NewsFetcherStates_IsEnabled] DEFAULT 1,
+                    [DefaultSourcesSeeded] bit NOT NULL CONSTRAINT [DF_NewsFetcherStates_DefaultSourcesSeeded] DEFAULT 0
+                );
         ");
+        await db.Database.ExecuteSqlRawAsync(@"
+            IF OBJECT_ID(N'dbo.__EFMigrationsHistory', N'U') IS NULL
+                CREATE TABLE [dbo].[__EFMigrationsHistory] (
+                [MigrationId] nvarchar(150) NOT NULL CONSTRAINT [PK___EFMigrationsHistory] PRIMARY KEY,
+                [ProductVersion] nvarchar(32) NOT NULL
+            );
+            IF NOT EXISTS (SELECT 1 FROM dbo.__EFMigrationsHistory WHERE MigrationId = N'20261114100200_InitialCreate')
+                INSERT INTO [dbo].[__EFMigrationsHistory] ([MigrationId], [ProductVersion]) VALUES (N'20261114100200_InitialCreate', N'10.0.15');
+        ");
+        await db.Database.MigrateAsync();
+    }
+
+    var fetcherState = await db.NewsFetcherStates.FindAsync(1);
+    if (fetcherState == null)
+    {
+        fetcherState = new NewsFetcherState();
+        db.NewsFetcherStates.Add(fetcherState);
+    }
+
+    if (!fetcherState.DefaultSourcesSeeded)
+    {
+        if (!await db.NewsSources.AnyAsync())
+        {
+            db.NewsSources.AddRange(NewsUpdaterService.DefaultSources.Select(source => new NewsSource
+            {
+                Name = source.Name,
+                FeedUrl = source.FeedUrl,
+                Tag = source.Tag,
+                IsEnabled = true,
+                CreatedAt = DateTime.UtcNow
+            }));
+        }
+        fetcherState.DefaultSourcesSeeded = true;
+        await db.SaveChangesAsync();
     }
 
     // Hide legacy canned seed articles. Keep any associated user discussions intact.
@@ -194,6 +338,12 @@ await using (var scope = app.Services.CreateAsyncScope())
     }
 }
 
+app.UseForwardedHeaders();
+if (!app.Environment.IsDevelopment() && !app.Environment.IsEnvironment("Testing"))
+{
+    app.UseHsts();
+    app.UseHttpsRedirection();
+}
 app.UseDefaultFiles();
 app.UseStaticFiles(new StaticFileOptions
 {
@@ -208,7 +358,37 @@ app.UseStaticFiles(new StaticFileOptions
         }
     }
 });
-app.UseCors();
+app.UseRouting();
+app.Use(async (context, next) =>
+{
+    var origin = context.Request.Headers.Origin.ToString();
+    var runtimeCorsOrigins = context.RequestServices.GetRequiredService<IConfiguration>()
+        .GetSection("Cors:AllowedOrigins").GetChildren()
+        .Select(section => section.Value)
+        .Where(configuredOrigin => !string.IsNullOrWhiteSpace(configuredOrigin))
+        .ToArray();
+    var isAllowedOrigin = runtimeCorsOrigins.Contains(origin, StringComparer.Ordinal);
+    if (isAllowedOrigin)
+    {
+        context.Response.Headers.AccessControlAllowOrigin = origin;
+        context.Response.Headers.AccessControlAllowCredentials = "true";
+        context.Response.Headers.Append("Vary", "Origin");
+    }
+    if (HttpMethods.IsOptions(context.Request.Method) && context.Request.Headers.ContainsKey("Access-Control-Request-Method"))
+    {
+        if (!isAllowedOrigin)
+        {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            return;
+        }
+        context.Response.Headers.AccessControlAllowMethods = "GET, POST, PUT, PATCH, DELETE, OPTIONS";
+        context.Response.Headers.AccessControlAllowHeaders = context.Request.Headers["Access-Control-Request-Headers"].ToString();
+        context.Response.StatusCode = StatusCodes.Status204NoContent;
+        return;
+    }
+    await next();
+});
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -298,7 +478,7 @@ app.MapPost("/api/auth/register", async (RegisterRequest req, AppDbContext db, I
         websiteUrl = user.WebsiteUrl,
         role = user.Role
     });
-});
+}).RequireRateLimiting("auth-register");
 
 // POST /api/admin/auth/login: Dedicated administrator credentials, separate from user accounts.
 app.MapPost("/api/admin/auth/login", async (LoginRequest req, AppDbContext db, IPasswordHasher<User> passwordHasher, HttpContext httpContext) =>
@@ -308,6 +488,10 @@ app.MapPost("/api/admin/auth/login", async (LoginRequest req, AppDbContext db, I
     if (string.IsNullOrWhiteSpace(configuredUsername) || string.IsNullOrEmpty(configuredPassword))
     {
         return Results.Json(new { message = "Administrator sign-in is not configured on this server." }, statusCode: StatusCodes.Status503ServiceUnavailable);
+    }
+    if (!IsStrongAdminPassword(configuredPassword))
+    {
+        return Results.Json(new { message = "The configured administrator password is too weak. Set a 16-character password with upper and lower case letters, a number, and a symbol." }, statusCode: StatusCodes.Status503ServiceUnavailable);
     }
 
     if (string.IsNullOrWhiteSpace(req.Username) || string.IsNullOrEmpty(req.Password) ||
@@ -346,13 +530,28 @@ app.MapPost("/api/admin/auth/login", async (LoginRequest req, AppDbContext db, I
         db.Users.Add(adminUser);
         await db.SaveChangesAsync();
     }
+    else
+    {
+        if (await db.Users.AnyAsync(u => u.Id != adminUser.Id && u.Username.ToLower() == configuredUsername.ToLower()))
+            return Results.Conflict(new { message = "The configured administrator username is already in use." });
+
+        var changed = !string.Equals(adminUser.Username, configuredUsername, StringComparison.Ordinal);
+        adminUser.Username = configuredUsername;
+        if (passwordHasher.VerifyHashedPassword(adminUser, adminUser.PasswordHash, configuredPassword) != PasswordVerificationResult.Success)
+        {
+            adminUser.PasswordHash = passwordHasher.HashPassword(adminUser, configuredPassword);
+            changed = true;
+        }
+        if (changed) await db.SaveChangesAsync();
+    }
 
     var claims = new List<Claim>
     {
         new(ClaimTypes.NameIdentifier, adminUser.Id.ToString()),
         new(ClaimTypes.Name, adminUser.Username),
         new("DisplayName", adminUser.DisplayName),
-        new(ClaimTypes.Role, adminUser.Role)
+        new(ClaimTypes.Role, adminUser.Role),
+        new("AdminSessionVersion", app.Configuration["AdminAuth:SessionVersion"] ?? "1")
     };
     var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
     await httpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity), new AuthenticationProperties
@@ -372,7 +571,7 @@ app.MapPost("/api/admin/auth/login", async (LoginRequest req, AppDbContext db, I
         websiteUrl = adminUser.WebsiteUrl,
         role = adminUser.Role
     });
-});
+}).RequireRateLimiting("admin-login");
 
 // POST /api/auth/login
 app.MapPost("/api/auth/login", async (LoginRequest req, AppDbContext db, IPasswordHasher<User> passwordHasher, HttpContext httpContext) =>
@@ -442,7 +641,7 @@ app.MapPost("/api/auth/login", async (LoginRequest req, AppDbContext db, IPasswo
         websiteUrl = user.WebsiteUrl,
         role = user.Role
     });
-});
+}).RequireRateLimiting("auth-login");
 
 // Password recovery uses short-lived, single-use tokens delivered through configured SMTP.
 app.MapPost("/api/auth/password-reset/request", async (PasswordResetRequest req, AppDbContext db, IConfiguration configuration, HttpContext context) =>
@@ -482,7 +681,7 @@ app.MapPost("/api/auth/password-reset/request", async (PasswordResetRequest req,
         }
     }
     return Results.Ok(new { message = "If an active account uses that email, a recovery link will arrive shortly." });
-});
+}).RequireRateLimiting("password-recovery");
 
 app.MapPost("/api/auth/password-reset/confirm", async (PasswordResetConfirmRequest req, AppDbContext db, IPasswordHasher<User> passwordHasher) =>
 {
@@ -1273,6 +1472,147 @@ app.MapPost("/api/posts/{id:int}/comments", async (int id, CreateCommentRequest 
 // ==========================================
 var admin = app.MapGroup("/api/admin").RequireAuthorization("AdminOnly");
 
+admin.MapGet("/news-sync/status", (NewsUpdaterService newsUpdater) => Results.Ok(newsUpdater.GetStatus()));
+
+admin.MapPost("/news-sync/start", async (NewsUpdaterService newsUpdater, CancellationToken cancellationToken) =>
+{
+    await newsUpdater.SetEnabledAsync(true, cancellationToken);
+    var queued = newsUpdater.QueueRefresh();
+    return Results.Ok(new { queued, status = newsUpdater.GetStatus() });
+});
+
+admin.MapPost("/news-sync/stop", async (NewsUpdaterService newsUpdater, CancellationToken cancellationToken) =>
+{
+    await newsUpdater.SetEnabledAsync(false, cancellationToken);
+    return Results.Ok(newsUpdater.GetStatus());
+});
+
+admin.MapPost("/news-sync/refresh", (NewsUpdaterService newsUpdater) =>
+{
+    var queued = newsUpdater.QueueRefresh();
+    return queued
+        ? Results.Accepted("/api/admin/news-sync/status", new { queued, status = newsUpdater.GetStatus() })
+        : Results.Conflict(new { queued, message = "A news refresh is already running.", status = newsUpdater.GetStatus() });
+});
+
+admin.MapGet("/news-sources", async (AppDbContext db) => Results.Ok(await db.NewsSources
+    .AsNoTracking()
+    .OrderBy(source => source.Name)
+    .Select(source => new
+    {
+        id = source.Id,
+        name = source.Name,
+        feedUrl = source.FeedUrl,
+        tag = source.Tag,
+        isEnabled = source.IsEnabled,
+        lastCheckedAt = source.LastCheckedAt,
+        lastItemCount = source.LastItemCount,
+        lastError = source.LastError
+    })
+    .ToListAsync()));
+
+admin.MapPost("/news-sources/test", async (TestNewsSourceRequest request, NewsUpdaterService newsUpdater, CancellationToken cancellationToken) =>
+{
+    if (string.IsNullOrWhiteSpace(request.FeedUrl)) return Results.BadRequest(new { message = "Enter a feed URL." });
+    var result = await newsUpdater.TestFeedAsync(request.FeedUrl.Trim(), cancellationToken);
+    return result.IsValid ? Results.Ok(result) : Results.BadRequest(result);
+});
+
+admin.MapPost("/news-sources", async (NewsSourceRequest request, AppDbContext db, NewsUpdaterService newsUpdater, CancellationToken cancellationToken) =>
+{
+    var name = request.Name?.Trim();
+    var feedUrl = request.FeedUrl?.Trim();
+    var tag = string.IsNullOrWhiteSpace(request.Tag) ? "#Tech" : request.Tag.Trim();
+    if (string.IsNullOrWhiteSpace(name) || name.Length > 120 || string.IsNullOrWhiteSpace(feedUrl) || feedUrl.Length > 1000 || tag.Length > 50 || !tag.StartsWith('#'))
+        return Results.BadRequest(new { message = "Provide a source name, HTTPS feed URL, and a topic tag such as #AI or #Tech." });
+
+    var test = await newsUpdater.TestFeedAsync(feedUrl, cancellationToken);
+    if (!test.IsValid) return Results.BadRequest(new { message = test.Error });
+    if (await db.NewsSources.AnyAsync(source => source.FeedUrl == feedUrl, cancellationToken))
+        return Results.Conflict(new { message = "That feed URL is already configured." });
+
+    var source = new NewsSource { Name = name, FeedUrl = feedUrl, Tag = tag, IsEnabled = request.IsEnabled ?? true };
+    db.NewsSources.Add(source);
+    await db.SaveChangesAsync(cancellationToken);
+    return Results.Created($"/api/admin/news-sources/{source.Id}", new { source.Id, source.Name, source.FeedUrl, source.Tag, source.IsEnabled, test.ItemCount });
+});
+
+admin.MapPut("/news-sources/{id:int}", async (int id, NewsSourceRequest request, AppDbContext db, NewsUpdaterService newsUpdater, CancellationToken cancellationToken) =>
+{
+    var source = await db.NewsSources.FindAsync([id], cancellationToken);
+    if (source == null) return Results.NotFound(new { message = "News source not found." });
+    var name = request.Name?.Trim();
+    var feedUrl = request.FeedUrl?.Trim();
+    var tag = string.IsNullOrWhiteSpace(request.Tag) ? source.Tag : request.Tag.Trim();
+    if (string.IsNullOrWhiteSpace(name) || name.Length > 120 || string.IsNullOrWhiteSpace(feedUrl) || feedUrl.Length > 1000 || tag.Length > 50 || !tag.StartsWith('#'))
+        return Results.BadRequest(new { message = "Provide a source name, HTTPS feed URL, and a topic tag such as #AI or #Tech." });
+
+    if (await db.NewsSources.AnyAsync(item => item.Id != id && item.FeedUrl == feedUrl, cancellationToken))
+        return Results.Conflict(new { message = "That feed URL is already configured." });
+    if (!string.Equals(source.FeedUrl, feedUrl, StringComparison.Ordinal))
+    {
+        var test = await newsUpdater.TestFeedAsync(feedUrl, cancellationToken);
+        if (!test.IsValid) return Results.BadRequest(new { message = test.Error });
+    }
+
+    source.Name = name;
+    source.FeedUrl = feedUrl;
+    source.Tag = tag;
+    if (request.IsEnabled.HasValue) source.IsEnabled = request.IsEnabled.Value;
+    source.LastError = null;
+    await db.SaveChangesAsync(cancellationToken);
+    return Results.Ok(new { source.Id, source.Name, source.FeedUrl, source.Tag, source.IsEnabled });
+});
+
+admin.MapDelete("/news-sources/{id:int}", async (int id, AppDbContext db) =>
+{
+    var source = await db.NewsSources.FindAsync(id);
+    if (source == null) return Results.NotFound(new { message = "News source not found." });
+    db.NewsSources.Remove(source);
+    await db.SaveChangesAsync();
+    return Results.Ok(new { message = "Source removed. Previously fetched stories are unchanged." });
+});
+
+admin.MapPatch("/news-sources/{id:int}/enabled", async (int id, SetNewsSourceEnabledRequest request, AppDbContext db) =>
+{
+    var source = await db.NewsSources.FindAsync(id);
+    if (source == null) return Results.NotFound(new { message = "News source not found." });
+    source.IsEnabled = request.IsEnabled;
+    await db.SaveChangesAsync();
+    return Results.Ok(new { source.Id, source.IsEnabled });
+});
+
+admin.MapGet("/news", async (AppDbContext db, int page = 1, int pageSize = 30) =>
+{
+    page = Math.Max(1, page);
+    pageSize = Math.Clamp(pageSize, 1, 100);
+    var query = db.Posts.AsNoTracking().Where(post => post.IsAutoNews);
+    var total = await query.CountAsync();
+    var items = await query.OrderByDescending(post => post.CreatedAt).ThenByDescending(post => post.Id)
+        .Skip((page - 1) * pageSize).Take(pageSize)
+        .Select(post => new { id = post.Id, title = post.SinhalaTitle, summary = post.SinhalaSummary, source = post.Source, link = post.Link, tag = post.Tag, status = post.Status, createdAt = post.CreatedAt })
+        .ToListAsync();
+    return Results.Ok(new { items, total, page, pageSize });
+});
+
+admin.MapPatch("/news/{id:int}/visibility", async (int id, SetNewsVisibilityRequest request, AppDbContext db) =>
+{
+    var post = await db.Posts.FirstOrDefaultAsync(item => item.Id == id && item.IsAutoNews);
+    if (post == null) return Results.NotFound(new { message = "Imported news story not found." });
+    post.Status = request.Visible ? "Approved" : "Hidden";
+    await db.SaveChangesAsync();
+    return Results.Ok(new { post.Id, post.Status });
+});
+
+admin.MapDelete("/news/{id:int}", async (int id, AppDbContext db) =>
+{
+    var post = await db.Posts.FirstOrDefaultAsync(item => item.Id == id && item.IsAutoNews);
+    if (post == null) return Results.NotFound(new { message = "Imported news story not found." });
+    db.Posts.Remove(post);
+    await db.SaveChangesAsync();
+    return Results.Ok(new { message = "Imported news story deleted.", id });
+});
+
 admin.MapGet("/insights", async (AppDbContext db) =>
 {
     var since = DateTime.UtcNow.AddDays(-30);
@@ -1495,6 +1835,18 @@ admin.MapDelete("/comments/{id:int}", async (int id, AppDbContext db) =>
 });
 
 app.Run();
+
+static string GetClientRateLimitKey(HttpContext context) => context.Connection.RemoteIpAddress?.ToString() ?? "unknown-client";
+
+static bool IsStrongAdminPassword(string password)
+{
+    return password.Length >= 16 &&
+        !password.Any(char.IsWhiteSpace) &&
+        password.Any(char.IsUpper) &&
+        password.Any(char.IsLower) &&
+        password.Any(char.IsDigit) &&
+        password.Any(character => !char.IsLetterOrDigit(character));
+}
 
 static async Task<bool> SendConfiguredEmailAsync(IConfiguration configuration, string recipient, string subject, string body, CancellationToken cancellationToken)
 {

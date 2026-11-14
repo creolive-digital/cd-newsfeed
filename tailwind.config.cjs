@@ -1,0 +1,60 @@
+module.exports = {
+      content: ["./wwwroot/**/*.html", "./wwwroot/**/*.js"],
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface-variant": "#2d3449",
+            "background": "#0b1326",
+            "on-surface": "#dae2fd",
+            "on-tertiary-fixed-variant": "#003ea8",
+            "on-tertiary": "#002a78",
+            "outline": "#869397",
+            "on-error": "#690005",
+            "on-tertiary-container": "#003490",
+            "surface-container-low": "#131b2e",
+            "surface-tint": "#4cd7f6",
+            "primary": "#4cd7f6",
+            "on-primary-fixed": "#001f26",
+            "outline-variant": "#3d494c",
+            "surface": "#0b1326",
+            "inverse-surface": "#dae2fd",
+            "error-container": "#93000a",
+            "on-tertiary-fixed": "#00174b",
+            "tertiary": "#b4c5ff",
+            "tertiary-container": "#85a3ff",
+            "secondary": "#d0bcff",
+            "surface-bright": "#31394d",
+            "on-background": "#dae2fd",
+            "surface-dim": "#0b1326",
+            "on-primary-container": "#00424f",
+            "on-error-container": "#ffdad6",
+            "inverse-primary": "#00687a",
+            "on-secondary": "#3c0091",
+            "inverse-on-surface": "#283044",
+            "secondary-container": "#571bc1",
+            "on-primary-fixed-variant": "#004e5c",
+            "primary-fixed": "#acedff",
+            "on-secondary-fixed": "#23005c",
+            "primary-container": "#06b6d4",
+            "on-primary": "#003640",
+            "surface-container-highest": "#2d3449",
+            "surface-container-lowest": "#060e20",
+            "tertiary-fixed-dim": "#b4c5ff",
+            "on-secondary-container": "#c4abff",
+            "secondary-fixed-dim": "#d0bcff",
+            "primary-fixed-dim": "#4cd7f6",
+            "surface-container-high": "#222a3d",
+            "surface-container": "#171f33",
+            "on-secondary-fixed-variant": "#5516be",
+            "secondary-fixed": "#e9ddff",
+            "error": "#ffb4ab",
+            "on-surface-variant": "#bcc9cd",
+            "tertiary-fixed": "#dbe1ff"
+          },
+          fontFamily: {
+            sans: ["Inter", "Noto Sans Sinhala", "sans-serif"]
+          }
+        }
+      }
+    };

@@ -1,0 +1,39 @@
+{
+  "name": "cd-newsfeed",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "npm run build:assets && dotnet test ./NewsFeed.Tests/NewsFeed.Tests.csproj --configuration Release",
+    "build:assets": "postcss wwwroot/css/app.css -o wwwroot/css/app.min.css && node scripts/copy-fonts.cjs && node scripts/copy-signalr.cjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/creolive-digital/cd-newsfeed.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/creolive-digital/cd-newsfeed/issues"
+  },
+  "homepage": "https://github.com/creolive-digital/cd-newsfeed#readme",
+  "dependencies": {
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource-variable/noto-sans-sinhala": "^5.3.0",
+    "@microsoft/signalr": "^8.0.7",
+    "material-symbols": "^0.49.0"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.21",
+    "cssnano": "^7.0.6",
+    "postcss-cli": "^11.0.1",
+    "postcss-import": "^16.1.0",
+    "tailwindcss": "^3.4.17"
+  },
+  "private": "true"
+}

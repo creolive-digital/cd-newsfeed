@@ -1,6 +1,9 @@
 using System.ServiceModel.Syndication;
+using System.Net;
+using System.Net.Sockets;
 using System.Text.RegularExpressions;
 using System.Xml;
+using System.Xml.Linq;
 using Microsoft.EntityFrameworkCore;
 using cd_newsfeed.Data;
 using cd_newsfeed.Models;
@@ -11,34 +14,108 @@ public class NewsUpdaterService : BackgroundService
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IConfiguration _configuration;
+    private readonly IHostEnvironment _environment;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<NewsUpdaterService> _logger;
+    private readonly SemaphoreSlim _runLock = new(1, 1);
+    private readonly object _stateLock = new();
+    private bool _enabled = true;
+    private bool _isRunning;
+    private DateTimeOffset? _lastRunAt;
+    private int? _lastInsertedCount;
+    private string? _lastError;
 
-    private static readonly (string SourceName, string FeedUrl, string DefaultTag)[] FeedSources =
+    public NewsSyncStatus GetStatus()
+    {
+        lock (_stateLock)
+        {
+            return new NewsSyncStatus(_enabled, _isRunning, _lastRunAt, _lastInsertedCount, _lastError);
+        }
+    }
+
+    public async Task SetEnabledAsync(bool enabled, CancellationToken cancellationToken = default)
+    {
+        using var scope = _scopeFactory.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var persistedState = await db.NewsFetcherStates.FindAsync([1], cancellationToken);
+        if (persistedState == null)
+        {
+            persistedState = new NewsFetcherState { Id = 1 };
+            db.NewsFetcherStates.Add(persistedState);
+        }
+        persistedState.IsEnabled = enabled;
+        await db.SaveChangesAsync(cancellationToken);
+        lock (_stateLock) _enabled = enabled;
+        _logger.LogInformation("Automatic news fetching {State} by an administrator.", enabled ? "enabled" : "paused");
+    }
+
+    public bool QueueRefresh()
+    {
+        if (!_runLock.Wait(0)) return false;
+        _ = RunUpdateAndReleaseAsync(CancellationToken.None);
+        return true;
+    }
+
+    public static readonly (string Name, string FeedUrl, string Tag)[] DefaultSources =
     [
         ("TechCrunch AI", "https://techcrunch.com/category/artificial-intelligence/feed/", "#AI"),
-        ("The Verge", "https://www.theverge.com/rss/index.xml", "#Tech")
+        ("The Verge", "https://www.theverge.com/rss/index.xml", "#Tech"),
+        ("Ars Technica", "https://feeds.arstechnica.com/arstechnica/index", "#Tech"),
+        ("MIT Technology Review", "https://www.technologyreview.com/feed/", "#AI"),
+        ("WIRED", "https://www.wired.com/feed/rss", "#Tech"),
+        ("Google News · AI & Tech", "https://news.google.com/rss/search?q=artificial+intelligence+technology&hl=en-US&gl=US&ceid=US:en", "#AI")
     ];
 
     public NewsUpdaterService(
         IServiceScopeFactory scopeFactory,
         IConfiguration configuration,
+        IHostEnvironment environment,
         IHttpClientFactory httpClientFactory,
         ILogger<NewsUpdaterService> logger)
     {
         _scopeFactory = scopeFactory;
         _configuration = configuration;
+        _environment = environment;
         _httpClientFactory = httpClientFactory;
         _logger = logger;
+    }
+
+    public async Task<NewsFeedTestResult> TestFeedAsync(string feedUrl, CancellationToken cancellationToken = default)
+    {
+        if (!await IsSafePublicFeedUrlAsync(feedUrl, cancellationToken))
+            return new NewsFeedTestResult(false, 0, null, "Use a public HTTPS RSS or Atom feed URL.");
+
+        try
+        {
+            var items = await FetchItemsFromFeedAsync("Feed test", feedUrl, "#Tech", cancellationToken);
+            return items.Count == 0
+                ? new NewsFeedTestResult(false, 0, null, "The URL responded, but no feed stories were found.")
+                : new NewsFeedTestResult(true, items.Count, items[0].Title, null);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogInformation(ex, "Administrator feed test failed for {FeedUrl}.", feedUrl);
+            return new NewsFeedTestResult(false, 0, null, "Could not read that feed. Check the URL and try again.");
+        }
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation("NewsUpdaterService starting...");
 
+        using (var scope = _scopeFactory.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var persistedState = await db.NewsFetcherStates.FindAsync([1], stoppingToken);
+            if (persistedState != null)
+            {
+                lock (_stateLock) _enabled = persistedState.IsEnabled;
+            }
+        }
+
         try
         {
-            await RunFeedUpdateAsync(stoppingToken);
+            if (GetStatus().Enabled) await RunUpdateAsync(stoppingToken);
         }
         catch (Exception ex) when (!stoppingToken.IsCancellationRequested)
         {
@@ -49,14 +126,51 @@ public class NewsUpdaterService : BackgroundService
         using var timer = new PeriodicTimer(TimeSpan.FromMinutes(15));
         while (!stoppingToken.IsCancellationRequested && await timer.WaitForNextTickAsync(stoppingToken))
         {
-            try
+            if (GetStatus().Enabled) await RunUpdateAsync(stoppingToken);
+        }
+    }
+
+    private async Task<bool> RunUpdateAsync(CancellationToken cancellationToken)
+    {
+        if (!await _runLock.WaitAsync(0, cancellationToken)) return false;
+        await RunUpdateAndReleaseAsync(cancellationToken);
+        return true;
+    }
+
+    private async Task RunUpdateAndReleaseAsync(CancellationToken cancellationToken)
+    {
+        lock (_stateLock)
+        {
+            _isRunning = true;
+            _lastError = null;
+        }
+
+        try
+        {
+            var insertedCount = await RunFeedUpdateAsync(cancellationToken);
+            lock (_stateLock)
             {
-                await RunFeedUpdateAsync(stoppingToken);
+                _lastRunAt = DateTimeOffset.UtcNow;
+                _lastInsertedCount = insertedCount;
             }
-            catch (Exception ex) when (!stoppingToken.IsCancellationRequested)
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "News feed update failed.");
+            lock (_stateLock)
             {
-                _logger.LogError(ex, "Error occurred during hourly news feed update.");
+                _lastRunAt = DateTimeOffset.UtcNow;
+                _lastError = "News fetching failed. Check the application logs for details.";
             }
+        }
+        finally
+        {
+            lock (_stateLock) _isRunning = false;
+            _runLock.Release();
         }
     }
 
@@ -80,19 +194,25 @@ public class NewsUpdaterService : BackgroundService
         return keys.Distinct(StringComparer.Ordinal).ToArray();
     }
 
-    private async Task RunFeedUpdateAsync(CancellationToken stoppingToken)
+    private async Task<int> RunFeedUpdateAsync(CancellationToken stoppingToken)
     {
+        if (_environment.IsEnvironment("Testing"))
+        {
+            _logger.LogInformation("News fetching is disabled in the Testing environment.");
+            return 0;
+        }
+
         var apiKeys = GetGeminiApiKeys();
         if (apiKeys.Count == 0)
         {
             _logger.LogInformation("News check: no Gemini API keys are configured. Skipping feed translation.");
-            return;
+            return 0;
         }
 
-        _logger.LogInformation("News check: Fetching latest RSS items from TechCrunch AI and The Verge...");
         using var scope = _scopeFactory.CreateScope();
         var insertedCount = await FetchAndTranslateLatestFeedsAsync(scope.ServiceProvider, apiKeys, maxItemsToInsert: 6, stoppingToken);
         _logger.LogInformation("News feed update finished. Inserted {InsertedCount} translated stories.", insertedCount);
+        return insertedCount;
     }
 
     private async Task<int> FetchAndTranslateLatestFeedsAsync(
@@ -103,19 +223,25 @@ public class NewsUpdaterService : BackgroundService
     {
         var db = serviceProvider.GetRequiredService<AppDbContext>();
         var translator = serviceProvider.GetRequiredService<GeminiTranslatorService>();
+        var enabledSources = await db.NewsSources.AsNoTracking()
+            .Where(source => source.IsEnabled)
+            .OrderBy(source => source.Name)
+            .ToListAsync(stoppingToken);
 
         var rawCandidates = new List<RawFeedCandidate>();
 
-        foreach (var (sourceName, feedUrl, tag) in FeedSources)
+        foreach (var source in enabledSources)
         {
             try
             {
-                var items = await FetchItemsFromFeedAsync(sourceName, feedUrl, tag, stoppingToken);
+                var items = await FetchItemsFromFeedAsync(source.Name, source.FeedUrl, source.Tag, stoppingToken);
                 rawCandidates.AddRange(items);
+                await UpdateSourceStatusAsync(db, source.Id, items.Count, null, stoppingToken);
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to fetch RSS feed from {SourceName} ({FeedUrl})", sourceName, feedUrl);
+                _logger.LogWarning(ex, "Failed to fetch RSS feed from {SourceName} ({FeedUrl})", source.Name, source.FeedUrl);
+                await UpdateSourceStatusAsync(db, source.Id, 0, "Could not fetch this feed. Check its URL and availability.", stoppingToken);
             }
         }
 
@@ -136,14 +262,19 @@ public class NewsUpdaterService : BackgroundService
             }
 
             // Check if link already exists in DB to prevent duplicates
-            var alreadyExists = await db.Posts.AnyAsync(
+            var existingPost = await db.Posts.FirstOrDefaultAsync(
                 p => (p.Link != null && candidate.Link != null && p.Link == candidate.Link) ||
                      p.SinhalaTitle == candidate.Title,
                 stoppingToken);
 
-            if (alreadyExists)
+            if (existingPost != null)
             {
                 duplicateCount++;
+                if (string.IsNullOrWhiteSpace(existingPost.ImageUrl) && !string.IsNullOrWhiteSpace(candidate.ImageUrl))
+                {
+                    existingPost.ImageUrl = candidate.ImageUrl;
+                    await db.SaveChangesAsync(stoppingToken);
+                }
                 continue;
             }
 
@@ -187,16 +318,29 @@ public class NewsUpdaterService : BackgroundService
         return insertedCount;
     }
 
+    private static async Task UpdateSourceStatusAsync(AppDbContext db, int sourceId, int itemCount, string? error, CancellationToken cancellationToken)
+    {
+        var source = await db.NewsSources.FirstOrDefaultAsync(item => item.Id == sourceId, cancellationToken);
+        if (source == null) return;
+        source.LastCheckedAt = DateTime.UtcNow;
+        source.LastItemCount = itemCount;
+        source.LastError = error;
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
     private async Task<List<RawFeedCandidate>> FetchItemsFromFeedAsync(
         string sourceName,
         string feedUrl,
         string defaultTag,
         CancellationToken stoppingToken)
     {
+        if (!await IsSafePublicFeedUrlAsync(feedUrl, stoppingToken))
+            throw new InvalidOperationException("Only public HTTPS feed URLs can be fetched.");
+
         var list = new List<RawFeedCandidate>();
         var httpClient = _httpClientFactory.CreateClient("RssClient");
 
-        using var response = await httpClient.GetAsync(feedUrl, HttpCompletionOption.ResponseHeadersRead, stoppingToken);
+        using var response = await GetSafeResponseAsync(httpClient, feedUrl, stoppingToken);
         response.EnsureSuccessStatusCode();
 
         await using var stream = await response.Content.ReadAsStreamAsync(stoppingToken);
@@ -216,18 +360,31 @@ public class NewsUpdaterService : BackgroundService
         {
             var title = item.Title?.Text ?? string.Empty;
             var rawSummary = item.Summary?.Text ?? string.Empty;
+            var rawContent = rawSummary;
 
-            if (string.IsNullOrWhiteSpace(rawSummary) && item.Content is TextSyndicationContent textContent)
+            if (item.Content is TextSyndicationContent textContent)
             {
-                rawSummary = textContent.Text;
+                rawContent += " " + textContent.Text;
+                if (string.IsNullOrWhiteSpace(rawSummary)) rawSummary = textContent.Text;
+            }
+            else if (item.Content is XmlSyndicationContent xmlContent)
+            {
+                try
+                {
+                    using var contentReader = xmlContent.GetReaderAtContent();
+                    var contentElement = XElement.Load(contentReader);
+                    rawContent += " " + contentElement;
+                    if (string.IsNullOrWhiteSpace(rawSummary)) rawSummary = contentElement.Value;
+                }
+                catch (XmlException) { }
             }
 
             var cleanSummary = StripHtml(rawSummary);
             var link = item.Links.FirstOrDefault()?.Uri?.ToString();
             var publishDate = item.PublishDate != DateTimeOffset.MinValue ? item.PublishDate : item.LastUpdatedTime;
 
-            // Extract image URL from enclosure, media extensions, or raw HTML
-            var imageUrl = ExtractImageUrl(item, rawSummary);
+            // Feeds commonly put thumbnails in media extensions or encoded HTML rather than enclosures.
+            var imageUrl = ResolveFeedImageUrl(ExtractImageUrl(item, rawContent), link ?? feedUrl, feedUrl);
 
             if (!string.IsNullOrWhiteSpace(title))
             {
@@ -236,6 +393,71 @@ public class NewsUpdaterService : BackgroundService
         }
 
         return list;
+    }
+
+    private static async Task<HttpResponseMessage> GetSafeResponseAsync(HttpClient httpClient, string feedUrl, CancellationToken cancellationToken)
+    {
+        var currentUri = new Uri(feedUrl, UriKind.Absolute);
+        for (var redirectCount = 0; redirectCount <= 4; redirectCount++)
+        {
+            if (!await IsSafePublicFeedUrlAsync(currentUri.AbsoluteUri, cancellationToken))
+                throw new InvalidOperationException("The feed redirected to a non-public URL.");
+
+            var response = await httpClient.GetAsync(currentUri, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            if ((int)response.StatusCode is < 300 or >= 400) return response;
+
+            var location = response.Headers.Location;
+            response.Dispose();
+            if (location == null || redirectCount == 4)
+                throw new HttpRequestException("The feed redirected too many times or had no redirect location.");
+            currentUri = location.IsAbsoluteUri ? location : new Uri(currentUri, location);
+        }
+
+        throw new HttpRequestException("The feed redirected too many times.");
+    }
+
+    private static async Task<bool> IsSafePublicFeedUrlAsync(string feedUrl, CancellationToken cancellationToken)
+    {
+        if (!Uri.TryCreate(feedUrl, UriKind.Absolute, out var uri) ||
+            uri.Scheme != Uri.UriSchemeHttps ||
+            uri.Port != 443 ||
+            !string.IsNullOrEmpty(uri.UserInfo) ||
+            uri.IsLoopback ||
+            uri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase) ||
+            uri.Host.EndsWith(".localhost", StringComparison.OrdinalIgnoreCase) ||
+            uri.Host.EndsWith(".local", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        IPAddress[] addresses;
+        if (IPAddress.TryParse(uri.Host, out var literalAddress))
+        {
+            addresses = [literalAddress];
+        }
+        else
+        {
+            try { addresses = await Dns.GetHostAddressesAsync(uri.DnsSafeHost, cancellationToken); }
+            catch (SocketException) { return false; }
+        }
+
+        return addresses.Length > 0 && addresses.All(IsPublicAddress);
+    }
+
+    private static bool IsPublicAddress(IPAddress address)
+    {
+        if (IPAddress.IsLoopback(address) || address.Equals(IPAddress.IPv6Any) || address.IsIPv6LinkLocal || address.IsIPv6Multicast) return false;
+        if (address.IsIPv4MappedToIPv6) return IsPublicAddress(address.MapToIPv4());
+
+        var bytes = address.GetAddressBytes();
+        if (address.AddressFamily == AddressFamily.InterNetworkV6)
+            return (bytes[0] & 0xfe) != 0xfc && !(bytes[0] == 0xfe && (bytes[1] & 0xc0) != 0x00);
+
+        var first = bytes[0];
+        var second = bytes[1];
+        return first != 0 && first != 10 && first != 127 && first < 224 &&
+            !(first == 169 && second == 254) &&
+            !(first == 172 && second >= 16 && second <= 31) &&
+            !(first == 192 && second == 168) &&
+            !(first == 100 && second >= 64 && second <= 127);
     }
 
     private static string? ExtractImageUrl(SyndicationItem item, string rawContent)
@@ -258,12 +480,18 @@ public class NewsUpdaterService : BackgroundService
         foreach (var ext in item.ElementExtensions)
         {
             if (ext.OuterName.Equals("content", StringComparison.OrdinalIgnoreCase) ||
-                ext.OuterName.Equals("thumbnail", StringComparison.OrdinalIgnoreCase))
+                ext.OuterName.Equals("thumbnail", StringComparison.OrdinalIgnoreCase) ||
+                ext.OuterName.Equals("group", StringComparison.OrdinalIgnoreCase))
             {
                 try
                 {
                     using var reader = ext.GetReader();
-                    var url = reader.GetAttribute("url");
+                    var extension = XElement.Load(reader);
+                    var imageElement = extension.DescendantsAndSelf().FirstOrDefault(element =>
+                        (element.Name.LocalName.Equals("content", StringComparison.OrdinalIgnoreCase) ||
+                         element.Name.LocalName.Equals("thumbnail", StringComparison.OrdinalIgnoreCase)) &&
+                        (element.Attribute("url") != null || element.Attribute("href") != null));
+                    var url = imageElement?.Attribute("url")?.Value ?? imageElement?.Attribute("href")?.Value;
                     if (!string.IsNullOrWhiteSpace(url))
                     {
                         return url;
@@ -286,6 +514,18 @@ public class NewsUpdaterService : BackgroundService
         return null;
     }
 
+    private static string? ResolveFeedImageUrl(string? imageUrl, string itemLink, string feedUrl)
+    {
+        if (string.IsNullOrWhiteSpace(imageUrl)) return null;
+        if (!Uri.TryCreate(itemLink, UriKind.Absolute, out var baseUri) && !Uri.TryCreate(feedUrl, UriKind.Absolute, out baseUri))
+            return null;
+        if (!Uri.TryCreate(baseUri, imageUrl.Trim(), out var resolved) ||
+            (resolved.Scheme != Uri.UriSchemeHttps && resolved.Scheme != Uri.UriSchemeHttp) ||
+            !string.IsNullOrEmpty(resolved.UserInfo))
+            return null;
+        return resolved.AbsoluteUri;
+    }
+
     private static string StripHtml(string input)
     {
         if (string.IsNullOrWhiteSpace(input)) return string.Empty;
@@ -303,3 +543,12 @@ public class NewsUpdaterService : BackgroundService
         DateTimeOffset PublishDate
     );
 }
+
+public sealed record NewsSyncStatus(
+    bool Enabled,
+    bool IsRunning,
+    DateTimeOffset? LastRunAt,
+    int? LastInsertedCount,
+    string? LastError);
+
+public sealed record NewsFeedTestResult(bool IsValid, int ItemCount, string? LatestTitle, string? Error);

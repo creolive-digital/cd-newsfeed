@@ -22,6 +22,8 @@ public class AppDbContext : DbContext
     public DbSet<PostReport> PostReports => Set<PostReport>();
     public DbSet<UserFollow> UserFollows => Set<UserFollow>();
     public DbSet<NotificationPreference> NotificationPreferences => Set<NotificationPreference>();
+    public DbSet<NewsSource> NewsSources => Set<NewsSource>();
+    public DbSet<NewsFetcherState> NewsFetcherStates => Set<NewsFetcherState>();
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
@@ -165,6 +167,25 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<NotificationPreference>(entity =>
         {
             entity.HasKey(p => p.UserId);
+        });
+
+        modelBuilder.Entity<NewsSource>(entity =>
+        {
+            entity.HasKey(source => source.Id);
+            entity.HasIndex(source => source.FeedUrl).IsUnique();
+            entity.Property(source => source.Name).IsRequired().HasMaxLength(120);
+            entity.Property(source => source.FeedUrl).IsRequired().HasMaxLength(1000);
+            entity.Property(source => source.Tag).IsRequired().HasMaxLength(50);
+            entity.Property(source => source.IsEnabled).HasDefaultValue(true);
+            entity.Property(source => source.LastError).HasMaxLength(500);
+            entity.Property(source => source.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+        });
+
+        modelBuilder.Entity<NewsFetcherState>(entity =>
+        {
+            entity.HasKey(state => state.Id);
+            entity.Property(state => state.IsEnabled).HasDefaultValue(true);
+            entity.Property(state => state.DefaultSourcesSeeded).HasDefaultValue(false);
         });
     }
 }
