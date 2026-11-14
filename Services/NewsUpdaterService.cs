@@ -1,6 +1,7 @@
 using System.ServiceModel.Syndication;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
@@ -87,7 +88,7 @@ public class NewsUpdaterService : BackgroundService
 
         try
         {
-            var items = await FetchItemsFromFeedAsync("Feed test", feedUrl, "#Tech", cancellationToken);
+            var items = await FetchItemsFromFeedAsync("Feed test", feedUrl, "#Tech", cancellationToken, includeArticlePageImages: false);
             return items.Count == 0
                 ? new NewsFeedTestResult(false, 0, null, "The URL responded, but no feed stories were found.")
                 : new NewsFeedTestResult(true, items.Count, items[0].Title, null);
@@ -234,7 +235,7 @@ public class NewsUpdaterService : BackgroundService
         {
             try
             {
-                var items = await FetchItemsFromFeedAsync(source.Name, source.FeedUrl, source.Tag, stoppingToken);
+                var items = await FetchItemsFromFeedAsync(source.Name, source.FeedUrl, source.Tag, stoppingToken, includeArticlePageImages: true);
                 rawCandidates.AddRange(items);
                 await UpdateSourceStatusAsync(db, source.Id, items.Count, null, stoppingToken);
             }
@@ -332,7 +333,8 @@ public class NewsUpdaterService : BackgroundService
         string sourceName,
         string feedUrl,
         string defaultTag,
-        CancellationToken stoppingToken)
+        CancellationToken stoppingToken,
+        bool includeArticlePageImages)
     {
         if (!await IsSafePublicFeedUrlAsync(feedUrl, stoppingToken))
             throw new InvalidOperationException("Only public HTTPS feed URLs can be fetched.");
@@ -384,12 +386,36 @@ public class NewsUpdaterService : BackgroundService
             var publishDate = item.PublishDate != DateTimeOffset.MinValue ? item.PublishDate : item.LastUpdatedTime;
 
             // Feeds commonly put thumbnails in media extensions or encoded HTML rather than enclosures.
-            var imageUrl = ResolveFeedImageUrl(ExtractImageUrl(item, rawContent), link ?? feedUrl, feedUrl);
+            var imageUrl = ResolveFeedImageUrl(ExtractImageUrl(item, WebUtility.HtmlDecode(rawContent)), link ?? feedUrl, feedUrl);
 
             if (!string.IsNullOrWhiteSpace(title))
             {
                 list.Add(new RawFeedCandidate(sourceName, title.Trim(), cleanSummary, link, imageUrl, defaultTag, publishDate));
             }
+        }
+
+        if (includeArticlePageImages && list.Any(candidate => string.IsNullOrWhiteSpace(candidate.ImageUrl) && !string.IsNullOrWhiteSpace(candidate.Link)))
+        {
+            using var imageFetchLimit = new SemaphoreSlim(4, 4);
+            var enrichTasks = list.Select(async candidate =>
+            {
+                if (!string.IsNullOrWhiteSpace(candidate.ImageUrl) || string.IsNullOrWhiteSpace(candidate.Link)) return candidate;
+                await imageFetchLimit.WaitAsync(stoppingToken);
+                try
+                {
+                    var pageImage = await FetchArticleImageUrlAsync(httpClient, candidate.Link, stoppingToken);
+                    return string.IsNullOrWhiteSpace(pageImage) ? candidate : candidate with { ImageUrl = pageImage };
+                }
+                catch (OperationCanceledException) when (!stoppingToken.IsCancellationRequested)
+                {
+                    return candidate;
+                }
+                finally
+                {
+                    imageFetchLimit.Release();
+                }
+            });
+            list = (await Task.WhenAll(enrichTasks)).ToList();
         }
 
         return list;
@@ -464,7 +490,8 @@ public class NewsUpdaterService : BackgroundService
     {
         // 1. Check enclosure links
         var enclosure = item.Links.FirstOrDefault(l =>
-            l.RelationshipType?.Equals("enclosure", StringComparison.OrdinalIgnoreCase) == true &&
+            (l.RelationshipType?.Equals("enclosure", StringComparison.OrdinalIgnoreCase) == true ||
+             l.MediaType?.StartsWith("image/", StringComparison.OrdinalIgnoreCase) == true) &&
             (l.MediaType?.StartsWith("image/", StringComparison.OrdinalIgnoreCase) == true ||
              l.Uri.ToString().EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
              l.Uri.ToString().EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase) ||
@@ -504,14 +531,100 @@ public class NewsUpdaterService : BackgroundService
         // 3. Fallback: Search <img> tag in HTML
         if (!string.IsNullOrWhiteSpace(rawContent))
         {
-            var match = Regex.Match(rawContent, @"<img[^>]+src=[""']([^""']+)[""']", RegexOptions.IgnoreCase);
-            if (match.Success && !string.IsNullOrWhiteSpace(match.Groups[1].Value))
+            foreach (Match match in Regex.Matches(rawContent, @"<img\b[^>]*>", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
             {
-                return match.Groups[1].Value;
+                foreach (var attribute in new[] { "src", "data-src", "data-original", "data-lazy-src" })
+                {
+                    var value = GetHtmlAttribute(match.Value, attribute);
+                    if (!string.IsNullOrWhiteSpace(value)) return value;
+                }
+
+                var srcSet = GetHtmlAttribute(match.Value, "srcset");
+                var firstSrcSetUrl = srcSet?.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()?.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+                if (!string.IsNullOrWhiteSpace(firstSrcSetUrl)) return firstSrcSetUrl;
             }
         }
 
         return null;
+    }
+
+    private async Task<string?> FetchArticleImageUrlAsync(HttpClient httpClient, string articleUrl, CancellationToken cancellationToken)
+    {
+        if (!await IsSafePublicFeedUrlAsync(articleUrl, cancellationToken)) return null;
+
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeout.CancelAfter(TimeSpan.FromSeconds(8));
+        try
+        {
+            using var response = await GetSafeResponseAsync(httpClient, articleUrl, timeout.Token);
+            if (!response.IsSuccessStatusCode ||
+                response.Content.Headers.ContentLength is > 2_000_000 ||
+                (response.Content.Headers.ContentType?.MediaType?.StartsWith("text/html", StringComparison.OrdinalIgnoreCase) != true &&
+                 response.Content.Headers.ContentType?.MediaType?.StartsWith("application/xhtml", StringComparison.OrdinalIgnoreCase) != true))
+                return null;
+
+            await using var stream = await response.Content.ReadAsStreamAsync(timeout.Token);
+            using var htmlBuffer = new MemoryStream();
+            var buffer = new byte[16 * 1024];
+            while (htmlBuffer.Length <= 2_000_000)
+            {
+                var remaining = (int)Math.Min(buffer.Length, 2_000_001 - htmlBuffer.Length);
+                var read = await stream.ReadAsync(buffer.AsMemory(0, remaining), timeout.Token);
+                if (read == 0) break;
+                htmlBuffer.Write(buffer, 0, read);
+            }
+            if (htmlBuffer.Length > 2_000_000) return null;
+
+            var html = Encoding.UTF8.GetString(htmlBuffer.ToArray());
+            return ResolveFeedImageUrl(ExtractPageImageUrl(html), articleUrl, articleUrl);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or IOException or OperationCanceledException)
+        {
+            if (cancellationToken.IsCancellationRequested) throw;
+            _logger.LogDebug("Could not retrieve article image metadata from {ArticleUrl}: {Message}", articleUrl, ex.Message);
+            return null;
+        }
+    }
+
+    private static string? ExtractPageImageUrl(string html)
+    {
+        foreach (Match match in Regex.Matches(html, @"<meta\b[^>]*>", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        {
+            var tag = match.Value;
+            var property = GetHtmlAttribute(tag, "property") ?? GetHtmlAttribute(tag, "name") ?? GetHtmlAttribute(tag, "itemprop");
+            if (property?.Equals("og:image", StringComparison.OrdinalIgnoreCase) == true ||
+                property?.Equals("og:image:url", StringComparison.OrdinalIgnoreCase) == true ||
+                property?.Equals("twitter:image", StringComparison.OrdinalIgnoreCase) == true ||
+                property?.Equals("twitter:image:src", StringComparison.OrdinalIgnoreCase) == true ||
+                property?.Equals("image", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                var imageUrl = GetHtmlAttribute(tag, "content");
+                if (!string.IsNullOrWhiteSpace(imageUrl)) return imageUrl;
+            }
+        }
+
+        foreach (Match match in Regex.Matches(html, @"<link\b[^>]*>", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        {
+            var tag = match.Value;
+            if (GetHtmlAttribute(tag, "rel")?.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                    .Any(value => value.Equals("image_src", StringComparison.OrdinalIgnoreCase)) == true)
+            {
+                var imageUrl = GetHtmlAttribute(tag, "href");
+                if (!string.IsNullOrWhiteSpace(imageUrl)) return imageUrl;
+            }
+        }
+
+        return null;
+    }
+
+    private static string? GetHtmlAttribute(string tag, string attributeName)
+    {
+        var pattern = $@"(?:^|\s){Regex.Escape(attributeName)}\s*=\s*(?:""([^""]*)""|'([^']*)'|([^\s>]+))";
+        var match = Regex.Match(tag, pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        if (!match.Success) return null;
+        var value = match.Groups[1].Success ? match.Groups[1].Value :
+            match.Groups[2].Success ? match.Groups[2].Value : match.Groups[3].Value;
+        return WebUtility.HtmlDecode(value.Trim());
     }
 
     private static string? ResolveFeedImageUrl(string? imageUrl, string itemLink, string feedUrl)
