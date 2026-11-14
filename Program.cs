@@ -1117,9 +1117,10 @@ app.MapGet("/api/feed", async (HttpContext httpContext, AppDbContext db, int pag
 
     page = Math.Max(1, page);
     pageSize = Math.Clamp(pageSize, 1, 50);
+    var freshNewsAfter = DateTime.UtcNow.AddDays(-30);
     var query = db.Posts
         .AsNoTracking()
-        .Where(p => p.Status == "Approved")
+        .Where(p => p.Status == "Approved" && (!p.IsAutoNews || p.CreatedAt >= freshNewsAfter))
         ;
     if (!string.IsNullOrWhiteSpace(tag) && !string.Equals(tag, "All", StringComparison.OrdinalIgnoreCase))
     {
@@ -1142,6 +1143,10 @@ app.MapGet("/api/feed", async (HttpContext httpContext, AppDbContext db, int pag
     {
         "oldest" => query.OrderBy(p => p.CreatedAt).ThenBy(p => p.Id),
         "popular" => query.OrderByDescending(p => db.PostLikes.Count(l => l.PostId == p.Id)).ThenByDescending(p => p.CreatedAt),
+        "personalized" => query
+            .OrderByDescending(p => db.UserFollows.Any(f => f.FollowerUserId == currentUser.Id &&
+                ((f.FollowedUserId.HasValue && f.FollowedUserId == p.AuthorId) || (f.Topic != null && f.Topic == p.Tag))))
+            .ThenByDescending(p => p.CreatedAt).ThenByDescending(p => p.Id),
         _ => query.OrderByDescending(p => p.CreatedAt).ThenByDescending(p => p.Id)
     };
     var posts = await orderedQuery
@@ -1158,6 +1163,8 @@ app.MapGet("/api/feed", async (HttpContext httpContext, AppDbContext db, int pag
             link = p.Link,
             tag = p.Tag,
             isAutoNews = p.IsAutoNews,
+            publishedAt = p.IsAutoNews ? p.CreatedAt : (DateTime?)null,
+            imageIsAiGenerated = p.IsAutoNews && p.ImageUrl != null && p.ImageUrl.StartsWith("/uploads/articles/generated/"),
             status = p.Status,
             createdAt = p.CreatedAt,
             likeCount = db.PostLikes.Count(l => l.PostId == p.Id),
@@ -1486,6 +1493,43 @@ var admin = app.MapGroup("/api/admin").RequireAuthorization("AdminOnly");
 
 admin.MapGet("/news-sync/status", (NewsUpdaterService newsUpdater) => Results.Ok(newsUpdater.GetStatus()));
 
+admin.MapGet("/news-health", async (AppDbContext db, CancellationToken cancellationToken) =>
+{
+    var now = DateTime.UtcNow;
+    var freshAfter = now.AddDays(-30);
+    var sources = await db.NewsSources.AsNoTracking()
+        .OrderBy(source => source.Name)
+        .Select(source => new
+        {
+            id = source.Id,
+            source.Name,
+            source.FeedUrl,
+            source.Tag,
+            source.IsEnabled,
+            source.LastCheckedAt,
+            source.LastItemCount,
+            source.LastError
+        })
+        .ToListAsync(cancellationToken);
+    var autoNews = db.Posts.AsNoTracking().Where(post => post.IsAutoNews);
+    return Results.Ok(new
+    {
+        checkedAt = now,
+        freshnessDays = 30,
+        totalStories = await autoNews.CountAsync(cancellationToken),
+        freshStories = await autoNews.CountAsync(post => post.CreatedAt >= freshAfter, cancellationToken),
+        staleStories = await autoNews.CountAsync(post => post.CreatedAt < freshAfter, cancellationToken),
+        storiesMissingImages = await autoNews.CountAsync(post => post.ImageUrl == null || post.ImageUrl == "", cancellationToken),
+        publisherImages = await autoNews.CountAsync(post => post.ImageUrl != null && post.ImageUrl.StartsWith("/uploads/articles/publishers/"), cancellationToken),
+        generatedImages = await autoNews.CountAsync(post => post.ImageUrl != null && post.ImageUrl.StartsWith("/uploads/articles/generated/"), cancellationToken),
+        remoteImages = await autoNews.CountAsync(post => post.ImageUrl != null && (post.ImageUrl.StartsWith("http://") || post.ImageUrl.StartsWith("https://")), cancellationToken),
+        enabledSources = sources.Count(source => source.IsEnabled),
+        sourcesNeedingAttention = sources.Count(source => source.IsEnabled &&
+            (source.LastError != null || !source.LastCheckedAt.HasValue || source.LastCheckedAt.Value < now.AddMinutes(-45))),
+        sources
+    });
+});
+
 admin.MapPost("/news-sync/start", async (NewsUpdaterService newsUpdater, CancellationToken cancellationToken) =>
 {
     await newsUpdater.SetEnabledAsync(true, cancellationToken);
@@ -1525,9 +1569,32 @@ admin.MapGet("/news-sources", async (AppDbContext db) => Results.Ok(await db.New
 
 admin.MapPost("/news-sources/test", async (TestNewsSourceRequest request, NewsUpdaterService newsUpdater, CancellationToken cancellationToken) =>
 {
-    if (string.IsNullOrWhiteSpace(request.FeedUrl)) return Results.BadRequest(new { message = "Enter a feed URL." });
+    if (string.IsNullOrWhiteSpace(request.FeedUrl)) return Results.BadRequest(new { message = "Enter a public HTTPS feed or website URL." });
     var result = await newsUpdater.TestFeedAsync(request.FeedUrl.Trim(), cancellationToken);
     return result.IsValid ? Results.Ok(result) : Results.BadRequest(result);
+});
+
+admin.MapPost("/news-sources/add-built-in-websites", async (AppDbContext db, CancellationToken cancellationToken) =>
+{
+    var existingUrls = await db.NewsSources.Select(source => source.FeedUrl).ToListAsync(cancellationToken);
+    var additions = NewsUpdaterService.DefaultSources
+        .Where(source => source.Name.EndsWith("· Website", StringComparison.Ordinal) &&
+                         !existingUrls.Contains(source.FeedUrl, StringComparer.OrdinalIgnoreCase))
+        .Select(source => new NewsSource
+        {
+            Name = source.Name,
+            FeedUrl = source.FeedUrl,
+            Tag = source.Tag,
+            IsEnabled = true,
+            CreatedAt = DateTime.UtcNow
+        })
+        .ToList();
+    if (additions.Count == 0)
+        return Results.Ok(new { addedCount = 0, message = "All built-in website sources are already configured." });
+
+    db.NewsSources.AddRange(additions);
+    await db.SaveChangesAsync(cancellationToken);
+    return Results.Ok(new { addedCount = additions.Count, message = "Website sources added. Select Fetch news now to import their latest stories." });
 });
 
 admin.MapPost("/news-sources", async (NewsSourceRequest request, AppDbContext db, NewsUpdaterService newsUpdater, CancellationToken cancellationToken) =>
@@ -1536,7 +1603,7 @@ admin.MapPost("/news-sources", async (NewsSourceRequest request, AppDbContext db
     var feedUrl = request.FeedUrl?.Trim();
     var tag = string.IsNullOrWhiteSpace(request.Tag) ? "#Tech" : request.Tag.Trim();
     if (string.IsNullOrWhiteSpace(name) || name.Length > 120 || string.IsNullOrWhiteSpace(feedUrl) || feedUrl.Length > 1000 || tag.Length > 50 || !tag.StartsWith('#'))
-        return Results.BadRequest(new { message = "Provide a source name, HTTPS feed URL, and a topic tag such as #AI or #Tech." });
+        return Results.BadRequest(new { message = "Provide a source name, public HTTPS feed or website URL, and a topic tag such as #AI or #Tech." });
 
     var test = await newsUpdater.TestFeedAsync(feedUrl, cancellationToken);
     if (!test.IsValid) return Results.BadRequest(new { message = test.Error });
@@ -1557,7 +1624,7 @@ admin.MapPut("/news-sources/{id:int}", async (int id, NewsSourceRequest request,
     var feedUrl = request.FeedUrl?.Trim();
     var tag = string.IsNullOrWhiteSpace(request.Tag) ? source.Tag : request.Tag.Trim();
     if (string.IsNullOrWhiteSpace(name) || name.Length > 120 || string.IsNullOrWhiteSpace(feedUrl) || feedUrl.Length > 1000 || tag.Length > 50 || !tag.StartsWith('#'))
-        return Results.BadRequest(new { message = "Provide a source name, HTTPS feed URL, and a topic tag such as #AI or #Tech." });
+        return Results.BadRequest(new { message = "Provide a source name, public HTTPS feed or website URL, and a topic tag such as #AI or #Tech." });
 
     if (await db.NewsSources.AnyAsync(item => item.Id != id && item.FeedUrl == feedUrl, cancellationToken))
         return Results.Conflict(new { message = "That feed URL is already configured." });
@@ -1602,7 +1669,7 @@ admin.MapGet("/news", async (AppDbContext db, int page = 1, int pageSize = 30) =
     var total = await query.CountAsync();
     var items = await query.OrderByDescending(post => post.CreatedAt).ThenByDescending(post => post.Id)
         .Skip((page - 1) * pageSize).Take(pageSize)
-        .Select(post => new { id = post.Id, title = post.SinhalaTitle, summary = post.SinhalaSummary, source = post.Source, link = post.Link, tag = post.Tag, status = post.Status, createdAt = post.CreatedAt })
+        .Select(post => new { id = post.Id, title = post.SinhalaTitle, summary = post.SinhalaSummary, source = post.Source, link = post.Link, imageUrl = post.ImageUrl, imageIsAiGenerated = post.ImageUrl != null && post.ImageUrl.StartsWith("/uploads/articles/generated/"), publishedAt = post.CreatedAt, tag = post.Tag, status = post.Status, createdAt = post.CreatedAt })
         .ToListAsync();
     return Results.Ok(new { items, total, page, pageSize });
 });

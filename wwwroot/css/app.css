@@ -56,4 +56,177 @@
     html:not(.dark) .text-on-surface-variant {
       color: #475569 !important;
     }
+
+    html {
+      scroll-padding-top: 4.5rem;
+      scrollbar-gutter: stable;
+    }
+    #main-header {
+      padding-top: env(safe-area-inset-top);
+    }
+    #feed-view {
+      padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+    }
+    #posts-container > article {
+      border-radius: 1.15rem;
+      box-shadow: 0 3px 18px rgb(0 0 0 / 0.14);
+    }
+    #posts-container article button,
+    #posts-container article a {
+      touch-action: manipulation;
+    }
+    #posts-container button:focus-visible,
+    #posts-container a:focus-visible,
+    #app-bottom-nav button:focus-visible,
+    #article-reader-modal button:focus-visible,
+    #article-reader-modal a:focus-visible {
+      outline: 2px solid #4cd7f6;
+      outline-offset: 2px;
+    }
+    .post-overflow-menu > summary::-webkit-details-marker {
+      display: none;
+    }
+    .post-overflow-menu[open] > summary {
+      color: #4cd7f6;
+      background: rgb(76 215 246 / 0.1);
+    }
+    #reader-scroll-container {
+      overscroll-behavior: contain;
+      scroll-behavior: smooth;
+      scrollbar-gutter: stable;
+    }
+    #reader-content {
+      max-width: 70ch;
+      line-height: 1.9;
+      overflow-wrap: anywhere;
+    }
+    #compose-page {
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+      background: #0b1326;
+    }
+    html:not(.dark) #compose-page {
+      background: #f8fafc;
+    }
+    .compose-page-shell {
+      box-shadow: 0 0 48px rgb(0 0 0 / 0.2);
+    }
+    .compose-page-header {
+      min-height: 4.25rem;
+      flex: 0 0 auto;
+    }
+    #compose-page-body .compose-form {
+      gap: 1.1rem;
+    }
+    #compose-page-body .compose-form > div:not(:first-child) {
+      gap: 0.45rem;
+    }
+    #compose-page-body .compose-form input:not([type="file"]),
+    #compose-page-body .compose-form textarea,
+    #compose-page-body .compose-form select {
+      min-height: 2.85rem;
+      padding: 0.75rem 0.9rem;
+      font-size: 0.9rem;
+    }
+    #compose-page-body .compose-form textarea {
+      min-height: 6rem;
+      line-height: 1.7;
+      resize: vertical;
+    }
+    #compose-page-body .compose-form > div:first-child {
+      display: none;
+    }
+    #compose-page-body .compose-form > div:last-child {
+      position: sticky;
+      bottom: -1.5rem;
+      margin: 0 -1.5rem -1.5rem;
+      padding: 1rem 1.5rem calc(1rem + env(safe-area-inset-bottom));
+      border-top: 1px solid rgb(148 163 184 / 0.2);
+      background: rgb(11 19 38 / 0.96);
+      backdrop-filter: blur(16px);
+    }
+    html:not(.dark) #compose-page-body .compose-form > div:last-child {
+      background: rgb(248 250 252 / 0.96);
+    }
+    #app-bottom-nav {
+      min-height: calc(3.75rem + env(safe-area-inset-bottom));
+      box-shadow: 0 -8px 24px rgb(0 0 0 / 0.18);
+    }
+    #app-bottom-nav > div {
+      min-height: 3.75rem;
+    }
+    #app-bottom-nav button[aria-current="page"] .material-symbols-outlined {
+      min-width: 2.75rem;
+      border-radius: 999px;
+      background: rgb(76 215 246 / 0.12);
+      padding: 2px 10px;
+    }
+    @media (max-width: 767px) {
+      #compose-page .compose-page-shell {
+        border-left: 0;
+        border-right: 0;
+      }
+      #compose-page-body {
+        padding: 1rem;
+      }
+      #compose-page-body .compose-form > div:last-child {
+        bottom: -1rem;
+        margin-right: -1rem;
+        margin-left: -1rem;
+        padding-right: 1rem;
+        padding-left: 1rem;
+      }
+      #main-header > div {
+        height: 3.6rem;
+        padding-left: max(0.75rem, env(safe-area-inset-left));
+        padding-right: max(0.75rem, env(safe-area-inset-right));
+      }
+      #feed-column {
+        width: 100%;
+        border-left: 0;
+        border-right: 0;
+      }
+      #posts-container > article {
+        border-radius: 1rem;
+        box-shadow: 0 2px 12px rgb(0 0 0 / 0.18);
+      }
+      #posts-container > article > div:last-child {
+        padding-bottom: 0.35rem;
+      }
+      #posts-container > article .group.relative {
+        border-radius: 0.8rem;
+      }
+      #app-bottom-nav button {
+        min-width: 4.25rem;
+        min-height: 3rem;
+      }
+      #feed-view {
+        padding-top: calc(4rem + env(safe-area-inset-top));
+        padding-bottom: calc(4.75rem + env(safe-area-inset-bottom));
+      }
+      #article-reader-modal > div {
+        width: 100%;
+        height: 100dvh;
+        max-height: 100dvh;
+        padding-bottom: env(safe-area-inset-bottom);
+      }
+      #article-reader-modal header {
+        padding-top: max(0.75rem, env(safe-area-inset-top));
+      }
+      #article-reader-modal footer {
+        padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+      }
+      #posts-container article button,
+      #posts-container article a {
+        min-height: 40px;
+      }
+      #posts-container article > button.group {
+        min-height: 0;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #reader-scroll-container {
+        scroll-behavior: auto;
+      }
+    }
   

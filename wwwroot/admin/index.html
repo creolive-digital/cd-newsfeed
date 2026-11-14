@@ -144,14 +144,16 @@
             </div><p id="sync-error" class="source-error hidden"></p>
           </article>
           <article class="card"><h2>Community insights</h2><div id="insight-details" class="meta">Loading…</div><div id="popular-topics" style="margin-top:12px"></div></article>
+          <article class="card"><h2>News and image health</h2><div id="news-health-grid" class="stats" style="margin-top:12px"><div class="meta">Loading health metrics…</div></div></article>
         </div>
       </section>
       <section id="section-sources" class="admin-section hidden">
-        <div class="toolbar"><div><h2>News sources</h2><div class="meta">Add RSS feeds and control which publishers are fetched.</div></div><button class="primary" style="padding:9px 13px;border-radius:9px" type="button" onclick="openSourceDialog()">Add source</button></div>
+        <div class="toolbar"><div><h2>News sources</h2><div class="meta">Manage RSS feeds and public news pages; monitor source health by topic.</div></div><div class="inline-actions"><button class="secondary" type="button" onclick="addBuiltInWebsiteSources()">Add trusted websites</button><button class="primary" style="padding:9px 13px;border-radius:9px" type="button" onclick="openSourceDialog()">Add source</button></div></div>
         <div id="sources-list" class="list"></div>
       </section>
       <section id="section-stories" class="admin-section hidden">
-        <div class="toolbar"><div><h2>Imported feed stories</h2><div id="stories-total" class="meta">Loading stories…</div></div><button class="secondary" type="button" onclick="loadNewsStories()">Refresh list</button></div>
+        <div class="toolbar"><div><h2>Imported news stories</h2><div id="stories-total" class="meta">Loading stories…</div></div><button class="secondary" type="button" onclick="loadNewsStories()">Refresh list</button></div>
+        <div id="story-health" class="stats" style="margin-bottom:14px"><div class="meta">Loading image and freshness status…</div></div>
         <div id="stories-list" class="list"></div>
         <div class="page-actions"><span id="stories-page-label">Page 1</span><div class="inline-actions"><button class="secondary" type="button" onclick="changeNewsPage(-1)">Previous</button><button class="secondary" type="button" onclick="changeNewsPage(1)">Next</button></div></div>
       </section>
@@ -174,12 +176,12 @@
 
   <dialog id="source-dialog">
     <form id="source-form" class="form-grid" onsubmit="saveSource(event)">
-      <div class="toolbar wide" style="grid-column:1/-1;padding:0 0 12px"><div><h2 id="source-dialog-title">Add a news source</h2><div class="meta">We test the RSS URL before saving.</div></div><button class="secondary" type="button" onclick="closeSourceDialog()">Close</button></div>
+      <div class="toolbar wide" style="grid-column:1/-1;padding:0 0 12px"><div><h2 id="source-dialog-title">Add a news source</h2><div class="meta">RSS feeds and public server-rendered news pages are supported.</div></div><button class="secondary" type="button" onclick="closeSourceDialog()">Close</button></div>
       <label><span>Source name</span><input id="source-name" class="field" maxlength="120" required placeholder="Publisher or feed name" /></label>
       <label><span>Topic tag</span><select id="source-tag" class="field"><option>#Tech</option><option>#AI</option><option>#Community</option></select></label>
-      <label class="wide"><span>RSS feed URL</span><input id="source-url" class="field" type="url" maxlength="1000" required placeholder="https://example.com/feed.xml" /></label>
+      <label class="wide"><span>Public feed or news page URL</span><input id="source-url" class="field" type="url" maxlength="1000" required placeholder="https://example.com/news/ or https://example.com/feed.xml" /></label>
       <p id="source-message" class="source-error wide hidden"></p>
-      <div class="inline-actions wide"><button class="secondary" type="button" onclick="testSource()">Test feed</button><button id="source-save" class="primary" style="padding:10px 15px" type="submit">Save source</button></div>
+      <div class="inline-actions wide"><button class="secondary" type="button" onclick="testSource()">Test source</button><button id="source-save" class="primary" style="padding:10px 15px" type="submit">Save source</button></div>
     </form>
   </dialog>
 
@@ -226,17 +228,17 @@
       document.getElementById('admin-name').textContent = admin.displayName;
       loginView.classList.add('hidden');
       dashboardView.classList.remove('hidden');
-      await Promise.all([loadPendingPosts(), loadUsers(), loadInsights(), loadNewsSyncStatus(), loadSources(), loadReports()]);
-      if (!syncPolling) syncPolling = setInterval(loadNewsSyncStatus, 15000);
+      await Promise.all([loadPendingPosts(), loadUsers(), loadInsights(), loadNewsSyncStatus(), loadNewsHealth(), loadSources(), loadReports()]);
+      if (!syncPolling) syncPolling = setInterval(() => { loadNewsSyncStatus(); loadNewsHealth(); }, 15000);
     }
 
     function switchSection(name) {
       document.querySelectorAll('[data-section]').forEach(button => button.classList.toggle('active', button.dataset.section === name));
       document.querySelectorAll('.admin-section').forEach(section => section.classList.toggle('hidden', section.id !== `section-${name}`));
-      if (name === 'stories') loadNewsStories();
+      if (name === 'stories') { loadNewsStories(); loadNewsHealth(); }
       if (name === 'community') loadCommunityPosts();
       if (name === 'reports') loadReports();
-      if (name === 'overview') { loadInsights(); loadNewsSyncStatus(); }
+      if (name === 'overview') { loadInsights(); loadNewsSyncStatus(); loadNewsHealth(); }
     }
 
     document.querySelectorAll('[data-section]').forEach(button => button.addEventListener('click', () => switchSection(button.dataset.section)));
@@ -359,6 +361,52 @@
       }
     }
 
+    async function loadNewsHealth() {
+      try {
+        const response = await api('/api/admin/news-health');
+        const data = await parseResponse(response, 'Could not load news health metrics.');
+        const metrics = [
+          ['Fresh stories · 30 days', data.freshStories],
+          ['Stories older than 30 days', data.staleStories],
+          ['Images missing', data.storiesMissingImages],
+          ['AI illustrations', data.generatedImages],
+          ['Publisher images cached', data.publisherImages],
+          ['Sources needing attention', data.sourcesNeedingAttention]
+        ];
+        const html = metrics.map(([label, value]) => `<div class="stat"><span>${escapeHtml(label)}</span><strong>${Number(value || 0)}</strong></div>`).join('');
+        document.getElementById('news-health-grid').innerHTML = html;
+        const storyHealth = document.getElementById('story-health');
+        if (storyHealth) storyHealth.innerHTML = html;
+      } catch (error) {
+        if (error.message !== 'Administrator authorization required.') {
+          document.getElementById('news-health-grid').innerHTML = `<div class="error">${escapeHtml(error.message)}</div>`;
+        }
+      }
+    }
+
+    function getSourceHealth(source) {
+      if (!source.isEnabled) return { label: 'Paused', attention: false };
+      if (source.lastError) return { label: 'Error', attention: true };
+      if (!source.lastCheckedAt || Date.now() - new Date(source.lastCheckedAt).getTime() > 45 * 60 * 1000)
+        return { label: 'Delayed', attention: true };
+      return { label: 'Healthy', attention: false };
+    }
+
+    function renderSourceCard(source) {
+      const health = getSourceHealth(source);
+      return `<article class="card"><div class="card-head"><div><h2>${escapeHtml(source.name)}</h2><div class="meta">${escapeHtml(source.feedUrl)}</div><div class="meta">${source.lastCheckedAt ? `Last checked ${new Date(source.lastCheckedAt).toLocaleString()} · ${source.lastItemCount ?? 0} items` : 'Not fetched yet'}</div>${source.lastError ? `<p class="source-error">${escapeHtml(source.lastError)}</p>` : ''}</div><span class="status-pill ${health.attention ? 'off' : ''}">${health.label}</span></div><div class="actions"><button class="secondary" type="button" onclick="editSource(${source.id})">Edit</button><button class="secondary" type="button" onclick="toggleSource(${source.id})">${source.isEnabled ? 'Pause source' : 'Enable source'}</button><button class="danger" type="button" onclick="deleteSource(${source.id})">Remove source</button></div></article>`;
+    }
+
+    function renderSourceGroups(sources) {
+      const groups = sources.reduce((result, source) => {
+        (result[source.tag] ||= []).push(source);
+        return result;
+      }, {});
+      return Object.entries(groups).sort(([left], [right]) => left.localeCompare(right))
+        .map(([tag, items]) => `<section><h2 class="meta" style="margin:12px 2px 6px">${escapeHtml(tag)} · ${items.length} sources</h2>${items.map(renderSourceCard).join('')}</section>`)
+        .join('');
+    }
+
     async function controlNewsSync(action) {
       const button = document.getElementById(action === 'start' ? 'sync-start' : action === 'stop' ? 'sync-stop' : 'sync-refresh');
       if (button) button.disabled = true;
@@ -379,11 +427,7 @@
       try {
         const response = await api('/api/admin/news-sources');
         newsSources = await parseResponse(response, 'Could not load news sources.');
-        list.innerHTML = newsSources.length ? newsSources.map(source => `
-          <article class="card">
-            <div class="card-head"><div><h2>${escapeHtml(source.name)} <span class="badge">${escapeHtml(source.tag)}</span></h2><div class="meta">${escapeHtml(source.feedUrl)}</div><div class="meta">${source.lastCheckedAt ? `Last checked ${new Date(source.lastCheckedAt).toLocaleString()} · ${source.lastItemCount ?? 0} items` : 'Not fetched yet'}</div>${source.lastError ? `<p class="source-error">${escapeHtml(source.lastError)}</p>` : ''}</div><span class="status-pill ${source.isEnabled ? '' : 'off'}">${source.isEnabled ? 'Enabled' : 'Paused'}</span></div>
-            <div class="actions"><button class="secondary" type="button" onclick="editSource(${source.id})">Edit</button><button class="secondary" type="button" onclick="toggleSource(${source.id})">${source.isEnabled ? 'Pause source' : 'Enable source'}</button><button class="danger" type="button" onclick="deleteSource(${source.id})">Remove source</button></div>
-          </article>`).join('') : '<div class="empty">No sources configured. Add an RSS feed to start building the news feed.</div>';
+        list.innerHTML = newsSources.length ? renderSourceGroups(newsSources) : '<div class="empty">No sources configured. Add an RSS feed or public news page to start building the feed.</div>';
       } catch (error) {
         if (error.message !== 'Administrator authorization required.') list.innerHTML = `<div class="error">${escapeHtml(error.message)}</div>`;
       }
@@ -403,15 +447,26 @@
     function editSource(id) { openSourceDialog(newsSources.find(source => source.id === id)); }
     function closeSourceDialog() { document.getElementById('source-dialog').close(); }
 
+    async function addBuiltInWebsiteSources() {
+      try {
+        const response = await api('/api/admin/news-sources/add-built-in-websites', { method: 'POST' });
+        const result = await parseResponse(response, 'Could not add website sources.');
+        window.alert(result.message);
+        await loadSources();
+      } catch (error) {
+        if (error.message !== 'Administrator authorization required.') window.alert(error.message);
+      }
+    }
+
     async function testSource() {
       const message = document.getElementById('source-message');
       message.classList.remove('hidden');
-      message.textContent = 'Testing feed…';
+      message.textContent = 'Testing source…';
       try {
         const response = await api('/api/admin/news-sources/test', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ feedUrl: document.getElementById('source-url').value.trim() }) });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(data.error || data.message || 'Feed test failed.');
-        message.textContent = `Feed is valid · ${data.itemCount} items${data.latestTitle ? ` · Latest: ${data.latestTitle}` : ''}`;
+        message.textContent = `Source is readable · ${data.itemCount} items${data.latestTitle ? ` · Latest: ${data.latestTitle}` : ''}`;
         message.style.color = '#77e0bd';
       } catch (error) {
         message.textContent = error.message;
@@ -446,7 +501,7 @@
     }
 
     async function deleteSource(id) {
-      if (!window.confirm('Remove this RSS source? Existing stories will remain in the feed.')) return;
+      if (!window.confirm('Remove this news source? Existing stories will remain in the feed.')) return;
       const response = await api(`/api/admin/news-sources/${id}`, { method: 'DELETE' });
       if (response.ok) await loadSources();
     }
@@ -461,7 +516,7 @@
         document.getElementById('stories-page-label').textContent = `Page ${data.page} · ${data.items.length ? (data.page - 1) * data.pageSize + 1 : 0}–${Math.min(data.page * data.pageSize, data.total)} of ${data.total}`;
         list.innerHTML = data.items.length ? data.items.map(story => `
           <article class="card">
-            <div class="card-head"><div><h2>${escapeHtml(story.title)}</h2><div class="meta">${escapeHtml(story.source || 'News source')} · ${escapeHtml(story.tag)} · ${new Date(story.createdAt).toLocaleString()}</div></div><span class="status-pill ${story.status === 'Approved' ? '' : 'off'}">${escapeHtml(story.status)}</span></div>
+            <div class="card-head">${story.imageUrl ? `<img class="feed-thumb" src="${escapeHtml(story.imageUrl)}" alt="" loading="lazy" onerror="this.remove()" />` : ''}<div style="flex:1;min-width:0"><h2>${escapeHtml(story.title)}</h2><div class="meta">${escapeHtml(story.source || 'News source')} · ${escapeHtml(story.tag)} · Published ${new Date(story.publishedAt || story.createdAt).toLocaleString()}</div><div class="meta">${story.imageIsAiGenerated ? 'AI-generated illustration' : story.imageUrl ? 'Publisher image cached locally' : 'Image missing'}</div><div class="meta">AI-translated summary</div></div><span class="status-pill ${story.status === 'Approved' ? '' : 'off'}">${escapeHtml(story.status)}</span></div>
             <p class="summary">${escapeHtml(story.summary)}</p>${story.link ? `<a class="link" href="${escapeHtml(story.link)}" target="_blank" rel="noopener noreferrer">Open original article ↗</a>` : ''}
             <div class="actions"><button class="secondary" type="button" onclick="setStoryVisibility(${story.id}, ${story.status !== 'Approved'})">${story.status === 'Approved' ? 'Hide from feed' : 'Publish to feed'}</button><button class="danger" type="button" onclick="deleteStory(${story.id})">Delete story</button></div>
           </article>`).join('') : '<div class="empty">No imported news stories are available.</div>';

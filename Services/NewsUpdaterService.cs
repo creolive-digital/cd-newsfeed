@@ -2,6 +2,7 @@ using System.ServiceModel.Syndication;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
@@ -65,7 +66,11 @@ public class NewsUpdaterService : BackgroundService
         ("Ars Technica", "https://feeds.arstechnica.com/arstechnica/index", "#Tech"),
         ("MIT Technology Review", "https://www.technologyreview.com/feed/", "#AI"),
         ("WIRED", "https://www.wired.com/feed/rss", "#Tech"),
-        ("Google News · AI & Tech", "https://news.google.com/rss/search?q=artificial+intelligence+technology&hl=en-US&gl=US&ceid=US:en", "#AI")
+        ("Google News · AI & Tech", "https://news.google.com/rss/search?q=artificial+intelligence+technology&hl=en-US&gl=US&ceid=US:en", "#AI"),
+        ("OpenAI News · Website", "https://openai.com/news/", "#AI"),
+        ("Anthropic Newsroom · Website", "https://www.anthropic.com/news", "#AI"),
+        ("Google AI Blog · Website", "https://blog.google/innovation-and-ai/technology/ai/", "#AI"),
+        ("Hacker News · Website", "https://news.ycombinator.com/", "#Tech")
     ];
 
     public NewsUpdaterService(
@@ -87,11 +92,11 @@ public class NewsUpdaterService : BackgroundService
     public async Task<NewsFeedTestResult> TestFeedAsync(string feedUrl, CancellationToken cancellationToken = default)
     {
         if (!await IsSafePublicFeedUrlAsync(feedUrl, cancellationToken))
-            return new NewsFeedTestResult(false, 0, null, "Use a public HTTPS RSS or Atom feed URL.");
+            return new NewsFeedTestResult(false, 0, null, "Use a public HTTPS RSS/Atom feed or a readable news website page.");
 
         try
         {
-            var items = await FetchItemsFromFeedAsync("Feed test", feedUrl, "#Tech", cancellationToken, includeArticlePageImages: false);
+            var items = await FetchItemsFromFeedAsync("Source test", feedUrl, "#Tech", cancellationToken, includeArticlePageImages: false);
             return items.Count == 0
                 ? new NewsFeedTestResult(false, 0, null, "The URL responded, but no feed stories were found.")
                 : new NewsFeedTestResult(true, items.Count, items[0].Title, null);
@@ -99,7 +104,7 @@ public class NewsUpdaterService : BackgroundService
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             _logger.LogInformation(ex, "Administrator feed test failed for {FeedUrl}.", feedUrl);
-            return new NewsFeedTestResult(false, 0, null, "Could not read that feed. Check the URL and try again.");
+            return new NewsFeedTestResult(false, 0, null, "Could not read that source. Check the URL and make sure it exposes a public RSS feed or article links.");
         }
     }
 
@@ -249,8 +254,12 @@ public class NewsUpdaterService : BackgroundService
             }
         }
 
-        // Sort candidates by PublishDate descending
+        var freshAfter = DateTimeOffset.UtcNow.AddDays(-30);
+        var staleCandidateCount = rawCandidates.Count(candidate => candidate.PublishDate < freshAfter);
+
+        // Keep outdated stories out of the active feed and avoid spending translation quota on them.
         var sortedCandidates = rawCandidates
+            .Where(candidate => candidate.PublishDate >= freshAfter)
             .OrderByDescending(c => c.PublishDate)
             .ToList();
 
@@ -258,36 +267,84 @@ public class NewsUpdaterService : BackgroundService
         int duplicateCount = 0;
         int translationFailureCount = 0;
         int generatedImageCount = 0;
+        int remoteImageAttempts = 0;
+        var attemptedImageGeneration = new HashSet<int>();
         const int maxGeneratedImagesPerRun = 3;
+        const int maxRemoteImageAttemptsPerRun = 12;
+        var seenCandidateTitles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var knownTranslatedTitles = (await db.Posts.AsNoTracking()
+                .Where(post => post.IsAutoNews && post.Status == "Approved")
+                .Select(post => post.SinhalaTitle)
+                .ToListAsync(stoppingToken))
+            .Select(NormalizeStoryTitle)
+            .Where(title => title.Length >= 16)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var existingArticleLinks = await db.Posts.AsNoTracking()
+            .Where(post => post.IsAutoNews && post.Link != null)
+            .Select(post => new { post.Id, post.Link })
+            .ToListAsync(stoppingToken);
+        var knownStoryIdsByUrl = existingArticleLinks
+            .Select(item => (Key: NormalizeStoryUrl(item.Link), item.Id))
+            .Where(item => item.Key != null)
+            .GroupBy(item => item.Key!, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(group => group.Key, group => group.First().Id, StringComparer.OrdinalIgnoreCase);
 
         foreach (var candidate in sortedCandidates)
         {
-            // Check if link already exists in DB to prevent duplicates
-            var existingPost = await db.Posts.FirstOrDefaultAsync(
-                p => (p.Link != null && candidate.Link != null && p.Link == candidate.Link) ||
-                     p.SinhalaTitle == candidate.Title,
-                stoppingToken);
+            var normalizedTitle = NormalizeStoryTitle(candidate.Title);
+            if (normalizedTitle.Length >= 16 && !seenCandidateTitles.Add(normalizedTitle))
+            {
+                duplicateCount++;
+                continue;
+            }
+
+            var normalizedUrl = NormalizeStoryUrl(candidate.Link);
+            Post? existingPost = null;
+            if (normalizedUrl != null && knownStoryIdsByUrl.TryGetValue(normalizedUrl, out var existingId))
+                existingPost = await db.Posts.FindAsync([existingId], stoppingToken);
 
             if (existingPost != null)
             {
                 duplicateCount++;
+                var imageChanged = false;
+                var publisherImageFailed = false;
                 if (string.IsNullOrWhiteSpace(existingPost.ImageUrl) && !string.IsNullOrWhiteSpace(candidate.ImageUrl))
                 {
                     existingPost.ImageUrl = candidate.ImageUrl;
-                    await db.SaveChangesAsync(stoppingToken);
+                    imageChanged = true;
                 }
-                else if (string.IsNullOrWhiteSpace(existingPost.ImageUrl) &&
-                         generatedImageCount < maxGeneratedImagesPerRun)
+
+                if (IsRemoteImageUrl(existingPost.ImageUrl) && remoteImageAttempts < maxRemoteImageAttemptsPerRun)
                 {
-                    var generatedImage = await _imageGenerator.GenerateAndSaveAsync(
-                        candidate.Title, candidate.Summary, apiKeys, stoppingToken);
-                    if (!string.IsNullOrWhiteSpace(generatedImage))
+                    remoteImageAttempts++;
+                    var cachedImage = await CacheArticleImageAsync(existingPost.ImageUrl!, stoppingToken);
+                    if (!string.IsNullOrWhiteSpace(cachedImage))
                     {
-                        existingPost.ImageUrl = generatedImage;
-                        await db.SaveChangesAsync(stoppingToken);
-                        generatedImageCount++;
+                        existingPost.ImageUrl = cachedImage;
+                        imageChanged = true;
+                    }
+                    else
+                    {
+                        publisherImageFailed = true;
                     }
                 }
+
+                if (string.IsNullOrWhiteSpace(existingPost.ImageUrl) || publisherImageFailed)
+                {
+                    if (generatedImageCount < maxGeneratedImagesPerRun)
+                    {
+                        attemptedImageGeneration.Add(existingPost.Id);
+                        var generatedImage = await _imageGenerator.GenerateAndSaveAsync(
+                            candidate.Title, candidate.Summary, apiKeys, stoppingToken);
+                        if (!string.IsNullOrWhiteSpace(generatedImage))
+                        {
+                            existingPost.ImageUrl = generatedImage;
+                            imageChanged = true;
+                            generatedImageCount++;
+                        }
+                    }
+                }
+                if (imageChanged) await db.SaveChangesAsync(stoppingToken);
                 continue;
             }
 
@@ -305,6 +362,13 @@ public class NewsUpdaterService : BackgroundService
                 !string.IsNullOrWhiteSpace(translated.SinhalaTitle) &&
                 !string.IsNullOrWhiteSpace(translated.SinhalaSummary))
             {
+                var translatedTitleKey = NormalizeStoryTitle(translated.SinhalaTitle);
+                if (translatedTitleKey.Length >= 16 && !knownTranslatedTitles.Add(translatedTitleKey))
+                {
+                    duplicateCount++;
+                    continue;
+                }
+
                 var newPost = new Post
                 {
                     SinhalaTitle = translated.SinhalaTitle,
@@ -324,9 +388,23 @@ public class NewsUpdaterService : BackgroundService
 
                 db.Posts.Add(newPost);
                 await db.SaveChangesAsync(stoppingToken);
-                if (string.IsNullOrWhiteSpace(newPost.ImageUrl) &&
-                    generatedImageCount < maxGeneratedImagesPerRun)
+                if (normalizedUrl != null) knownStoryIdsByUrl[normalizedUrl] = newPost.Id;
+                if (IsRemoteImageUrl(newPost.ImageUrl))
                 {
+                    var cachedImage = await CacheArticleImageAsync(newPost.ImageUrl!, stoppingToken);
+                    if (!string.IsNullOrWhiteSpace(cachedImage))
+                    {
+                        newPost.ImageUrl = cachedImage;
+                        await db.SaveChangesAsync(stoppingToken);
+                    }
+                    else
+                    {
+                        newPost.ImageUrl = null;
+                    }
+                }
+                if (string.IsNullOrWhiteSpace(newPost.ImageUrl) && generatedImageCount < maxGeneratedImagesPerRun)
+                {
+                    attemptedImageGeneration.Add(newPost.Id);
                     newPost.ImageUrl = await _imageGenerator.GenerateAndSaveAsync(
                         candidate.Title, candidate.Summary, apiKeys, stoppingToken);
                     if (!string.IsNullOrWhiteSpace(newPost.ImageUrl))
@@ -345,8 +423,45 @@ public class NewsUpdaterService : BackgroundService
             }
         }
 
+        // Work through stored imports too, including articles that have fallen out
+        // of their publisher's latest RSS page since they were first imported.
+        var imageBackfillPosts = await db.Posts
+            .Where(post => post.IsAutoNews && post.Status == "Approved" &&
+                           (post.ImageUrl == null || post.ImageUrl == "" ||
+                            post.ImageUrl.StartsWith("http://") || post.ImageUrl.StartsWith("https://")))
+            .OrderByDescending(post => post.CreatedAt)
+            .Take(12)
+            .ToListAsync(stoppingToken);
+        foreach (var post in imageBackfillPosts)
+        {
+            if (attemptedImageGeneration.Contains(post.Id)) continue;
+            if (IsRemoteImageUrl(post.ImageUrl) && remoteImageAttempts < maxRemoteImageAttemptsPerRun)
+            {
+                remoteImageAttempts++;
+                var cachedImage = await CacheArticleImageAsync(post.ImageUrl!, stoppingToken);
+                if (!string.IsNullOrWhiteSpace(cachedImage))
+                {
+                    post.ImageUrl = cachedImage;
+                    await db.SaveChangesAsync(stoppingToken);
+                    continue;
+                }
+            }
+
+            if (generatedImageCount >= maxGeneratedImagesPerRun) break;
+            attemptedImageGeneration.Add(post.Id);
+            var generatedImage = await _imageGenerator.GenerateAndSaveAsync(
+                post.SinhalaTitle, post.SinhalaSummary, apiKeys, stoppingToken);
+            if (!string.IsNullOrWhiteSpace(generatedImage))
+            {
+                post.ImageUrl = generatedImage;
+                await db.SaveChangesAsync(stoppingToken);
+                generatedImageCount++;
+            }
+        }
+
         _logger.LogInformation("News scan found {CandidateCount} RSS stories; {DuplicateCount} were already in the database and {TranslationFailureCount} could not be translated.",
             sortedCandidates.Count, duplicateCount, translationFailureCount);
+        _logger.LogInformation("Skipped {StaleCandidateCount} stories older than the 30-day freshness window.", staleCandidateCount);
         _logger.LogInformation("Generated {GeneratedImageCount} missing article images (limit {MaxGeneratedImages}).",
             generatedImageCount, maxGeneratedImagesPerRun);
         return insertedCount;
@@ -360,6 +475,95 @@ public class NewsUpdaterService : BackgroundService
         source.LastItemCount = itemCount;
         source.LastError = error;
         await db.SaveChangesAsync(cancellationToken);
+    }
+
+    private static bool IsRemoteImageUrl(string? imageUrl) =>
+        Uri.TryCreate(imageUrl, UriKind.Absolute, out var uri) &&
+        (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp);
+
+    private static string NormalizeStoryTitle(string? title)
+    {
+        if (string.IsNullOrWhiteSpace(title)) return string.Empty;
+        var normalized = title.Normalize(NormalizationForm.FormKC).ToLowerInvariant();
+        return string.Concat(normalized.Where(char.IsLetterOrDigit));
+    }
+
+    private static string? NormalizeStoryUrl(string? link)
+    {
+        if (!Uri.TryCreate(link, UriKind.Absolute, out var uri) ||
+            (uri.Scheme != Uri.UriSchemeHttps && uri.Scheme != Uri.UriSchemeHttp))
+            return null;
+
+        var builder = new UriBuilder(uri) { Fragment = string.Empty };
+        builder.Path = builder.Path.TrimEnd('/');
+        if (builder.Path.Length == 0) builder.Path = "/";
+        var ignoredTrackingParameters = new[] { "fbclid", "gclid", "mc_cid", "mc_eid", "ref", "source" };
+        var queryParts = builder.Query.TrimStart('?')
+            .Split('&', StringSplitOptions.RemoveEmptyEntries)
+            .Where(part =>
+            {
+                var separator = part.IndexOf('=');
+                var key = Uri.UnescapeDataString(separator < 0 ? part : part[..separator]);
+                return !key.StartsWith("utm_", StringComparison.OrdinalIgnoreCase) &&
+                       !ignoredTrackingParameters.Contains(key, StringComparer.OrdinalIgnoreCase);
+            })
+            .OrderBy(part => part, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+        builder.Query = string.Join("&", queryParts);
+        return builder.Uri.AbsoluteUri.TrimEnd('/');
+    }
+
+    private async Task<string?> CacheArticleImageAsync(string imageUrl, CancellationToken cancellationToken)
+    {
+        if (!await IsSafePublicFeedUrlAsync(imageUrl, cancellationToken)) return null;
+
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeout.CancelAfter(TimeSpan.FromSeconds(12));
+        try
+        {
+            var httpClient = _httpClientFactory.CreateClient("RssClient");
+            using var response = await GetSafeResponseAsync(httpClient, imageUrl, timeout.Token);
+            var mediaType = response.Content.Headers.ContentType?.MediaType;
+            if (!response.IsSuccessStatusCode ||
+                response.Content.Headers.ContentLength is > 8_000_000 ||
+                mediaType?.StartsWith("image/", StringComparison.OrdinalIgnoreCase) != true)
+                return null;
+
+            var extension = mediaType.ToLowerInvariant() switch
+            {
+                "image/jpeg" => "jpg",
+                "image/png" => "png",
+                "image/webp" => "webp",
+                "image/gif" => "gif",
+                "image/avif" => "avif",
+                _ => null
+            };
+            if (extension == null) return null;
+
+            await using var input = await response.Content.ReadAsStreamAsync(timeout.Token);
+            using var output = new MemoryStream();
+            var buffer = new byte[32 * 1024];
+            while (output.Length <= 8_000_000)
+            {
+                var remaining = (int)Math.Min(buffer.Length, 8_000_001 - output.Length);
+                var read = await input.ReadAsync(buffer.AsMemory(0, remaining), timeout.Token);
+                if (read == 0) break;
+                output.Write(buffer, 0, read);
+            }
+            if (output.Length is 0 or > 8_000_000) return null;
+
+            var directory = Path.Combine(_environment.ContentRootPath, "wwwroot", "uploads", "articles", "publishers");
+            Directory.CreateDirectory(directory);
+            var fileName = $"{Guid.NewGuid():N}.{extension}";
+            await File.WriteAllBytesAsync(Path.Combine(directory, fileName), output.ToArray(), timeout.Token);
+            return $"/uploads/articles/publishers/{fileName}";
+        }
+        catch (Exception ex) when (ex is HttpRequestException or IOException or OperationCanceledException)
+        {
+            if (cancellationToken.IsCancellationRequested) throw;
+            _logger.LogDebug("Could not cache publisher image {ImageUrl}: {Message}", imageUrl, ex.Message);
+            return null;
+        }
     }
 
     private async Task<List<RawFeedCandidate>> FetchItemsFromFeedAsync(
@@ -378,14 +582,29 @@ public class NewsUpdaterService : BackgroundService
         using var response = await GetSafeResponseAsync(httpClient, feedUrl, stoppingToken);
         response.EnsureSuccessStatusCode();
 
-        await using var stream = await response.Content.ReadAsStreamAsync(stoppingToken);
-        using var xmlReader = XmlReader.Create(stream, new XmlReaderSettings
+        var payload = await ReadBoundedContentAsync(response.Content, 5_000_000, stoppingToken);
+        var mediaType = response.Content.Headers.ContentType?.MediaType;
+        if (mediaType?.Equals("text/html", StringComparison.OrdinalIgnoreCase) == true ||
+            mediaType?.Equals("application/xhtml+xml", StringComparison.OrdinalIgnoreCase) == true)
         {
-            DtdProcessing = DtdProcessing.Ignore,
-            IgnoreWhitespace = true
-        });
+            return await FetchItemsFromWebsiteAsync(sourceName, feedUrl, defaultTag, Encoding.UTF8.GetString(payload), includeArticlePageImages, stoppingToken);
+        }
 
-        var feed = SyndicationFeed.Load(xmlReader);
+        SyndicationFeed? feed;
+        try
+        {
+            using var payloadStream = new MemoryStream(payload);
+            using var xmlReader = XmlReader.Create(payloadStream, new XmlReaderSettings
+            {
+                DtdProcessing = DtdProcessing.Ignore,
+                IgnoreWhitespace = true
+            });
+            feed = SyndicationFeed.Load(xmlReader);
+        }
+        catch (XmlException) when (LooksLikeHtml(payload))
+        {
+            return await FetchItemsFromWebsiteAsync(sourceName, feedUrl, defaultTag, Encoding.UTF8.GetString(payload), includeArticlePageImages, stoppingToken);
+        }
         if (feed == null)
         {
             return list;
@@ -417,6 +636,7 @@ public class NewsUpdaterService : BackgroundService
             var cleanSummary = StripHtml(rawSummary);
             var link = item.Links.FirstOrDefault()?.Uri?.ToString();
             var publishDate = item.PublishDate != DateTimeOffset.MinValue ? item.PublishDate : item.LastUpdatedTime;
+            if (publishDate == DateTimeOffset.MinValue) publishDate = DateTimeOffset.UtcNow;
 
             // Feeds commonly put thumbnails in media extensions or encoded HTML rather than enclosures.
             var imageUrl = ResolveFeedImageUrl(ExtractImageUrl(item, WebUtility.HtmlDecode(rawContent)), link ?? feedUrl, feedUrl);
@@ -452,6 +672,268 @@ public class NewsUpdaterService : BackgroundService
         }
 
         return list;
+    }
+
+    private async Task<List<RawFeedCandidate>> FetchItemsFromWebsiteAsync(
+        string sourceName,
+        string sourceUrl,
+        string defaultTag,
+        string html,
+        bool fetchSameSiteArticlePages,
+        CancellationToken cancellationToken)
+    {
+        var results = new List<RawFeedCandidate>();
+        if (!Uri.TryCreate(sourceUrl, UriKind.Absolute, out var sourceUri)) return results;
+
+        results.AddRange(ExtractJsonLdArticles(html, sourceName, sourceUrl, defaultTag));
+        var pageMetadata = ExtractHtmlMetadata(html, sourceUrl);
+        if (results.Count == 0 && pageMetadata.PublishDate.HasValue &&
+            !string.IsNullOrWhiteSpace(pageMetadata.Title) &&
+            !string.IsNullOrWhiteSpace(pageMetadata.Summary))
+        {
+            results.Add(new RawFeedCandidate(
+                sourceName, pageMetadata.Title, pageMetadata.Summary, sourceUrl, pageMetadata.ImageUrl,
+                defaultTag, pageMetadata.PublishDate ?? DateTimeOffset.MinValue));
+        }
+
+        var knownLinks = results.Select(item => item.Link).Where(link => link != null)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var pageLinks = ExtractArticleLinks(html, sourceUri)
+            .Where(item => !knownLinks.Contains(item.Url))
+            .Take(10)
+            .ToList();
+
+        using var pageLimit = new SemaphoreSlim(3, 3);
+        var tasks = pageLinks.Select(async item =>
+        {
+            await pageLimit.WaitAsync(cancellationToken);
+            try
+            {
+                if (fetchSameSiteArticlePages &&
+                    Uri.TryCreate(item.Url, UriKind.Absolute, out var articleUri) &&
+                    articleUri.Host.Equals(sourceUri.Host, StringComparison.OrdinalIgnoreCase))
+                {
+                    var page = await FetchArticleMetadataAsync(item.Url, cancellationToken);
+                    if (page != null && !string.IsNullOrWhiteSpace(page.Value.Title))
+                    {
+                        return new RawFeedCandidate(
+                            sourceName,
+                            page.Value.Title,
+                            string.IsNullOrWhiteSpace(page.Value.Summary) ? item.Title : page.Value.Summary,
+                            item.Url,
+                            page.Value.ImageUrl,
+                            defaultTag,
+                            page.Value.PublishDate ?? DateTimeOffset.UtcNow);
+                    }
+                }
+
+                return new RawFeedCandidate(sourceName, item.Title, item.Title, item.Url, null, defaultTag, DateTimeOffset.UtcNow);
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                return null;
+            }
+            finally
+            {
+                pageLimit.Release();
+            }
+        });
+
+        foreach (var item in await Task.WhenAll(tasks))
+        {
+            if (item != null && !string.IsNullOrWhiteSpace(item.Title))
+                results.Add(item);
+        }
+
+        return results
+            .Where(item => !string.IsNullOrWhiteSpace(item.Title))
+            .DistinctBy(item => item.Link ?? item.Title, StringComparer.OrdinalIgnoreCase)
+            .Take(20)
+            .ToList();
+    }
+
+    private async Task<(string Title, string Summary, string? ImageUrl, DateTimeOffset? PublishDate)?> FetchArticleMetadataAsync(
+        string articleUrl,
+        CancellationToken cancellationToken)
+    {
+        if (!await IsSafePublicFeedUrlAsync(articleUrl, cancellationToken)) return null;
+        var client = _httpClientFactory.CreateClient("RssClient");
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeout.CancelAfter(TimeSpan.FromSeconds(5));
+        try
+        {
+            using var response = await GetSafeResponseAsync(client, articleUrl, timeout.Token);
+            if (!response.IsSuccessStatusCode) return null;
+            var bytes = await ReadBoundedContentAsync(response.Content, 2_000_000, timeout.Token);
+            var html = Encoding.UTF8.GetString(bytes);
+            var structured = ExtractJsonLdArticles(html, string.Empty, articleUrl, "#Tech").FirstOrDefault();
+            var metadata = ExtractHtmlMetadata(html, articleUrl);
+            var title = structured?.Title ?? metadata.Title;
+            var summary = structured?.Summary ?? metadata.Summary;
+            var imageUrl = structured?.ImageUrl ?? metadata.ImageUrl;
+            var published = structured?.PublishDate ?? metadata.PublishDate;
+            if (string.IsNullOrWhiteSpace(title)) return null;
+            return (title, summary ?? string.Empty, imageUrl, published);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or IOException or OperationCanceledException or XmlException)
+        {
+            if (cancellationToken.IsCancellationRequested) throw;
+            _logger.LogDebug("Could not read non-RSS article metadata from {ArticleUrl}: {Message}", articleUrl, ex.Message);
+            return null;
+        }
+    }
+
+    private static List<RawFeedCandidate> ExtractJsonLdArticles(string html, string sourceName, string baseUrl, string tag)
+    {
+        var articles = new List<RawFeedCandidate>();
+        foreach (Match match in Regex.Matches(
+                     html,
+                     "<script\\b(?=[^>]*type\\s*=\\s*['\\\"]application/ld\\+json['\\\"])[^>]*>(.*?)</script>",
+                     RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant))
+        {
+            try
+            {
+                using var document = JsonDocument.Parse(WebUtility.HtmlDecode(match.Groups[1].Value));
+                AddJsonLdArticles(document.RootElement, sourceName, baseUrl, tag, articles);
+            }
+            catch (JsonException) { }
+        }
+        return articles;
+    }
+
+    private static void AddJsonLdArticles(JsonElement element, string sourceName, string baseUrl, string tag, List<RawFeedCandidate> output)
+    {
+        if (element.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var child in element.EnumerateArray()) AddJsonLdArticles(child, sourceName, baseUrl, tag, output);
+            return;
+        }
+        if (element.ValueKind != JsonValueKind.Object) return;
+
+        if (element.TryGetProperty("@type", out var articleType) &&
+            (articleType.ValueKind == JsonValueKind.Array
+                ? articleType.EnumerateArray().Any(value => IsArticleType(value.GetString()))
+                : IsArticleType(articleType.GetString())))
+        {
+            var title = GetJsonLdString(element, "headline") ?? GetJsonLdString(element, "name");
+            var summary = GetJsonLdString(element, "description") ?? GetJsonLdString(element, "abstract") ?? string.Empty;
+            var link = GetJsonLdString(element, "url") ?? GetJsonLdNestedString(element, "mainEntityOfPage", "@id") ?? baseUrl;
+            var image = GetJsonLdString(element, "image") ?? GetJsonLdNestedString(element, "image", "url");
+            if (element.TryGetProperty("image", out var imageElement) && imageElement.ValueKind == JsonValueKind.Array)
+                image = imageElement.EnumerateArray().Select(value =>
+                    value.ValueKind == JsonValueKind.String ? value.GetString() : GetJsonLdString(value, "url"))
+                    .FirstOrDefault(value => !string.IsNullOrWhiteSpace(value));
+
+            var dateText = GetJsonLdString(element, "datePublished") ?? GetJsonLdString(element, "dateCreated");
+            var date = DateTimeOffset.TryParse(dateText, out var parsedDate) ? parsedDate : DateTimeOffset.MinValue;
+            if (!string.IsNullOrWhiteSpace(title))
+                output.Add(new RawFeedCandidate(sourceName, title.Trim(), StripHtml(summary), link, ResolveFeedImageUrl(image, link, baseUrl), tag, date));
+        }
+
+        foreach (var propertyName in new[] { "@graph", "itemListElement", "item", "mainEntity" })
+        {
+            if (element.TryGetProperty(propertyName, out var child))
+                AddJsonLdArticles(child, sourceName, baseUrl, tag, output);
+        }
+    }
+
+    private static string? GetJsonLdString(JsonElement element, string propertyName)
+    {
+        if (!element.TryGetProperty(propertyName, out var value)) return null;
+        if (value.ValueKind == JsonValueKind.String) return value.GetString();
+        if (value.ValueKind == JsonValueKind.Array)
+            return value.EnumerateArray().Select(item => item.ValueKind == JsonValueKind.String ? item.GetString() : null)
+                .FirstOrDefault(item => !string.IsNullOrWhiteSpace(item));
+        if (value.ValueKind == JsonValueKind.Object)
+            return GetJsonLdString(value, "url") ?? GetJsonLdString(value, "@id");
+        return null;
+    }
+
+    private static bool IsArticleType(string? type) =>
+        type?.Split('/', ':').LastOrDefault()?.Equals("Article", StringComparison.OrdinalIgnoreCase) == true ||
+        type?.Split('/', ':').LastOrDefault()?.Equals("NewsArticle", StringComparison.OrdinalIgnoreCase) == true ||
+        type?.Split('/', ':').LastOrDefault()?.Equals("BlogPosting", StringComparison.OrdinalIgnoreCase) == true ||
+        type?.Split('/', ':').LastOrDefault()?.Equals("ReportageNewsArticle", StringComparison.OrdinalIgnoreCase) == true;
+
+    private static string? GetJsonLdNestedString(JsonElement element, string propertyName, string nestedProperty)
+    {
+        return element.TryGetProperty(propertyName, out var value) && value.ValueKind == JsonValueKind.Object
+            ? GetJsonLdString(value, nestedProperty)
+            : null;
+    }
+
+    private static List<(string Url, string Title)> ExtractArticleLinks(string html, Uri sourceUri)
+    {
+        var candidates = new List<(string Url, string Title)>();
+        foreach (Match match in Regex.Matches(html, "<a\\b[^>]*>(.*?)</a>", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant))
+        {
+            var href = GetHtmlAttribute(match.Value[..(match.Value.IndexOf('>') + 1)], "href");
+            var title = StripHtml(WebUtility.HtmlDecode(match.Groups[1].Value));
+            if (string.IsNullOrWhiteSpace(href) || title.Length < 18) continue;
+            if (!Uri.TryCreate(sourceUri, href, out var link) ||
+                (link.Scheme != Uri.UriSchemeHttps && link.Scheme != Uri.UriSchemeHttp) ||
+                !string.IsNullOrEmpty(link.UserInfo) ||
+                string.IsNullOrWhiteSpace(link.AbsolutePath.Trim('/')) ||
+                Regex.IsMatch(link.AbsolutePath, @"\\.(?:xml|json|jpg|jpeg|png|gif|webp|svg|css|js)$", RegexOptions.IgnoreCase) ||
+                Regex.IsMatch(link.AbsolutePath, @"/(?:about|contact|privacy|terms|search|category|tag|author|login|register)(?:/|$)", RegexOptions.IgnoreCase))
+                continue;
+            candidates.Add((link.AbsoluteUri, title));
+        }
+        return candidates.DistinctBy(item => item.Url, StringComparer.OrdinalIgnoreCase).ToList();
+    }
+
+    private static (string? Title, string? Summary, string? ImageUrl, DateTimeOffset? PublishDate) ExtractHtmlMetadata(string html, string baseUrl)
+    {
+        string? title = null, summary = null, image = null, published = null;
+        foreach (Match match in Regex.Matches(html, "<meta\\b[^>]*>", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        {
+            var tag = match.Value;
+            var key = GetHtmlAttribute(tag, "property") ?? GetHtmlAttribute(tag, "name") ?? GetHtmlAttribute(tag, "itemprop");
+            var value = GetHtmlAttribute(tag, "content");
+            if (string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(value)) continue;
+            if (key.Equals("og:title", StringComparison.OrdinalIgnoreCase) || key.Equals("twitter:title", StringComparison.OrdinalIgnoreCase) || key.Equals("headline", StringComparison.OrdinalIgnoreCase)) title ??= value;
+            else if (key.Equals("og:description", StringComparison.OrdinalIgnoreCase) || key.Equals("description", StringComparison.OrdinalIgnoreCase) || key.Equals("twitter:description", StringComparison.OrdinalIgnoreCase)) summary ??= value;
+            else if (key.Equals("og:image", StringComparison.OrdinalIgnoreCase) || key.Equals("twitter:image", StringComparison.OrdinalIgnoreCase) || key.Equals("image", StringComparison.OrdinalIgnoreCase)) image ??= value;
+            else if (key.Equals("article:published_time", StringComparison.OrdinalIgnoreCase) || key.Equals("datePublished", StringComparison.OrdinalIgnoreCase) || key.Equals("publish_date", StringComparison.OrdinalIgnoreCase)) published ??= value;
+        }
+
+        if (title == null)
+        {
+            var titleMatch = Regex.Match(html, "<title\\b[^>]*>(.*?)</title>", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+            if (titleMatch.Success) title = StripHtml(WebUtility.HtmlDecode(titleMatch.Groups[1].Value));
+        }
+        if (title == null)
+        {
+            var headingMatch = Regex.Match(html, "<h1\\b[^>]*>(.*?)</h1>", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+            if (headingMatch.Success) title = StripHtml(WebUtility.HtmlDecode(headingMatch.Groups[1].Value));
+        }
+        var publishDate = DateTimeOffset.TryParse(published, out var date) ? date : (DateTimeOffset?)null;
+        return (title, summary, ResolveFeedImageUrl(image, baseUrl, baseUrl), publishDate);
+    }
+
+    private static async Task<byte[]> ReadBoundedContentAsync(HttpContent content, int maxBytes, CancellationToken cancellationToken)
+    {
+        if (content.Headers.ContentLength > maxBytes)
+            throw new InvalidDataException("The source response is too large to process.");
+        await using var input = await content.ReadAsStreamAsync(cancellationToken);
+        using var output = new MemoryStream();
+        var buffer = new byte[32 * 1024];
+        while (output.Length <= maxBytes)
+        {
+            var remaining = (int)Math.Min(buffer.Length, maxBytes + 1L - output.Length);
+            var read = await input.ReadAsync(buffer.AsMemory(0, remaining), cancellationToken);
+            if (read == 0) break;
+            output.Write(buffer, 0, read);
+        }
+        if (output.Length > maxBytes) throw new InvalidDataException("The source response is too large to process.");
+        return output.ToArray();
+    }
+
+    private static bool LooksLikeHtml(byte[] payload)
+    {
+        var prefix = Encoding.UTF8.GetString(payload, 0, Math.Min(payload.Length, 500)).TrimStart();
+        return prefix.StartsWith("<!doctype html", StringComparison.OrdinalIgnoreCase) ||
+               prefix.StartsWith("<html", StringComparison.OrdinalIgnoreCase);
     }
 
     private static async Task<HttpResponseMessage> GetSafeResponseAsync(HttpClient httpClient, string feedUrl, CancellationToken cancellationToken)

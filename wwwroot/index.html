@@ -2,16 +2,16 @@
 <html class="dark" lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>TechPulse AI - Bilingual Tech & AI News Feed</title>
-  <link rel="stylesheet" href="/css/app.min.css?v=21" />
+  <link rel="stylesheet" href="/css/app.min.css?v=25" />
   
   <!-- Invalidate legacy PWA caches -->
   <script>
     if ('caches' in window) {
       caches.keys().then(function(keys) {
         keys.forEach(function(key) {
-          if (key !== 'techpulse-shell-v21') {
+          if (key !== 'techpulse-shell-v25') {
             caches.delete(key);
           }
         });
@@ -283,6 +283,7 @@
       </label>
       <div class="flex gap-2">
         <select id="feed-sort" onchange="loadFeed()" aria-label="Sort feed" class="min-w-0 flex-1 sm:flex-none rounded-xl border border-surface-container-high bg-surface-container-low px-3 py-2.5 text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50">
+          <option value="personalized" selected>Recommended</option>
           <option value="newest">Newest first</option>
           <option value="oldest">Oldest first</option>
           <option value="popular">Most liked</option>
@@ -294,7 +295,7 @@
     </div>
     <div class="flex items-center justify-between px-1 text-[11px] text-on-surface-variant">
       <span id="feed-result-count" aria-live="polite">Loading stories...</span>
-      <button type="button" onclick="loadFeed()" class="inline-flex items-center gap-1 hover:text-primary"><span class="material-symbols-outlined text-[15px]">refresh</span>Refresh</button>
+      <div class="flex items-center gap-3"><span id="feed-refresh-status" role="status" aria-live="polite" class="text-[10px] text-on-surface-variant/80">Loading…</span><button type="button" onclick="loadFeed()" class="inline-flex items-center gap-1 hover:text-primary"><span class="material-symbols-outlined text-[15px]">refresh</span>Refresh</button></div>
     </div>
 
     <!-- Category Filter Carousel -->
@@ -320,7 +321,7 @@
     </div>
 
     <!-- Create Post Quick Card / Form -->
-    <div class="bg-surface-container-low rounded-2xl p-4 shadow-xl border border-surface-container-high/60 transition-all">
+    <div id="create-post-card" class="bg-surface-container-low rounded-2xl p-4 shadow-xl border border-surface-container-high/60 transition-all">
       <div id="post-box-collapsed" class="flex items-center gap-3 cursor-pointer" onclick="expandPostBox(true)">
         <div id="create-post-avatar" class="w-10 h-10 rounded-full bg-primary/20 text-primary font-bold flex items-center justify-center flex-shrink-0 text-sm uppercase ring-2 ring-primary/30">
           U
@@ -435,6 +436,17 @@
     </div>
   </main>
 
+  <section id="compose-page" class="hidden fixed inset-0 z-[55] bg-background" aria-label="Create a post" aria-modal="true" role="dialog">
+    <div class="compose-page-shell mx-auto flex h-full w-full max-w-2xl flex-col border-x border-surface-container-high bg-surface-container-lowest">
+      <header class="compose-page-header flex items-center justify-between border-b border-surface-container-high px-4 py-3">
+        <button type="button" onclick="expandPostBox(false)" class="flex h-10 w-10 items-center justify-center rounded-full hover:bg-surface-container-high" aria-label="Cancel new post"><span class="material-symbols-outlined">close</span></button>
+        <div class="text-center"><h1 class="text-base font-bold">Create a post</h1><p class="text-[11px] text-on-surface-variant">Share with the TechPulse community</p></div>
+        <span class="w-10"></span>
+      </header>
+      <div id="compose-page-body" class="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6"></div>
+    </div>
+  </section>
+
   <div id="edit-post-modal" class="hidden fixed inset-0 z-[65] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
     <form id="edit-post-form" onsubmit="savePostEdit(event)" class="w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl border border-surface-container-high bg-surface-container-low p-5 shadow-2xl flex flex-col gap-3">
       <div class="flex items-center justify-between"><div><h2 class="font-bold">Edit your post</h2><p class="text-xs text-on-surface-variant">Changes go to the admin review queue.</p></div><button type="button" onclick="closePostEditor()" aria-label="Close editor"><span class="material-symbols-outlined">close</span></button></div>
@@ -453,24 +465,23 @@
     <div class="w-full max-w-4xl bg-surface-container-low/95 border-0 sm:border sm:border-primary/30 rounded-none sm:rounded-2xl shadow-2xl flex flex-col my-auto min-h-dvh sm:min-h-0 max-h-dvh sm:max-h-[96vh] overflow-hidden">
       
       <!-- Reader Header Bar -->
-      <header class="p-3.5 border-b border-surface-container-high flex items-center justify-between bg-surface/90 sticky top-0 z-20 backdrop-blur-md">
+      <header class="relative p-3.5 border-b border-surface-container-high flex items-center justify-between bg-surface/90 sticky top-0 z-20 backdrop-blur-md">
         <button class="flex items-center gap-1 px-3 py-1.5 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-semibold transition-all active:scale-95" onclick="closeArticleReader()">
           <span class="material-symbols-outlined text-[18px]">arrow_back</span>
           <span>Back to Feed</span>
         </button>
         <div class="flex items-center gap-1.5">
           <span id="reader-tag-badge" class="px-2.5 py-0.5 rounded-full bg-primary/20 text-primary border border-primary/30 font-bold text-xs">#AI</span>
+          <button id="reader-bookmark-button" type="button" aria-label="Save story" aria-pressed="false" class="w-8 h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors" title="Save story" onclick="toggleReaderBookmark()"><span id="reader-bookmark-icon" class="material-symbols-outlined text-[18px]">bookmark_add</span></button>
           <button class="w-8 h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors" title="Share" onclick="shareCurrentArticle()">
             <span class="material-symbols-outlined text-[18px]">share</span>
           </button>
-          <button class="w-8 h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors" title="Close" onclick="closeArticleReader()">
-            <span class="material-symbols-outlined text-[20px]">close</span>
-          </button>
         </div>
+        <div class="absolute bottom-0 left-0 h-0.5 w-0 bg-primary transition-[width] duration-150" id="reader-reading-progress" role="progressbar" aria-label="Article reading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
       </header>
 
       <!-- Reader Scrollable Body -->
-      <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 text-on-surface" id="reader-scroll-container">
+      <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 text-on-surface" id="reader-scroll-container" onscroll="updateReaderProgress()">
         
         <!-- Metadata Row -->
         <div class="flex items-center justify-between gap-3 text-xs text-on-surface-variant border-b border-surface-container-high/60 pb-3">
@@ -494,7 +505,8 @@
 
         <!-- Hero Image Canvas -->
         <figure id="reader-image-container" class="relative w-full aspect-[16/10] sm:aspect-[16/8] rounded-2xl overflow-hidden shadow-xl bg-gradient-to-br from-surface-container-high via-surface-container to-surface-container-lowest">
-          <img id="reader-image" alt="" class="hidden absolute inset-0 w-full h-full object-cover" decoding="async" onerror="this.classList.add('hidden'); document.getElementById('reader-image-placeholder').classList.remove('hidden')" />
+          <img id="reader-image" alt="" class="hidden absolute inset-0 w-full h-full object-cover" decoding="async" onload="this.classList.remove('hidden'); document.getElementById('reader-image-skeleton').classList.add('hidden'); document.getElementById('reader-image-placeholder').classList.add('hidden')" onerror="this.classList.add('hidden'); document.getElementById('reader-image-skeleton').classList.add('hidden'); document.getElementById('reader-image-placeholder').classList.remove('hidden')" />
+          <div id="reader-image-skeleton" aria-hidden="true" class="hidden absolute inset-0 animate-pulse bg-gradient-to-r from-surface-container via-surface-container-high to-surface-container"></div>
           <div id="reader-image-placeholder" class="absolute inset-0 flex flex-col items-center justify-center gap-3 text-primary/80">
             <img src="/icon.svg" alt="" class="w-16 h-16 opacity-70 drop-shadow-lg" />
             <span class="text-xs font-semibold tracking-[0.2em] uppercase">TechPulse story</span>
@@ -513,7 +525,7 @@
               <div class="w-7 h-7 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
                 <span class="material-symbols-outlined text-[18px]">auto_awesome</span>
               </div>
-              <h3 class="font-bold text-sm text-on-surface">AI Quick Summary</h3>
+              <h3 class="font-bold text-sm text-on-surface">AI-translated summary</h3>
             </div>
             <span class="px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container text-[10px] font-semibold">30s brief</span>
           </div>
@@ -564,16 +576,6 @@
 
       </div>
 
-      <!-- Reader Footer Bar -->
-      <footer class="p-3 border-t border-surface-container-high bg-surface-container-lowest/80 flex items-center justify-between">
-        <button class="px-3 py-1.5 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-semibold flex items-center gap-1" onclick="closeArticleReader()">
-          <span class="material-symbols-outlined text-[16px]">arrow_back</span>
-          <span>Back to Feed</span>
-        </button>
-        <button class="px-4 py-1.5 rounded-xl bg-primary text-on-primary font-semibold text-xs shadow-md" onclick="closeArticleReader()">
-          Close
-        </button>
-      </footer>
     </div>
   </div>
 
@@ -648,7 +650,8 @@
         <div class="mt-4 flex flex-wrap gap-2">
           <button type="button" onclick="changePassword()" class="rounded-lg border border-surface-container-high px-3 py-2 text-[11px] font-semibold hover:text-primary">Change password</button>
         </div>
-        <h4 class="mt-4 mb-2 text-xs font-semibold">Topics in your Following feed</h4>
+        <h4 class="mt-4 mb-1 text-xs font-semibold">Your feed topics</h4>
+        <p class="mb-2 text-[10px] text-on-surface-variant">Choose topics to prioritize in “For you” and include in your Following feed.</p>
         <div class="flex flex-wrap gap-3 text-xs text-on-surface-variant"><label><input id="follow-topic-ai" type="checkbox" onchange="toggleTopicFollow('#AI',this.checked)" class="accent-cyan-400" /> AI</label><label><input id="follow-topic-tech" type="checkbox" onchange="toggleTopicFollow('#Tech',this.checked)" class="accent-cyan-400" /> Tech</label><label><input id="follow-topic-community" type="checkbox" onchange="toggleTopicFollow('#Community',this.checked)" class="accent-cyan-400" /> Community</label></div>
       </section>
     </section>
@@ -684,10 +687,10 @@
 
   <nav id="app-bottom-nav" class="hidden fixed bottom-0 inset-x-0 z-40 border-t border-surface-container-high bg-surface/95 backdrop-blur-xl pb-[env(safe-area-inset-bottom)] md:hidden">
     <div class="max-w-xl mx-auto h-14 flex items-center justify-around">
-      <button type="button" class="flex min-w-[64px] flex-col items-center justify-center gap-0.5 text-primary" onclick="closeMobileNotificationsPage(); window.scrollTo({top:0,behavior:'smooth'})"><span class="material-symbols-outlined text-[21px]">home</span><span class="text-[9px] font-semibold">Feed</span></button>
-      <button type="button" aria-label="Open activity" class="relative flex min-w-[64px] flex-col items-center justify-center gap-0.5 text-on-surface-variant" onclick="showMobileNotificationsPage()"><span class="material-symbols-outlined text-[21px]">notifications</span><span id="mobile-notification-badge" class="hidden absolute left-1/2 top-0 min-w-4 -translate-y-1/4 translate-x-1 rounded-full bg-error px-1 text-center text-[9px] font-bold text-white">0</span><span class="text-[9px] font-semibold">Activity</span></button>
-      <button type="button" class="flex min-w-[64px] flex-col items-center justify-center gap-0.5 text-on-surface-variant" onclick="closeMobileNotificationsPage(); expandPostBox(true); window.scrollTo({top:0,behavior:'smooth'})"><span class="material-symbols-outlined text-[21px]">add_box</span><span class="text-[9px] font-semibold">Post</span></button>
-      <button type="button" class="flex min-w-[64px] flex-col items-center justify-center gap-0.5 text-on-surface-variant" onclick="closeMobileNotificationsPage(); openProfileModal()"><span class="material-symbols-outlined text-[21px]">account_circle</span><span class="text-[9px] font-semibold">Profile</span></button>
+      <button id="mobile-nav-feed" type="button" aria-current="page" class="flex min-w-[64px] flex-col items-center justify-center gap-0.5 text-primary" onclick="setFollowingFeed(false); closeMobileNotificationsPage(); window.scrollTo({top:0,behavior:'smooth'})"><span class="material-symbols-outlined text-[21px]">home</span><span class="text-[9px] font-semibold">Feed</span></button>
+      <button id="mobile-nav-activity" type="button" aria-label="Open activity" class="relative flex min-w-[64px] flex-col items-center justify-center gap-0.5 text-on-surface-variant" onclick="showMobileNotificationsPage()"><span class="material-symbols-outlined text-[21px]">notifications</span><span id="mobile-notification-badge" class="hidden absolute left-1/2 top-0 min-w-4 -translate-y-1/4 translate-x-1 rounded-full bg-error px-1 text-center text-[9px] font-bold text-white">0</span><span class="text-[9px] font-semibold">Activity</span></button>
+      <button id="mobile-nav-post" type="button" class="flex min-w-[64px] flex-col items-center justify-center gap-0.5 text-on-surface-variant" onclick="setFollowingFeed(false); closeMobileNotificationsPage(); expandPostBox(true); setMobileNavActive('post'); window.scrollTo({top:0,behavior:'smooth'})"><span class="material-symbols-outlined text-[21px]">add_box</span><span class="text-[9px] font-semibold">Post</span></button>
+      <button id="mobile-nav-profile" type="button" class="flex min-w-[64px] flex-col items-center justify-center gap-0.5 text-on-surface-variant" onclick="closeMobileNotificationsPage(); openProfileModal()"><span class="material-symbols-outlined text-[21px]">account_circle</span><span class="text-[9px] font-semibold">Profile</span></button>
     </div>
   </nav>
 
@@ -751,7 +754,7 @@
         <section id="admin-news-sync-section" class="hidden flex flex-col gap-4" aria-live="polite">
           <div class="rounded-2xl border border-surface-container-high bg-surface-container p-4 sm:p-5">
             <div class="flex flex-wrap items-start justify-between gap-3">
-              <div><h3 class="text-sm font-bold text-on-surface">Internet News Fetching</h3><p class="mt-1 text-xs text-on-surface-variant">Control automatic RSS fetching and Sinhala translation from TechCrunch AI, The Verge, Ars Technica, MIT Technology Review, WIRED, and Google News.</p></div>
+              <div><h3 class="text-sm font-bold text-on-surface">Internet News Fetching</h3><p class="mt-1 text-xs text-on-surface-variant">Control automatic RSS and public news-page fetching, Sinhala summaries, and image backfills.</p></div>
               <span id="news-sync-state" class="rounded-full bg-surface-container-highest px-3 py-1 text-[10px] font-bold text-on-surface-variant">Loading status…</span>
             </div>
             <p id="news-sync-detail" class="mt-4 text-xs text-on-surface-variant">Checking the news fetch service.</p>
@@ -766,12 +769,13 @@
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div class="rounded-2xl border border-surface-container-high bg-surface-container p-4">
               <h3 class="text-sm font-bold">Manage news sources</h3>
-              <p class="mt-1 text-[10px] text-on-surface-variant">Add public HTTPS RSS or Atom feeds. Test each feed before saving it.</p>
+              <p class="mt-1 text-[10px] text-on-surface-variant">Add HTTPS RSS/Atom feeds or public news pages. Website pages use article links and structured metadata; login-only or JavaScript-only sites may not work.</p>
+              <button type="button" onclick="addBuiltInWebsiteSources()" class="mt-2 rounded-lg border border-primary/30 px-3 py-2 text-[10px] font-semibold text-primary">Add OpenAI, Anthropic, Google AI & Hacker News</button>
               <form id="admin-news-source-form" class="mt-3 grid grid-cols-1 gap-2" onsubmit="saveAdminNewsSource(event)">
                 <input id="news-source-id" type="hidden">
                 <input id="news-source-name" required maxlength="120" placeholder="Source name (e.g. BBC Technology)" class="w-full rounded-lg border border-surface-container-high bg-surface-container-lowest px-3 py-2 text-xs text-on-surface">
-                <input id="news-source-url" type="url" required maxlength="1000" placeholder="https://example.com/feed.xml" class="w-full rounded-lg border border-surface-container-high bg-surface-container-lowest px-3 py-2 text-xs text-on-surface">
-                <div class="flex flex-wrap items-center gap-2"><select id="news-source-tag" class="rounded-lg border border-surface-container-high bg-surface-container-lowest px-3 py-2 text-xs text-on-surface"><option>#AI</option><option>#Tech</option><option>#Science</option></select><label class="flex items-center gap-2 text-[10px] text-on-surface-variant"><input id="news-source-enabled" type="checkbox" checked> Enabled</label><button type="button" onclick="testAdminNewsSource()" class="ml-auto rounded-lg bg-surface-container-high px-3 py-2 text-[10px] font-semibold">Test feed</button><button type="submit" class="rounded-lg bg-primary px-3 py-2 text-[10px] font-bold text-on-primary">Save source</button><button id="news-source-cancel" type="button" onclick="resetAdminNewsSourceForm()" class="hidden rounded-lg px-3 py-2 text-[10px] font-semibold text-on-surface-variant">Cancel edit</button></div>
+                <input id="news-source-url" type="url" required maxlength="1000" placeholder="https://example.com/news/ or https://example.com/feed.xml" class="w-full rounded-lg border border-surface-container-high bg-surface-container-lowest px-3 py-2 text-xs text-on-surface">
+                <div class="flex flex-wrap items-center gap-2"><select id="news-source-tag" class="rounded-lg border border-surface-container-high bg-surface-container-lowest px-3 py-2 text-xs text-on-surface"><option>#AI</option><option>#Tech</option><option>#Science</option></select><label class="flex items-center gap-2 text-[10px] text-on-surface-variant"><input id="news-source-enabled" type="checkbox" checked> Enabled</label><button type="button" onclick="testAdminNewsSource()" class="ml-auto rounded-lg bg-surface-container-high px-3 py-2 text-[10px] font-semibold">Test source</button><button type="submit" class="rounded-lg bg-primary px-3 py-2 text-[10px] font-bold text-on-primary">Save source</button><button id="news-source-cancel" type="button" onclick="resetAdminNewsSourceForm()" class="hidden rounded-lg px-3 py-2 text-[10px] font-semibold text-on-surface-variant">Cancel edit</button></div>
               </form>
               <div id="news-sources-list" class="mt-4 flex flex-col gap-2"><p class="text-xs text-on-surface-variant">Loading sources…</p></div>
             </div>
@@ -901,7 +905,7 @@
     function initServiceWorker() {
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js?v=21').then((reg) => {
+          navigator.serviceWorker.register('/sw.js?v=25').then((reg) => {
             reg.update();
             reg.onupdatefound = () => {
               const newWorker = reg.installing;
@@ -1225,6 +1229,7 @@
       setAvatar(document.getElementById('profile-image-preview'), currentUser);
       document.getElementById('profile-error').classList.add('hidden');
       document.getElementById('profile-modal').classList.remove('hidden');
+      setMobileNavActive('profile');
       updatePwaInstallOption();
       await loadNotificationPreferences();
       await loadFollowPreferences();
@@ -1252,6 +1257,7 @@
 
     function closeProfileModal() {
       document.getElementById('profile-modal').classList.add('hidden');
+      setMobileNavActive('feed');
     }
 
     async function saveProfile(event) {
@@ -1469,16 +1475,30 @@
       if (shouldOpen) loadNotifications();
     }
 
+    function setMobileNavActive(active) {
+      ['feed', 'activity', 'post', 'profile'].forEach(key => {
+        const button = document.getElementById(`mobile-nav-${key}`);
+        if (!button) return;
+        const isActive = key === active;
+        button.classList.toggle('text-primary', isActive);
+        button.classList.toggle('text-on-surface-variant', !isActive);
+        if (isActive) button.setAttribute('aria-current', 'page');
+        else button.removeAttribute('aria-current');
+      });
+    }
+
     function showMobileNotificationsPage() {
       if (!currentUser) return;
       document.getElementById('notifications-panel').classList.add('hidden');
       document.getElementById('notifications-page').classList.remove('hidden');
+      setMobileNavActive('activity');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       loadNotifications();
     }
 
     function closeMobileNotificationsPage() {
       document.getElementById('notifications-page').classList.add('hidden');
+      setMobileNavActive('feed');
     }
 
     async function openNotification(id, postId) {
@@ -1582,10 +1602,14 @@
     // 3. Feed & Posts Handling
     async function loadFeed(append = false) {
       const container = document.getElementById('posts-container');
+      const refreshStatus = document.getElementById('feed-refresh-status');
+      const previousPostIds = new Set(allPosts.map(post => post.id));
       if (!append) {
         feedPage = 1;
         feedHasMore = false;
         document.getElementById('feed-result-count').textContent = 'Refreshing stories...';
+        refreshStatus.textContent = navigator.onLine ? 'Refreshing…' : 'Offline';
+        refreshStatus.classList.toggle('text-error', !navigator.onLine);
       }
       try {
         const params = new URLSearchParams({ page: String(append ? feedPage + 1 : 1), pageSize: '20', followingOnly: String(followingOnly), search: document.getElementById('feed-search').value.trim(), sort: document.getElementById('feed-sort').value, tag: currentFilter });
@@ -1602,12 +1626,21 @@
         feedHasMore = !!payload.hasMore;
         feedTotal = payload.total ?? allPosts.length;
         document.getElementById('load-more-posts').classList.toggle('hidden', !feedHasMore);
+        if (!append) {
+          const newStories = items.filter(item => !previousPostIds.has(item.id)).length;
+          refreshStatus.textContent = !navigator.onLine ? 'Offline' : newStories ? `${newStories} new ${newStories === 1 ? 'story' : 'stories'}` : 'Up to date';
+          refreshStatus.classList.toggle('text-error', !navigator.onLine);
+        }
         renderPosts();
       } catch (err) {
         if (append && allPosts.length) {
+          refreshStatus.textContent = navigator.onLine ? 'Could not load more' : 'Offline';
+          refreshStatus.classList.add('text-error');
           showToast('Could not load more stories. Try again.', 'error');
           return;
         }
+        refreshStatus.textContent = navigator.onLine ? 'Refresh failed' : 'Offline · cached shell only';
+        refreshStatus.classList.add('text-error');
         document.getElementById('feed-result-count').textContent = 'Could not refresh';
         container.innerHTML = `
           <div class="bg-surface-container-low rounded-2xl p-8 text-center border border-surface-container-high">
@@ -1683,6 +1716,7 @@
         const data = await response.json();
         if (!response.ok) throw new Error(data.message || 'Could not save this story.');
         post.bookmarkedByCurrentUser = data.bookmarked;
+        if (currentReadingPostId === postId) updateReaderBookmarkButton(post);
         showToast(data.bookmarked ? 'Story saved to your reading list.' : 'Story removed from your reading list.', 'success');
         renderPosts();
       } catch (error) {
@@ -1751,23 +1785,28 @@
       if (showingSavedPosts) filtered = filtered.filter(post => post.bookmarkedByCurrentUser);
       if (query) filtered = filtered.filter(post => [post.sinhalaTitle, post.sinhalaSummary, post.source, post.tag, post.author?.displayName].some(value => (value || '').toLocaleLowerCase().includes(query)));
       const sortOrder = document.getElementById('feed-sort').value;
-      filtered = [...filtered].sort((a, b) => sortOrder === 'oldest'
-        ? new Date(a.createdAt) - new Date(b.createdAt)
-        : sortOrder === 'popular'
-          ? (b.likeCount || 0) - (a.likeCount || 0) || new Date(b.createdAt) - new Date(a.createdAt)
-          : new Date(b.createdAt) - new Date(a.createdAt));
+      filtered = [...filtered].sort((a, b) => sortOrder === 'personalized'
+        ? Number(!!b.followedTopicByCurrentUser || !!b.followedAuthorByCurrentUser) - Number(!!a.followedTopicByCurrentUser || !!a.followedAuthorByCurrentUser) || new Date(b.createdAt) - new Date(a.createdAt)
+        : sortOrder === 'oldest'
+          ? new Date(a.createdAt) - new Date(b.createdAt)
+          : sortOrder === 'popular'
+            ? (b.likeCount || 0) - (a.likeCount || 0) || new Date(b.createdAt) - new Date(a.createdAt)
+            : new Date(b.createdAt) - new Date(a.createdAt));
       document.getElementById('feed-result-count').textContent = showingSavedPosts
         ? `${filtered.length} saved ${filtered.length === 1 ? 'story' : 'stories'} loaded`
         : `${filtered.length} ${filtered.length === 1 ? 'story' : 'stories'} shown${feedHasMore ? ` · ${feedTotal} total` : ''}`;
 
       if (filtered.length === 0) {
         const hasSearchOrSavedFilter = query || showingSavedPosts;
+        const noFollowingItems = followingOnly && !hasSearchOrSavedFilter;
         container.innerHTML = `
           <div class="bg-surface-container-low rounded-2xl p-8 text-center text-on-surface-variant border border-surface-container-high">
-            <span class="material-symbols-outlined text-[36px] text-primary/60 mb-2">${showingSavedPosts ? 'bookmark_border' : 'newspaper'}</span>
-            <p class="text-sm font-semibold text-on-surface">${showingSavedPosts ? 'Your reading list is empty' : 'No stories found'}</p>
-            <p class="text-xs mt-1">${showingSavedPosts ? 'Save stories with the bookmark button and find them here later.' : hasSearchOrSavedFilter ? 'Try a different search or category.' : 'There are no stories available in this category yet.'}</p>
+            <span class="material-symbols-outlined text-[36px] text-primary/60 mb-2">${showingSavedPosts ? 'bookmark_border' : noFollowingItems ? 'group_add' : 'newspaper'}</span>
+            <p class="text-sm font-semibold text-on-surface">${showingSavedPosts ? 'Your reading list is empty' : noFollowingItems ? 'Your Following feed is quiet' : 'No stories found'}</p>
+            <p class="text-xs mt-1">${showingSavedPosts ? 'Save stories with the bookmark button and find them here later.' : noFollowingItems ? 'Follow a topic or community member to build this timeline. Your “For you” feed will still show the latest stories.' : hasSearchOrSavedFilter ? 'Try a different search or category.' : 'There are no stories available in this category yet.'}</p>
             ${hasSearchOrSavedFilter ? '<button class="mt-3 text-xs font-semibold text-primary" onclick="document.getElementById(\'feed-search\').value=\'\'; showingSavedPosts=false; renderPosts()">Clear filters</button>' : ''}
+            ${noFollowingItems ? '<button type="button" class="mt-3 rounded-full bg-primary px-4 py-2 text-xs font-bold text-on-primary" onclick="openProfileModal()">Choose topics</button>' : ''}
+            ${!hasSearchOrSavedFilter && !noFollowingItems ? `<button type="button" class="mt-3 rounded-full border border-surface-container-high px-4 py-2 text-xs font-semibold text-primary" onclick="${currentFilter === 'All' ? 'loadFeed()' : "filterByTag('All')"}">${currentFilter === 'All' ? 'Refresh feed' : 'View all topics'}</button>` : ''}
           </div>
         `;
         return;
@@ -1783,16 +1822,18 @@
 
     function articleCardMediaMarkup(post, tag) {
       const title = escapeHtml(post.sinhalaTitle || 'Tech news story');
+      const imageOriginLabel = post.imageIsAiGenerated ? '<span class="rounded-full border border-white/15 bg-black/55 px-2.5 py-1 text-[9px] font-semibold text-white backdrop-blur-md">AI-generated image</span>' : '';
       const image = post.imageUrl
-        ? `<img src="${escapeHtml(post.imageUrl)}" alt="${title}" loading="lazy" decoding="async" class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden')" /><div class="hidden absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-surface-container-high via-surface-container to-surface-container-lowest text-primary/80"><img src="/icon.svg" alt="" class="h-12 w-12 opacity-70" /><span class="text-[10px] font-semibold uppercase tracking-[0.2em]">TechPulse story</span></div>`
-        : `<div class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-surface-container-high via-surface-container to-surface-container-lowest text-primary/80"><img src="/icon.svg" alt="" class="h-12 w-12 opacity-70" /><span class="text-[10px] font-semibold uppercase tracking-[0.2em]">${escapeHtml(tag)} · TechPulse story</span></div>`;
-      return `<button type="button" class="group relative block w-full overflow-hidden rounded-2xl bg-surface-container-lowest text-left shadow-lg ring-1 ring-white/5 focus:outline-none focus:ring-2 focus:ring-primary" aria-label="Open ${title}" onclick="openArticleReader(${post.id})"><div class="relative aspect-[16/9] sm:aspect-[16/8]">${image}<div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/65 via-transparent to-transparent"></div><div class="pointer-events-none absolute inset-x-3 bottom-3 sm:inset-x-4 sm:bottom-4"><span class="rounded-full border border-white/15 bg-black/45 px-3 py-1.5 text-[10px] font-bold text-white backdrop-blur-md">${escapeHtml(tag)}</span></div></div></button>`;
+        ? `<img src="${escapeHtml(post.imageUrl)}" alt="${title}" loading="lazy" decoding="async" class="absolute inset-0 h-full w-full object-cover opacity-0 transition-all duration-300 group-hover:scale-[1.03]" onload="this.classList.remove('opacity-0'); this.nextElementSibling.classList.add('hidden')" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.add('hidden'); this.nextElementSibling.nextElementSibling.classList.remove('hidden')" /><div aria-hidden="true" class="absolute inset-0 animate-pulse bg-gradient-to-r from-surface-container via-surface-container-high to-surface-container"></div><div class="hidden absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-surface-container-high via-surface-container to-surface-container-lowest text-primary/80"><img src="/icon.svg" alt="" class="h-12 w-12 opacity-70" /><span class="text-[10px] font-semibold uppercase tracking-[0.2em]">Illustration unavailable</span></div>`
+        : `<div class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-surface-container-high via-surface-container to-surface-container-lowest text-primary/80"><img src="/icon.svg" alt="" class="h-12 w-12 opacity-70" /><span class="text-[10px] font-semibold uppercase tracking-[0.2em]">${post.isAutoNews ? 'Image being prepared' : `${escapeHtml(tag)} · Community story`}</span></div>`;
+      return `<button type="button" class="group relative block w-full overflow-hidden rounded-2xl bg-surface-container-lowest text-left shadow-lg ring-1 ring-white/5 focus:outline-none focus:ring-2 focus:ring-primary" aria-label="Open ${title}" onclick="openArticleReader(${post.id})"><div class="relative aspect-[16/9] sm:aspect-[16/8]">${image}<div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/65 via-transparent to-transparent"></div><div class="pointer-events-none absolute inset-x-3 bottom-3 sm:inset-x-4 sm:bottom-4 flex items-center justify-between gap-2"><span class="rounded-full border border-white/15 bg-black/45 px-3 py-1.5 text-[10px] font-bold text-white backdrop-blur-md">${escapeHtml(tag)}</span>${imageOriginLabel}</div></div></button>`;
     }
 
     function createPostCardHtml(post) {
       const isAuto = post.isAutoNews;
       const authorName = isAuto ? post.source : (post.author ? post.author.displayName : post.source);
-      const timeStr = formatRelativeTime(post.createdAt);
+      const publishedAt = post.publishedAt || post.createdAt;
+      const timeStr = formatRelativeTime(publishedAt);
       const tag = post.tag || '#AI';
       const comments = post.comments || [];
       const isAdmin = currentUser && currentUser.role === 'Admin';
@@ -1817,17 +1858,14 @@
                 <div class="flex items-center gap-2 text-[11px] text-on-surface-variant">
                   <span class="px-2 py-0.2 rounded-full border ${tagColor} font-semibold">${escapeHtml(tag)}</span>
                   <span>•</span>
-                  <span>${timeStr}</span>
+                  <span>${isAuto ? 'Published' : 'Posted'} ${timeStr}</span>
+                  ${isAuto ? '<span class="rounded-full bg-primary/10 px-1.5 py-0.5 text-[9px] font-semibold text-primary">AI-translated</span>' : ''}
                 </div>
               </div>
             </div>
 
             <!-- Admin Post Deletion Trigger -->
-            <div class="flex items-center gap-1">
-              ${isOwner ? `<button class="w-8 h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors" title="Edit post" onclick="openPostEditor(${post.id})"><span class="material-symbols-outlined text-[18px]">edit</span></button>` : ''}
-              ${isAdmin ? `<button class="w-8 h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:text-error hover:bg-error-container/30 transition-colors" title="Delete post" onclick="handleDeletePost(${post.id})"><span class="material-symbols-outlined text-[18px]">delete</span></button>` : ''}
-              ${isOwner ? `<button class="w-8 h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:text-error hover:bg-error-container/30 transition-colors" title="Delete your post" onclick="deleteOwnPost(${post.id})"><span class="material-symbols-outlined text-[18px]">delete</span></button>` : ''}
-            </div>
+            ${isOwner || isAdmin || (!isAuto && !isOwner) ? `<details class="post-overflow-menu relative"><summary aria-label="More post actions" class="flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface"><span class="material-symbols-outlined">more_horiz</span></summary><div class="absolute right-0 top-10 z-20 flex min-w-40 flex-col overflow-hidden rounded-xl border border-surface-container-high bg-surface-container-lowest p-1 shadow-xl">${isOwner ? `<button type="button" class="flex items-center gap-2 rounded-lg px-3 py-2 text-left text-xs hover:bg-surface-container-high" onclick="this.closest('details').open=false; openPostEditor(${post.id})"><span class="material-symbols-outlined text-[17px]">edit</span>Edit post</button>` : ''}${isAdmin ? `<button type="button" class="flex items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-error hover:bg-error-container/30" onclick="this.closest('details').open=false; handleDeletePost(${post.id})"><span class="material-symbols-outlined text-[17px]">delete</span>Remove post</button>` : isOwner ? `<button type="button" class="flex items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-error hover:bg-error-container/30" onclick="this.closest('details').open=false; deleteOwnPost(${post.id})"><span class="material-symbols-outlined text-[17px]">delete</span>Delete post</button>` : ''}${!isAuto && !isOwner ? `<button type="button" class="flex items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-error hover:bg-error-container/30" onclick="this.closest('details').open=false; reportContent(${post.id}, null)"><span class="material-symbols-outlined text-[17px]">flag</span>Report post</button>` : ''}</div></details>` : ''}
           </div>
 
           <!-- Headline & Summary (Sinhala Content) -->
@@ -1838,9 +1876,11 @@
             <p class="line-clamp-3 text-sm text-on-surface-variant leading-relaxed sm:text-[15px]">
               ${escapeHtml(post.sinhalaSummary)}
             </p>
-            <button type="button" class="mt-2 inline-flex items-center gap-1 text-xs font-bold text-primary hover:text-primary/80" onclick="openArticleReader(${post.id})">
-              <span>Read more</span><span class="material-symbols-outlined text-[16px]">arrow_forward</span>
-            </button>
+            <div class="mt-1 flex justify-end">
+              <button type="button" class="inline-flex min-h-10 items-center gap-1.5 rounded-full px-3 text-xs font-bold text-primary hover:bg-primary/10 hover:text-primary/80" aria-label="Read more about ${escapeHtml(post.sinhalaTitle)}" onclick="openArticleReader(${post.id})">
+                <span>Read more</span><span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+              </button>
+            </div>
           </div>
 
           ${articleCardMediaMarkup(post, tag)}
@@ -1854,14 +1894,14 @@
           <div class="mx-4 mb-3 flex items-center gap-2 flex-wrap sm:mx-5">
             ${post.link ? `
               <a href="${escapeHtml(post.link)}" target="_blank" rel="noopener noreferrer" class="inline-flex min-w-0 items-center gap-1.5 rounded-lg px-2 py-2 text-xs text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface" title="Open original article">
-                <span class="truncate">${escapeHtml(post.isAutoNews ? post.source : 'Open link')}</span>
+                <span class="truncate">${escapeHtml(post.isAutoNews ? `Original source · ${post.source}` : 'Open link')}</span>
                 <span class="material-symbols-outlined text-[13px]">open_in_new</span>
               </a>
             ` : ''}
           </div>
 
           <!-- Action & Engagement Bar -->
-          <div class="mx-4 border-t border-surface-container-high/70 py-1 sm:mx-5 ${!isAuto && !isOwner ? 'grid grid-cols-5' : 'grid grid-cols-4'} text-[10px] text-on-surface-variant sm:text-xs">
+          <div class="mx-4 border-t border-surface-container-high/70 py-1 sm:mx-5 grid grid-cols-4 text-[10px] text-on-surface-variant sm:text-xs">
               <button id="like-button-${post.id}" aria-label="Like this post" class="flex items-center justify-center gap-1 py-2 rounded-lg transition-colors ${post.likedByCurrentUser ? 'text-rose-400 bg-rose-500/10' : 'hover:bg-surface-container hover:text-rose-400'}" onclick="togglePostLike(${post.id})">
                 <span class="material-symbols-outlined text-[18px]">thumb_up</span>
                 <span class="hidden sm:inline">Like</span><span id="like-count-${post.id}" class="font-semibold">${post.likeCount || 0}</span>
@@ -1878,7 +1918,6 @@
               <span class="material-symbols-outlined text-[18px]">${post.bookmarkedByCurrentUser ? 'bookmark' : 'bookmark_add'}</span>
               <span class="hidden sm:inline">Save</span>
             </button>
-            ${!isAuto && !isOwner ? `<button class="flex items-center justify-center gap-1.5 py-2 rounded-lg hover:bg-surface-container hover:text-error transition-colors" aria-label="Report this post" onclick="reportContent(${post.id}, null)"><span class="material-symbols-outlined text-[18px]">flag</span><span>Report</span></button>` : ''}
           </div>
 
           <!-- Comments Section (Collapsed by default) -->
@@ -1960,19 +1999,23 @@
       const readingTime = document.getElementById('reader-reading-time');
       const imageCaption = document.getElementById('reader-image-caption');
       const imagePlaceholder = document.getElementById('reader-image-placeholder');
+      const imageSkeleton = document.getElementById('reader-image-skeleton');
 
       // Populate Article Details (Sinhala text preserved)
       titleEl.textContent = post.sinhalaTitle;
       const authorName = post.isAutoNews ? post.source : (post.author ? post.author.displayName : post.source);
       authorNameEl.textContent = authorName;
       setAvatar(authorAvatarEl, post.isAutoNews ? { displayName: authorName, profileImageUrl: '/logos/mini-logo.png' } : (post.author || { displayName: authorName }));
-      const publishedDate = new Date(post.createdAt);
-      dateEl.textContent = `${formatRelativeTime(post.createdAt)} · ${publishedDate.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}`;
+      const publishedDate = new Date(post.publishedAt || post.createdAt);
+      dateEl.textContent = `${post.isAutoNews ? 'Published' : 'Posted'} ${formatRelativeTime(publishedDate)} · ${publishedDate.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}`;
       dateEl.title = publishedDate.toLocaleString();
       tagBadge.textContent = post.tag || '#AI';
       summaryEl.textContent = post.sinhalaSummary;
       readingTime.textContent = `${getArticleReadingMinutes(post)} min read`;
-      imageCaption.textContent = post.isAutoNews ? `Image · ${post.source}` : 'Community story';
+      imageCaption.textContent = post.imageIsAiGenerated
+        ? 'AI-generated illustration'
+        : post.isAutoNews ? `Publisher image · ${post.source}` : 'Community story';
+      updateReaderBookmarkButton(post);
 
       // Full content or summary
       const fullText = post.sinhalaContent || post.sinhalaSummary;
@@ -1981,17 +2024,25 @@
       // Image
       imgEl.classList.add('hidden');
       imgEl.removeAttribute('src');
-      imagePlaceholder.classList.remove('hidden');
+      imageSkeleton.classList.add('hidden');
+      imagePlaceholder.classList.toggle('hidden', !!post.imageUrl);
       imgEl.alt = post.sinhalaTitle || 'Article image';
       imgEl.onload = () => {
         imgEl.classList.remove('hidden');
+        imageSkeleton.classList.add('hidden');
         imagePlaceholder.classList.add('hidden');
+        updateReaderProgress();
       };
       imgEl.onerror = () => {
         imgEl.classList.add('hidden');
+        imageSkeleton.classList.add('hidden');
         imagePlaceholder.classList.remove('hidden');
+        updateReaderProgress();
       };
-      if (post.imageUrl) imgEl.src = post.imageUrl;
+      if (post.imageUrl) {
+        imageSkeleton.classList.remove('hidden');
+        imgEl.src = post.imageUrl;
+      }
 
       // External link (optional)
       if (post.link) {
@@ -2012,6 +2063,33 @@
 
       modal.classList.remove('hidden');
       document.getElementById('reader-scroll-container').scrollTop = 0;
+      updateReaderProgress();
+    }
+
+    function updateReaderBookmarkButton(post = allPosts.find(item => item.id === currentReadingPostId)) {
+      const button = document.getElementById('reader-bookmark-button');
+      const icon = document.getElementById('reader-bookmark-icon');
+      if (!button || !icon || !post) return;
+      const saved = !!post.bookmarkedByCurrentUser;
+      button.setAttribute('aria-pressed', String(saved));
+      button.setAttribute('aria-label', saved ? 'Remove saved story' : 'Save story');
+      button.title = saved ? 'Remove saved story' : 'Save story';
+      button.classList.toggle('text-primary', saved);
+      icon.textContent = saved ? 'bookmark_added' : 'bookmark_add';
+    }
+
+    async function toggleReaderBookmark() {
+      if (currentReadingPostId) await togglePostBookmark(currentReadingPostId);
+    }
+
+    function updateReaderProgress() {
+      const scroll = document.getElementById('reader-scroll-container');
+      const progress = document.getElementById('reader-reading-progress');
+      if (!scroll || !progress) return;
+      const maximum = Math.max(0, scroll.scrollHeight - scroll.clientHeight);
+      const percentage = maximum ? Math.round((scroll.scrollTop / maximum) * 100) : 0;
+      progress.style.width = `${percentage}%`;
+      progress.setAttribute('aria-valuenow', String(percentage));
     }
 
     function closeArticleReader() {
@@ -2104,13 +2182,28 @@
     function expandPostBox(expand) {
       const collapsed = document.getElementById('post-box-collapsed');
       const expanded = document.getElementById('post-box-expanded');
+      const composePage = document.getElementById('compose-page');
+      const composeBody = document.getElementById('compose-page-body');
+      const createPostCard = document.getElementById('create-post-card');
       if (expand) {
+        if (expanded.parentElement !== composeBody) composeBody.appendChild(expanded);
         collapsed.classList.add('hidden');
-        expanded.classList.remove('hidden');
-        document.getElementById('post-title').focus();
+        expanded.classList.remove('hidden', 'pt-1');
+        expanded.classList.add('compose-form');
+        createPostCard.classList.add('hidden');
+        composePage.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+        setMobileNavActive('post');
+        requestAnimationFrame(() => document.getElementById('post-title').focus());
       } else {
+        if (expanded.parentElement !== createPostCard) createPostCard.appendChild(expanded);
         expanded.classList.add('hidden');
+        expanded.classList.remove('compose-form');
         collapsed.classList.remove('hidden');
+        createPostCard.classList.remove('hidden');
+        composePage.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+        setMobileNavActive('feed');
       }
     }
 
@@ -2446,7 +2539,7 @@
         const response = await fetch('/api/admin/news-sources', { credentials: 'include' });
         if (!response.ok) throw new Error('Could not load news sources.');
         adminNewsSources = await response.json();
-        list.innerHTML = adminNewsSources.length ? adminNewsSources.map(source => `<article class="rounded-xl border border-surface-container-high bg-surface-container-lowest p-3"><div class="flex items-start justify-between gap-2"><div class="min-w-0"><strong class="block truncate text-xs">${escapeHtml(source.name)} <span class="font-normal text-primary">${escapeHtml(source.tag)}</span></strong><a href="${escapeHtml(source.feedUrl)}" target="_blank" rel="noopener noreferrer" class="mt-1 block truncate text-[10px] text-on-surface-variant">${escapeHtml(source.feedUrl)}</a><p class="mt-1 text-[10px] ${source.lastError ? 'text-error' : 'text-on-surface-variant'}">${source.lastError ? escapeHtml(source.lastError) : source.lastCheckedAt ? `Checked ${formatRelativeTime(source.lastCheckedAt)} · ${source.lastItemCount ?? 0} stories` : 'Not fetched yet'}</p></div><span class="shrink-0 rounded-full px-2 py-1 text-[9px] font-bold ${source.isEnabled ? 'bg-emerald-500/15 text-emerald-400' : 'bg-surface-container-high text-on-surface-variant'}">${source.isEnabled ? 'On' : 'Off'}</span></div><div class="mt-2 flex flex-wrap gap-2"><button onclick="editAdminNewsSource(${source.id})" class="text-[10px] font-semibold text-primary">Edit</button><button onclick="setAdminNewsSourceEnabled(${source.id},${!source.isEnabled})" class="text-[10px] font-semibold text-on-surface-variant">${source.isEnabled ? 'Disable' : 'Enable'}</button><button onclick="deleteAdminNewsSource(${source.id})" class="text-[10px] font-semibold text-error">Remove</button></div></article>`).join('') : '<p class="rounded-xl bg-surface-container-lowest p-4 text-center text-xs text-on-surface-variant">No sources configured. Add an RSS or Atom URL above.</p>';
+        list.innerHTML = adminNewsSources.length ? adminNewsSources.map(source => `<article class="rounded-xl border border-surface-container-high bg-surface-container-lowest p-3"><div class="flex items-start justify-between gap-2"><div class="min-w-0"><strong class="block truncate text-xs">${escapeHtml(source.name)} <span class="font-normal text-primary">${escapeHtml(source.tag)}</span></strong><a href="${escapeHtml(source.feedUrl)}" target="_blank" rel="noopener noreferrer" class="mt-1 block truncate text-[10px] text-on-surface-variant">${escapeHtml(source.feedUrl)}</a><p class="mt-1 text-[10px] ${source.lastError ? 'text-error' : 'text-on-surface-variant'}">${source.lastError ? escapeHtml(source.lastError) : source.lastCheckedAt ? `Checked ${formatRelativeTime(source.lastCheckedAt)} · ${source.lastItemCount ?? 0} stories` : 'Not fetched yet'}</p></div><span class="shrink-0 rounded-full px-2 py-1 text-[9px] font-bold ${source.isEnabled ? 'bg-emerald-500/15 text-emerald-400' : 'bg-surface-container-high text-on-surface-variant'}">${source.isEnabled ? 'On' : 'Off'}</span></div><div class="mt-2 flex flex-wrap gap-2"><button onclick="editAdminNewsSource(${source.id})" class="text-[10px] font-semibold text-primary">Edit</button><button onclick="setAdminNewsSourceEnabled(${source.id},${!source.isEnabled})" class="text-[10px] font-semibold text-on-surface-variant">${source.isEnabled ? 'Disable' : 'Enable'}</button><button onclick="deleteAdminNewsSource(${source.id})" class="text-[10px] font-semibold text-error">Remove</button></div></article>`).join('') : '<p class="rounded-xl bg-surface-container-lowest p-4 text-center text-xs text-on-surface-variant">No sources configured. Add an RSS feed or public news page above.</p>';
       } catch (error) { list.innerHTML = `<p class="text-xs text-error">${escapeHtml(error.message)}</p>`; }
     }
 
@@ -2457,8 +2550,21 @@
         const response = await fetch('/api/admin/news-sources/test', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ feedUrl }) });
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || result.message || 'Feed test failed.');
-        showToast(`Feed is valid · ${result.itemCount} stories found. Latest: ${result.latestTitle || 'Untitled'}`, 'success', 7000);
+        showToast(`Source is readable · ${result.itemCount} stories found. Latest: ${result.latestTitle || 'Untitled'}`, 'success', 7000);
       } catch (error) { showToast(error.message, 'error', 7000); }
+    }
+
+    async function addBuiltInWebsiteSources() {
+      try {
+        const response = await fetch('/api/admin/news-sources/add-built-in-websites', {
+          method: 'POST',
+          credentials: 'include'
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || 'Could not add website sources.');
+        showToast(result.message, 'success', 6000);
+        await loadAdminNewsSources();
+      } catch (error) { showToast(error.message, 'error'); }
     }
 
     async function saveAdminNewsSource(event) {
@@ -2797,6 +2903,22 @@
       div.textContent = text;
       return div.innerHTML;
     }
+
+    window.addEventListener('online', () => {
+      const status = document.getElementById('feed-refresh-status');
+      if (status) {
+        status.textContent = 'Back online · refreshing';
+        status.classList.remove('text-error');
+      }
+      if (currentUser) loadFeed();
+    });
+    window.addEventListener('offline', () => {
+      const status = document.getElementById('feed-refresh-status');
+      if (status) {
+        status.textContent = 'Offline · showing loaded stories';
+        status.classList.add('text-error');
+      }
+    });
   </script>
 </body>
 </html>
