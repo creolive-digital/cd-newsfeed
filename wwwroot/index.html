@@ -11,14 +11,14 @@
       document.documentElement.classList.toggle('dark', useDarkTheme);
     } catch (_) {}
   </script>
-  <link rel="stylesheet" href="/css/app.min.css?v=28" />
+  <link rel="stylesheet" href="/css/app.min.css?v=29" />
   
   <!-- Invalidate legacy PWA caches -->
   <script>
     if ('caches' in window) {
       caches.keys().then(function(keys) {
         keys.forEach(function(key) {
-          if (key !== 'techpulse-shell-v28') {
+          if (key !== 'techpulse-shell-v29') {
             caches.delete(key);
           }
         });
@@ -964,7 +964,7 @@
     function initServiceWorker() {
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js?v=28').then((reg) => {
+          navigator.serviceWorker.register('/sw.js?v=29').then((reg) => {
             reg.update();
             reg.onupdatefound = () => {
               const newWorker = reg.installing;
