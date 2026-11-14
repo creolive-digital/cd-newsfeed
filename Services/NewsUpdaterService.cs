@@ -257,11 +257,6 @@ public class NewsUpdaterService : BackgroundService
 
         foreach (var candidate in sortedCandidates)
         {
-            if (insertedCount >= maxItemsToInsert)
-            {
-                break;
-            }
-
             // Check if link already exists in DB to prevent duplicates
             var existingPost = await db.Posts.FirstOrDefaultAsync(
                 p => (p.Link != null && candidate.Link != null && p.Link == candidate.Link) ||
@@ -276,6 +271,13 @@ public class NewsUpdaterService : BackgroundService
                     existingPost.ImageUrl = candidate.ImageUrl;
                     await db.SaveChangesAsync(stoppingToken);
                 }
+                continue;
+            }
+
+            // Keep scanning for existing items so missing images can be backfilled,
+            // while still limiting how many newly translated stories enter the feed.
+            if (insertedCount >= maxItemsToInsert)
+            {
                 continue;
             }
 
