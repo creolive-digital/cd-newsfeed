@@ -1603,6 +1603,42 @@ admin.MapGet("/news", async (AppDbContext db, int page = 1, int pageSize = 30) =
     return Results.Ok(new { items, total, page, pageSize });
 });
 
+admin.MapGet("/community-posts", async (AppDbContext db, int page = 1, int pageSize = 20) =>
+{
+    page = Math.Max(1, page);
+    pageSize = Math.Clamp(pageSize, 1, 50);
+    var query = db.Posts.AsNoTracking().Where(post => !post.IsAutoNews && post.Status != "Pending");
+    var total = await query.CountAsync();
+    var items = await query.OrderByDescending(post => post.CreatedAt).ThenByDescending(post => post.Id)
+        .Skip((page - 1) * pageSize).Take(pageSize)
+        .Select(post => new
+        {
+            id = post.Id,
+            title = post.SinhalaTitle,
+            summary = post.SinhalaSummary,
+            imageUrl = post.ImageUrl,
+            link = post.Link,
+            tag = post.Tag,
+            status = post.Status,
+            createdAt = post.CreatedAt,
+            author = post.Author == null ? null : new { id = post.Author.Id, displayName = post.Author.DisplayName, username = post.Author.Username },
+            comments = post.Comments.OrderByDescending(comment => comment.CreatedAt).Take(20)
+                .Select(comment => new { id = comment.Id, content = comment.Content, createdAt = comment.CreatedAt, user = comment.User.DisplayName, username = comment.User.Username })
+                .ToList()
+        })
+        .ToListAsync();
+    return Results.Ok(new { items, total, page, pageSize });
+});
+
+admin.MapPatch("/community-posts/{id:int}/visibility", async (int id, SetNewsVisibilityRequest request, AppDbContext db) =>
+{
+    var post = await db.Posts.FirstOrDefaultAsync(item => item.Id == id && !item.IsAutoNews && item.Status != "Pending");
+    if (post == null) return Results.NotFound(new { message = "Community post not found." });
+    post.Status = request.Visible ? "Approved" : "Hidden";
+    await db.SaveChangesAsync();
+    return Results.Ok(new { post.Id, post.Status });
+});
+
 admin.MapPatch("/news/{id:int}/visibility", async (int id, SetNewsVisibilityRequest request, AppDbContext db) =>
 {
     var post = await db.Posts.FirstOrDefaultAsync(item => item.Id == id && item.IsAutoNews);

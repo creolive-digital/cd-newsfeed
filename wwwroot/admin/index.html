@@ -37,13 +37,13 @@
     .heading { margin: 28px 0 18px; }
     .heading h1 { font-size: 28px; }
     .heading p { margin: 7px 0 0; color: #91aabd; font-size: 14px; }
-    .stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-bottom: 24px; }
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 24px; }
     .stat { padding: 17px 19px; border: 1px solid #294055; border-radius: 14px; background: #101e2cdd; }
     .stat span { display: block; color: #9bb0c1; font-size: 12px; }
     .stat strong { display: block; margin-top: 6px; color: #67d2eb; font-size: 25px; }
     .panel { overflow: hidden; border: 1px solid #294055; border-radius: 16px; background: #101e2cdd; }
-    .tabs { display: flex; gap: 8px; padding: 13px; border-bottom: 1px solid #294055; }
-    .tab { padding: 9px 13px; border: 1px solid transparent; border-radius: 9px; background: transparent; color: #9bb0c1; font-size: 13px; }
+    .tabs { display: flex; gap: 8px; overflow-x: auto; padding: 13px; border-bottom: 1px solid #294055; }
+    .tab { flex: 0 0 auto; padding: 9px 13px; border: 1px solid transparent; border-radius: 9px; background: transparent; color: #9bb0c1; font-size: 13px; white-space: nowrap; }
     .tab.active { border-color: #31566a; background: #163044; color: #73d7ed; }
     .tab-count { margin-left: 5px; padding: 2px 6px; border-radius: 20px; background: #263e50; font-size: 11px; }
     .list { display: grid; gap: 11px; padding: 15px; }
@@ -65,7 +65,24 @@
     .badge.off { background: #482833; color: #ffadb7; }
     .empty, .error { padding: 36px 16px; color: #9bb0c1; font-size: 13px; text-align: center; }
     .error { color: #ff9eaa; }
-    @media (max-width: 600px) { .login-card { padding: 28px 22px; } .dashboard { padding: 18px 13px 40px; } .topbar { align-items: flex-start; } .topbar .brand img { width: 165px; } .topbar-actions { align-items: flex-end; flex-direction: column; gap: 8px; } .stats { gap: 9px; } .stat { padding: 13px; } .tabs { gap: 3px; padding: 9px; } .tab { padding: 8px; font-size: 12px; } .card { padding: 13px; } }
+    .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-bottom: 1px solid #294055; }
+    .toolbar h2 { margin: 0; font-size: 15px; }
+    .field { width: 100%; padding: 10px 12px; border: 1px solid #344b60; border-radius: 9px; outline: none; background: #091521; color: #f4f8fc; font-size: 13px; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 16px; }
+    .form-grid label { margin: 0; }
+    .form-grid label span { display: block; margin: 0 0 6px; }
+    .form-grid .wide { grid-column: 1 / -1; }
+    .status-pill { display: inline-flex; align-items: center; gap: 7px; padding: 6px 9px; border-radius: 999px; background: #163d35; color: #77e0bd; font-size: 11px; font-weight: 700; }
+    .status-pill.off { background: #432932; color: #ffadb7; }
+    .topic-row { display: flex; justify-content: space-between; padding: 10px 0; border-top: 1px solid #203447; color: #b7c9d7; font-size: 13px; }
+    .page-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-top: 1px solid #294055; color: #91aabd; font-size: 12px; }
+    .inline-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+    .feed-thumb { width: 72px; height: 72px; flex: 0 0 72px; border-radius: 9px; object-fit: cover; background: #122436; }
+    .source-error { margin-top: 8px; color: #ff9eaa; font-size: 12px; }
+    dialog { width: min(92vw, 520px); padding: 0; border: 1px solid #385269; border-radius: 16px; background: #101e2c; color: #e8f1fa; box-shadow: 0 24px 80px #000b; }
+    dialog::backdrop { background: #020812bb; backdrop-filter: blur(4px); }
+    @media (max-width: 800px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 600px) { .login-card { padding: 28px 22px; } .dashboard { padding: 18px 13px 40px; } .topbar { align-items: flex-start; } .topbar .brand img { width: 165px; } .topbar-actions { align-items: flex-end; flex-direction: column; gap: 8px; } .stats { gap: 9px; } .stat { padding: 13px; } .tabs { gap: 3px; padding: 9px; } .tab { padding: 8px; font-size: 12px; } .card { padding: 13px; } .form-grid { grid-template-columns: 1fr; } .form-grid .wide { grid-column: 1; } }
   </style>
 </head>
 <body>
@@ -75,7 +92,7 @@
         <img src="/logos/full-logo.png" alt="TechPulse AI — Administrator access" />
       </div>
       <h1>Admin sign in</h1>
-      <p class="hint">Sign in to review community posts and manage user accounts.</p>
+      <p class="hint">Manage news fetching and sources, curate stories, review community content, and oversee accounts.</p>
       <form id="admin-login-form">
         <label for="username">Admin username</label>
         <input id="username" name="username" type="text" autocomplete="username" required />
@@ -100,26 +117,84 @@
     </header>
     <section class="heading">
       <h1>Management dashboard</h1>
-      <p>Review submitted posts and manage community accounts.</p>
+      <p>Control news fetching, curate imported stories, manage sources, review community content, and oversee accounts.</p>
     </section>
     <section class="stats" aria-label="Management summary">
-      <div class="stat"><span>Posts awaiting review</span><strong id="pending-total">—</strong></div>
-      <div class="stat"><span>Registered accounts</span><strong id="users-total">—</strong></div>
+      <div class="stat"><span>Published stories</span><strong id="metric-posts">—</strong></div>
+      <div class="stat"><span>Pending review</span><strong id="pending-total">—</strong></div>
+      <div class="stat"><span>Active users</span><strong id="metric-active-users">—</strong></div>
+      <div class="stat"><span>Open reports</span><strong id="metric-reports">—</strong></div>
     </section>
     <section class="panel">
       <nav class="tabs" aria-label="Management sections">
-        <button id="pending-tab" class="tab active" type="button">Post review <span id="pending-count" class="tab-count">0</span></button>
-        <button id="users-tab" class="tab" type="button">Users <span id="users-count" class="tab-count">0</span></button>
+        <button class="tab active" type="button" data-section="overview">Overview</button>
+        <button class="tab" type="button" data-section="sources">News sources</button>
+        <button class="tab" type="button" data-section="stories">Feed stories</button>
+        <button class="tab" type="button" data-section="community">Community posts</button>
+        <button id="pending-tab" class="tab" type="button" data-section="pending">Post review <span id="pending-count" class="tab-count">0</span></button>
+        <button class="tab" type="button" data-section="reports">Reports <span id="reports-count" class="tab-count">0</span></button>
+        <button id="users-tab" class="tab" type="button" data-section="users">Users <span id="users-count" class="tab-count">0</span></button>
       </nav>
-      <div id="pending-list" class="list"></div>
-      <div id="users-list" class="list hidden"></div>
+      <section id="section-overview" class="admin-section">
+        <div class="toolbar"><div><h2>News fetching service</h2><div id="sync-subtitle" class="meta">Loading service status…</div></div><span id="sync-state" class="status-pill">Checking</span></div>
+        <div class="list">
+          <article class="card">
+            <div class="card-head"><div><h2 id="sync-title">Automatic news fetching</h2><div id="sync-details" class="meta"></div></div>
+              <div class="inline-actions"><button id="sync-start" class="approve" type="button" onclick="controlNewsSync('start')">Start</button><button id="sync-stop" class="danger" type="button" onclick="controlNewsSync('stop')">Stop</button><button id="sync-refresh" class="secondary" type="button" onclick="controlNewsSync('refresh')">Refresh now</button></div>
+            </div><p id="sync-error" class="source-error hidden"></p>
+          </article>
+          <article class="card"><h2>Community insights</h2><div id="insight-details" class="meta">Loading…</div><div id="popular-topics" style="margin-top:12px"></div></article>
+        </div>
+      </section>
+      <section id="section-sources" class="admin-section hidden">
+        <div class="toolbar"><div><h2>News sources</h2><div class="meta">Add RSS feeds and control which publishers are fetched.</div></div><button class="primary" style="padding:9px 13px;border-radius:9px" type="button" onclick="openSourceDialog()">Add source</button></div>
+        <div id="sources-list" class="list"></div>
+      </section>
+      <section id="section-stories" class="admin-section hidden">
+        <div class="toolbar"><div><h2>Imported feed stories</h2><div id="stories-total" class="meta">Loading stories…</div></div><button class="secondary" type="button" onclick="loadNewsStories()">Refresh list</button></div>
+        <div id="stories-list" class="list"></div>
+        <div class="page-actions"><span id="stories-page-label">Page 1</span><div class="inline-actions"><button class="secondary" type="button" onclick="changeNewsPage(-1)">Previous</button><button class="secondary" type="button" onclick="changeNewsPage(1)">Next</button></div></div>
+      </section>
+      <section id="section-community" class="admin-section hidden">
+        <div class="toolbar"><div><h2>Community posts and comments</h2><div id="community-total" class="meta">Loading community posts…</div></div><button class="secondary" type="button" onclick="loadCommunityPosts()">Refresh list</button></div>
+        <div id="community-list" class="list"></div>
+        <div class="page-actions"><span id="community-page-label">Page 1</span><div class="inline-actions"><button class="secondary" type="button" onclick="changeCommunityPage(-1)">Previous</button><button class="secondary" type="button" onclick="changeCommunityPage(1)">Next</button></div></div>
+      </section>
+      <section id="section-pending" class="admin-section hidden"><div id="pending-list" class="list"></div></section>
+      <section id="section-reports" class="admin-section hidden">
+        <div class="toolbar"><div><h2>Content reports</h2><div class="meta">Review reports submitted by community members.</div></div><button class="secondary" type="button" onclick="loadReports()">Refresh list</button></div>
+        <div id="reports-list" class="list"></div>
+      </section>
+      <section id="section-users" class="admin-section hidden">
+        <div class="toolbar"><div><h2>Community accounts</h2><div id="users-total" class="meta">Loading users…</div></div><input id="user-search" class="field" style="max-width:280px" type="search" placeholder="Find a user" oninput="renderUsers()" /></div>
+        <div id="users-list" class="list"></div>
+      </section>
     </section>
   </main>
+
+  <dialog id="source-dialog">
+    <form id="source-form" class="form-grid" onsubmit="saveSource(event)">
+      <div class="toolbar wide" style="grid-column:1/-1;padding:0 0 12px"><div><h2 id="source-dialog-title">Add a news source</h2><div class="meta">We test the RSS URL before saving.</div></div><button class="secondary" type="button" onclick="closeSourceDialog()">Close</button></div>
+      <label><span>Source name</span><input id="source-name" class="field" maxlength="120" required placeholder="Publisher or feed name" /></label>
+      <label><span>Topic tag</span><select id="source-tag" class="field"><option>#Tech</option><option>#AI</option><option>#Community</option></select></label>
+      <label class="wide"><span>RSS feed URL</span><input id="source-url" class="field" type="url" maxlength="1000" required placeholder="https://example.com/feed.xml" /></label>
+      <p id="source-message" class="source-error wide hidden"></p>
+      <div class="inline-actions wide"><button class="secondary" type="button" onclick="testSource()">Test feed</button><button id="source-save" class="primary" style="padding:10px 15px" type="submit">Save source</button></div>
+    </form>
+  </dialog>
 
   <script>
     const loginView = document.getElementById('login-view');
     const dashboardView = document.getElementById('dashboard-view');
     let currentAdmin = null;
+    let allUsers = [];
+    let newsSources = [];
+    let editingSourceId = null;
+    let newsPage = 1;
+    let newsTotal = 0;
+    let communityPage = 1;
+    let communityTotal = 0;
+    let syncPolling = null;
 
     function escapeHtml(value) {
       return String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
@@ -129,6 +204,7 @@
       dashboardView.classList.add('hidden');
       loginView.classList.remove('hidden');
       document.getElementById('login-message').textContent = message;
+      if (syncPolling) { clearInterval(syncPolling); syncPolling = null; }
     }
 
     async function api(path, options = {}) {
@@ -150,7 +226,26 @@
       document.getElementById('admin-name').textContent = admin.displayName;
       loginView.classList.add('hidden');
       dashboardView.classList.remove('hidden');
-      await Promise.all([loadPendingPosts(), loadUsers()]);
+      await Promise.all([loadPendingPosts(), loadUsers(), loadInsights(), loadNewsSyncStatus(), loadSources(), loadReports()]);
+      if (!syncPolling) syncPolling = setInterval(loadNewsSyncStatus, 15000);
+    }
+
+    function switchSection(name) {
+      document.querySelectorAll('[data-section]').forEach(button => button.classList.toggle('active', button.dataset.section === name));
+      document.querySelectorAll('.admin-section').forEach(section => section.classList.toggle('hidden', section.id !== `section-${name}`));
+      if (name === 'stories') loadNewsStories();
+      if (name === 'community') loadCommunityPosts();
+      if (name === 'reports') loadReports();
+      if (name === 'overview') { loadInsights(); loadNewsSyncStatus(); }
+    }
+
+    document.querySelectorAll('[data-section]').forEach(button => button.addEventListener('click', () => switchSection(button.dataset.section)));
+
+    async function parseResponse(response, fallback) {
+      let data = {};
+      try { data = await response.json(); } catch { }
+      if (!response.ok) throw new Error(data.message || fallback);
+      return data;
     }
 
     async function loadPendingPosts() {
@@ -185,49 +280,285 @@
       try {
         const response = await api('/api/admin/users');
         if (!response.ok) throw new Error('Could not load users.');
-        const users = await response.json();
-        document.getElementById('users-total').textContent = users.length;
-        document.getElementById('users-count').textContent = users.length;
-        list.innerHTML = users.length ? users.map(user => `
-          <article class="card user-row" id="user-${user.id}">
-            <div><strong>${escapeHtml(user.displayName)}</strong><span class="badge ${user.role === 'Admin' ? '' : ''}">${escapeHtml(user.role)}</span>
-              <div class="meta">@${escapeHtml(user.username)} · Joined ${new Date(user.createdAt).toLocaleDateString()} · <span class="${user.isActive ? '' : 'badge off'}">${user.isActive ? 'Active' : 'Deactivated'}</span></div>
-            </div>
-            ${user.id === currentAdmin.id ? '<span class="meta">Your account</span>' : `<button class="secondary" type="button" onclick="toggleUser(${user.id})">${user.isActive ? 'Deactivate' : 'Activate'}</button>`}
-          </article>`).join('') : '<div class="empty">No registered users.</div>';
+        allUsers = await response.json();
+        document.getElementById('users-count').textContent = allUsers.length;
+        renderUsers();
       } catch (error) {
         if (error.message !== 'Administrator authorization required.') list.innerHTML = `<div class="error">${escapeHtml(error.message)}</div>`;
       }
     }
 
+    function renderUsers() {
+      const list = document.getElementById('users-list');
+      const query = (document.getElementById('user-search')?.value || '').trim().toLowerCase();
+      const filtered = allUsers.filter(user => `${user.displayName} ${user.username} ${user.role}`.toLowerCase().includes(query));
+      document.getElementById('users-total').textContent = `${filtered.length} shown · ${allUsers.length} total accounts`;
+      list.innerHTML = filtered.length ? filtered.map(user => `
+          <article class="card user-row" id="user-${user.id}">
+            <div><strong>${escapeHtml(user.displayName)}</strong><span class="badge">${escapeHtml(user.role)}</span>
+              <div class="meta">@${escapeHtml(user.username)} · Joined ${new Date(user.createdAt).toLocaleDateString()} · <span class="${user.isActive ? '' : 'badge off'}">${user.isActive ? 'Active' : 'Deactivated'}</span>${user.location ? ` · ${escapeHtml(user.location)}` : ''}</div>
+              ${user.bio ? `<div class="meta">${escapeHtml(user.bio)}</div>` : ''}
+            </div>
+            ${user.id === currentAdmin.id ? '<span class="meta">Your account</span>' : `<button class="secondary" type="button" onclick="toggleUser(${user.id})">${user.isActive ? 'Deactivate' : 'Activate'}</button>`}
+          </article>`).join('') : '<div class="empty">No matching accounts.</div>';
+    }
+
     async function approvePost(id) {
       const response = await api(`/api/admin/posts/${id}/approve`, { method: 'PATCH' });
-      if (response.ok) await loadPendingPosts();
+      if (response.ok) await Promise.all([loadPendingPosts(), loadInsights()]);
     }
 
     async function deletePost(id) {
       if (!window.confirm('Reject and permanently delete this post?')) return;
       const response = await api(`/api/admin/posts/${id}`, { method: 'DELETE' });
-      if (response.ok) await loadPendingPosts();
+      if (response.ok) await Promise.all([loadPendingPosts(), loadInsights()]);
     }
 
     async function toggleUser(id) {
+      const user = allUsers.find(item => item.id === id);
+      if (user?.isActive && !window.confirm(`Deactivate @${user.username}? They will be signed out and unable to use the community.`)) return;
       const response = await api(`/api/admin/users/${id}/toggle-active`, { method: 'PATCH' });
-      if (response.ok) await loadUsers();
+      if (response.ok) await Promise.all([loadUsers(), loadInsights()]);
     }
 
-    document.getElementById('pending-tab').addEventListener('click', () => {
-      document.getElementById('pending-tab').classList.add('active');
-      document.getElementById('users-tab').classList.remove('active');
-      document.getElementById('pending-list').classList.remove('hidden');
-      document.getElementById('users-list').classList.add('hidden');
-    });
-    document.getElementById('users-tab').addEventListener('click', () => {
-      document.getElementById('users-tab').classList.add('active');
-      document.getElementById('pending-tab').classList.remove('active');
-      document.getElementById('users-list').classList.remove('hidden');
-      document.getElementById('pending-list').classList.add('hidden');
-    });
+    async function loadInsights() {
+      try {
+        const response = await api('/api/admin/insights');
+        const data = await parseResponse(response, 'Could not load community insights.');
+        document.getElementById('metric-posts').textContent = data.totalPosts;
+        document.getElementById('pending-total').textContent = data.pendingPosts;
+        document.getElementById('metric-active-users').textContent = `${data.activeUsers} / ${data.totalUsers}`;
+        document.getElementById('metric-reports').textContent = data.openReports;
+        document.getElementById('pending-count').textContent = data.pendingPosts;
+        document.getElementById('reports-count').textContent = data.openReports;
+        document.getElementById('insight-details').textContent = `${data.newUsersLast30Days} new users in 30 days · ${data.postsLast30Days} posts in 30 days · ${data.totalComments} comments`;
+        document.getElementById('popular-topics').innerHTML = (data.popularTopics || []).map(topic => `<div class="topic-row"><span>${escapeHtml(topic.topic)}</span><strong>${topic.posts} posts</strong></div>`).join('') || '<div class="meta">No published topics yet.</div>';
+      } catch (error) {
+        if (error.message !== 'Administrator authorization required.') document.getElementById('insight-details').textContent = error.message;
+      }
+    }
+
+    async function loadNewsSyncStatus() {
+      try {
+        const response = await api('/api/admin/news-sync/status');
+        const status = await parseResponse(response, 'Could not load news service status.');
+        const running = status.isRunning;
+        const enabled = status.enabled;
+        const pill = document.getElementById('sync-state');
+        pill.textContent = running ? 'Fetching now' : enabled ? 'Running' : 'Stopped';
+        pill.classList.toggle('off', !enabled && !running);
+        document.getElementById('sync-subtitle').textContent = running ? 'A refresh is currently processing news sources.' : enabled ? 'Automatic source fetching is enabled.' : 'Automatic source fetching is paused.';
+        document.getElementById('sync-title').textContent = running ? 'News refresh in progress' : enabled ? 'Automatic news fetching is enabled' : 'Automatic news fetching is stopped';
+        document.getElementById('sync-details').textContent = `Last fetch: ${status.lastRunAt ? new Date(status.lastRunAt).toLocaleString() : 'Not run yet'} · New stories: ${status.lastInsertedCount ?? '—'}`;
+        document.getElementById('sync-error').textContent = status.lastError || '';
+        document.getElementById('sync-error').classList.toggle('hidden', !status.lastError);
+        document.getElementById('sync-start').disabled = enabled || running;
+        document.getElementById('sync-stop').disabled = !enabled && !running;
+      } catch (error) {
+        if (error.message !== 'Administrator authorization required.') document.getElementById('sync-subtitle').textContent = error.message;
+      }
+    }
+
+    async function controlNewsSync(action) {
+      const button = document.getElementById(action === 'start' ? 'sync-start' : action === 'stop' ? 'sync-stop' : 'sync-refresh');
+      if (button) button.disabled = true;
+      try {
+        const response = await api(`/api/admin/news-sync/${action}`, { method: 'POST' });
+        const data = await parseResponse(response, `Could not ${action} news fetching.`);
+        if (data.message) window.alert(data.message);
+        await loadNewsSyncStatus();
+      } catch (error) {
+        if (error.message !== 'Administrator authorization required.') window.alert(error.message);
+      } finally {
+        if (button) button.disabled = false;
+      }
+    }
+
+    async function loadSources() {
+      const list = document.getElementById('sources-list');
+      try {
+        const response = await api('/api/admin/news-sources');
+        newsSources = await parseResponse(response, 'Could not load news sources.');
+        list.innerHTML = newsSources.length ? newsSources.map(source => `
+          <article class="card">
+            <div class="card-head"><div><h2>${escapeHtml(source.name)} <span class="badge">${escapeHtml(source.tag)}</span></h2><div class="meta">${escapeHtml(source.feedUrl)}</div><div class="meta">${source.lastCheckedAt ? `Last checked ${new Date(source.lastCheckedAt).toLocaleString()} · ${source.lastItemCount ?? 0} items` : 'Not fetched yet'}</div>${source.lastError ? `<p class="source-error">${escapeHtml(source.lastError)}</p>` : ''}</div><span class="status-pill ${source.isEnabled ? '' : 'off'}">${source.isEnabled ? 'Enabled' : 'Paused'}</span></div>
+            <div class="actions"><button class="secondary" type="button" onclick="editSource(${source.id})">Edit</button><button class="secondary" type="button" onclick="toggleSource(${source.id})">${source.isEnabled ? 'Pause source' : 'Enable source'}</button><button class="danger" type="button" onclick="deleteSource(${source.id})">Remove source</button></div>
+          </article>`).join('') : '<div class="empty">No sources configured. Add an RSS feed to start building the news feed.</div>';
+      } catch (error) {
+        if (error.message !== 'Administrator authorization required.') list.innerHTML = `<div class="error">${escapeHtml(error.message)}</div>`;
+      }
+    }
+
+    function openSourceDialog(source = null) {
+      editingSourceId = source?.id ?? null;
+      document.getElementById('source-dialog-title').textContent = source ? 'Edit a news source' : 'Add a news source';
+      document.getElementById('source-name').value = source?.name || '';
+      document.getElementById('source-url').value = source?.feedUrl || '';
+      document.getElementById('source-tag').value = source?.tag || '#Tech';
+      document.getElementById('source-message').textContent = '';
+      document.getElementById('source-message').classList.add('hidden');
+      document.getElementById('source-dialog').showModal();
+    }
+
+    function editSource(id) { openSourceDialog(newsSources.find(source => source.id === id)); }
+    function closeSourceDialog() { document.getElementById('source-dialog').close(); }
+
+    async function testSource() {
+      const message = document.getElementById('source-message');
+      message.classList.remove('hidden');
+      message.textContent = 'Testing feed…';
+      try {
+        const response = await api('/api/admin/news-sources/test', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ feedUrl: document.getElementById('source-url').value.trim() }) });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || data.message || 'Feed test failed.');
+        message.textContent = `Feed is valid · ${data.itemCount} items${data.latestTitle ? ` · Latest: ${data.latestTitle}` : ''}`;
+        message.style.color = '#77e0bd';
+      } catch (error) {
+        message.textContent = error.message;
+        message.style.color = '#ff9eaa';
+      }
+    }
+
+    async function saveSource(event) {
+      event.preventDefault();
+      const existingSource = editingSourceId ? newsSources.find(source => source.id === editingSourceId) : null;
+      const body = JSON.stringify({ name: document.getElementById('source-name').value.trim(), feedUrl: document.getElementById('source-url').value.trim(), tag: document.getElementById('source-tag').value, isEnabled: existingSource?.isEnabled ?? true });
+      const path = editingSourceId ? `/api/admin/news-sources/${editingSourceId}` : '/api/admin/news-sources';
+      const button = document.getElementById('source-save');
+      button.disabled = true;
+      try {
+        const response = await api(path, { method: editingSourceId ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body });
+        await parseResponse(response, 'Could not save this source.');
+        closeSourceDialog();
+        await loadSources();
+      } catch (error) {
+        const message = document.getElementById('source-message');
+        message.textContent = error.message;
+        message.classList.remove('hidden');
+      } finally { button.disabled = false; }
+    }
+
+    async function toggleSource(id) {
+      const source = newsSources.find(item => item.id === id);
+      if (!source) return;
+      const response = await api(`/api/admin/news-sources/${id}/enabled`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isEnabled: !source.isEnabled }) });
+      if (response.ok) await loadSources();
+    }
+
+    async function deleteSource(id) {
+      if (!window.confirm('Remove this RSS source? Existing stories will remain in the feed.')) return;
+      const response = await api(`/api/admin/news-sources/${id}`, { method: 'DELETE' });
+      if (response.ok) await loadSources();
+    }
+
+    async function loadNewsStories() {
+      const list = document.getElementById('stories-list');
+      try {
+        const response = await api(`/api/admin/news?page=${newsPage}&pageSize=20`);
+        const data = await parseResponse(response, 'Could not load imported stories.');
+        newsTotal = data.total;
+        document.getElementById('stories-total').textContent = `${data.total} imported stories`;
+        document.getElementById('stories-page-label').textContent = `Page ${data.page} · ${data.items.length ? (data.page - 1) * data.pageSize + 1 : 0}–${Math.min(data.page * data.pageSize, data.total)} of ${data.total}`;
+        list.innerHTML = data.items.length ? data.items.map(story => `
+          <article class="card">
+            <div class="card-head"><div><h2>${escapeHtml(story.title)}</h2><div class="meta">${escapeHtml(story.source || 'News source')} · ${escapeHtml(story.tag)} · ${new Date(story.createdAt).toLocaleString()}</div></div><span class="status-pill ${story.status === 'Approved' ? '' : 'off'}">${escapeHtml(story.status)}</span></div>
+            <p class="summary">${escapeHtml(story.summary)}</p>${story.link ? `<a class="link" href="${escapeHtml(story.link)}" target="_blank" rel="noopener noreferrer">Open original article ↗</a>` : ''}
+            <div class="actions"><button class="secondary" type="button" onclick="setStoryVisibility(${story.id}, ${story.status !== 'Approved'})">${story.status === 'Approved' ? 'Hide from feed' : 'Publish to feed'}</button><button class="danger" type="button" onclick="deleteStory(${story.id})">Delete story</button></div>
+          </article>`).join('') : '<div class="empty">No imported news stories are available.</div>';
+      } catch (error) {
+        if (error.message !== 'Administrator authorization required.') list.innerHTML = `<div class="error">${escapeHtml(error.message)}</div>`;
+      }
+    }
+
+    function changeNewsPage(amount) {
+      const maxPage = Math.max(1, Math.ceil(newsTotal / 20));
+      newsPage = Math.min(maxPage, Math.max(1, newsPage + amount));
+      loadNewsStories();
+    }
+
+    async function setStoryVisibility(id, visible) {
+      const response = await api(`/api/admin/news/${id}/visibility`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ visible }) });
+      if (response.ok) await loadNewsStories();
+    }
+
+    async function deleteStory(id) {
+      if (!window.confirm('Permanently delete this imported story and its comments?')) return;
+      const response = await api(`/api/admin/news/${id}`, { method: 'DELETE' });
+      if (response.ok) { await Promise.all([loadNewsStories(), loadInsights()]); }
+    }
+
+    async function loadCommunityPosts() {
+      const list = document.getElementById('community-list');
+      try {
+        const response = await api(`/api/admin/community-posts?page=${communityPage}&pageSize=20`);
+        const data = await parseResponse(response, 'Could not load community posts.');
+        communityTotal = data.total;
+        document.getElementById('community-total').textContent = `${data.total} published or hidden community posts`;
+        document.getElementById('community-page-label').textContent = `Page ${data.page} · ${data.items.length ? (data.page - 1) * data.pageSize + 1 : 0}–${Math.min(data.page * data.pageSize, data.total)} of ${data.total}`;
+        list.innerHTML = data.items.length ? data.items.map(post => `
+          <article class="card">
+            <div class="card-head"><div><h2>${escapeHtml(post.title)}</h2><div class="meta">By @${escapeHtml(post.author?.username || 'unknown')} · ${escapeHtml(post.tag)} · ${new Date(post.createdAt).toLocaleString()}</div></div><span class="status-pill ${post.status === 'Approved' ? '' : 'off'}">${escapeHtml(post.status)}</span></div>
+            ${post.imageUrl ? `<img class="post-image" src="${escapeHtml(post.imageUrl)}" alt="" onerror="this.remove()" />` : ''}<p class="summary">${escapeHtml(post.summary)}</p>
+            <div class="actions"><button class="secondary" type="button" onclick="setCommunityVisibility(${post.id}, ${post.status !== 'Approved'})">${post.status === 'Approved' ? 'Hide from feed' : 'Restore to feed'}</button><button class="danger" type="button" onclick="deleteCommunityPost(${post.id})">Delete post</button></div>
+            <div style="margin-top:14px;border-top:1px solid #203447;padding-top:12px"><strong style="font-size:12px">Comments (${post.comments.length}${post.comments.length === 20 ? '+' : ''})</strong>
+              ${post.comments.length ? post.comments.map(comment => `<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #203447"><div><div style="font-size:12px"><b>${escapeHtml(comment.user)}</b> <span class="meta">@${escapeHtml(comment.username)} · ${new Date(comment.createdAt).toLocaleString()}</span></div><div class="summary" style="margin:5px 0 0">${escapeHtml(comment.content)}</div></div><button class="danger" type="button" onclick="deleteCommunityComment(${comment.id})">Remove</button></div>`).join('') : '<div class="meta" style="padding-top:10px">No comments yet.</div>'}
+            </div>
+          </article>`).join('') : '<div class="empty">No community posts are available.</div>';
+      } catch (error) {
+        if (error.message !== 'Administrator authorization required.') list.innerHTML = `<div class="error">${escapeHtml(error.message)}</div>`;
+      }
+    }
+
+    function changeCommunityPage(amount) {
+      const maxPage = Math.max(1, Math.ceil(communityTotal / 20));
+      communityPage = Math.min(maxPage, Math.max(1, communityPage + amount));
+      loadCommunityPosts();
+    }
+
+    async function setCommunityVisibility(id, visible) {
+      const response = await api(`/api/admin/community-posts/${id}/visibility`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ visible }) });
+      if (response.ok) await Promise.all([loadCommunityPosts(), loadInsights()]);
+    }
+
+    async function deleteCommunityPost(id) {
+      if (!window.confirm('Permanently delete this community post and its comments?')) return;
+      const response = await api(`/api/admin/posts/${id}`, { method: 'DELETE' });
+      if (response.ok) await Promise.all([loadCommunityPosts(), loadInsights()]);
+    }
+
+    async function deleteCommunityComment(id) {
+      if (!window.confirm('Permanently remove this comment?')) return;
+      const response = await api(`/api/admin/comments/${id}`, { method: 'DELETE' });
+      if (response.ok) await Promise.all([loadCommunityPosts(), loadInsights()]);
+    }
+
+    async function loadReports() {
+      const list = document.getElementById('reports-list');
+      try {
+        const response = await api('/api/admin/reports');
+        const reports = await parseResponse(response, 'Could not load reports.');
+        const open = reports.filter(report => report.status === 'Open');
+        document.getElementById('reports-count').textContent = open.length;
+        list.innerHTML = reports.length ? reports.map(report => `
+          <article class="card"><div class="card-head"><div><h2>${escapeHtml(report.reason)}</h2><div class="meta">Reported by @${escapeHtml(report.reporter || 'unknown')} · ${new Date(report.createdAt).toLocaleString()} · ${escapeHtml(report.status)}</div></div><span class="badge">${report.postId ? 'Post' : 'Comment'}</span></div>
+            <p class="summary">${escapeHtml(report.postTitle || report.commentContent || 'Reported content no longer exists.')}</p>
+            ${report.status === 'Open' ? `<div class="actions"><button class="secondary" type="button" onclick="resolveReport(${report.id})">Resolve and keep content</button><button class="danger" type="button" onclick="removeReportedContent(${report.id})">Remove content</button></div>` : ''}
+          </article>`).join('') : '<div class="empty">There are no content reports.</div>';
+      } catch (error) {
+        if (error.message !== 'Administrator authorization required.') list.innerHTML = `<div class="error">${escapeHtml(error.message)}</div>`;
+      }
+    }
+
+    async function resolveReport(id) {
+      const response = await api(`/api/admin/reports/${id}/resolve`, { method: 'PATCH' });
+      if (response.ok) await Promise.all([loadReports(), loadInsights()]);
+    }
+
+    async function removeReportedContent(id) {
+      if (!window.confirm('Permanently remove the reported post or comment?')) return;
+      const response = await api(`/api/admin/reports/${id}/content`, { method: 'DELETE' });
+      if (response.ok) await Promise.all([loadReports(), loadInsights()]);
+    }
 
     document.getElementById('admin-login-form').addEventListener('submit', async event => {
       event.preventDefault();
