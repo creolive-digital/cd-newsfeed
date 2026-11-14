@@ -62,9 +62,8 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          source: "./database/backup-sqlserver.sh"
+          source: "database/backup-sqlserver.sh"
           target: /tmp
-          strip_components: 1
 
       - name: Back up live database before deployment
         uses: appleboy/ssh-action@v1.0.3
@@ -73,8 +72,8 @@ jobs:
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            sudo chmod 700 /tmp/backup-sqlserver.sh
-            sudo /tmp/backup-sqlserver.sh
+            sudo chmod 700 /tmp/database/backup-sqlserver.sh
+            sudo /tmp/database/backup-sqlserver.sh
 
       - name: Copy application to VPS
         uses: appleboy/scp-action@v0.1.7
